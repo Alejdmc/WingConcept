@@ -1,0 +1,116 @@
+# ============================================================
+# WingConcept — Docker Compose
+# Servicios: backend, redis, nginx
+#
+# Uso:
+#   Desarrollo:  docker-compose up -d
+#   Producción:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# NOTA: La base de datos NO está en Docker — usa Supabase PostgreSQL externo.
+# Configurar DATABASE_URL en .env con la URL de Supabase.
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── Backend FastAPI ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: wingconcept_backend
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env
+    environment:
+      # Override para Docker networking
+      - REDIS_HOST=redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - wingnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Redis — Caché, rate limiting, carrito anónimo ──────────────────────────
+  # Docs: https://redis.io/docs
+  # No requiere configuración adicional en desarrollo
+  # En producción: considerar Redis Cloud (https://redis.com/cloud/) o Upstash (https://upstash.com)
+  redis:
+    image: redis:7-alpine
+    container_name: wingconcept_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - wingnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Nginx — Proxy reverso ──────────────────────────────────────────────────
+  # Gestiona: SSL (Let's Encrypt), rate limiting HTTP, headers de seguridad
+  # Configuración: docker/nginx/nginx.conf
+  nginx:
+    image: nginx:alpine
+    container_name: wingconcept_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - backend
+    networks:
+      - wingnet
+
+  # ── Certbot — SSL Let's Encrypt ────────────────────────────────────────────
+  # Docs: https://certbot.eff.org/docs
+  # Comando inicial para obtener certificado:
+  #   docker-compose run --rm certbot certonly --webroot \
+  #     -w /var/www/certbot -d tudominio.com --email tu@email.com --agree-tos
+  # Renovación automática (cron):
+  #   0 0 */60 * * docker-compose run --rm certbot renew
+  certbot:
+    image: certbot/certbot
+    container_name: wingconcept_certbot
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+    networks:
+      - wingnet
+
+# ── Volúmenes ───────────────────────────────────────────────────────────────
+volumes:
+  redis_data:
+    driver: local
+  certbot_certs:
+    driver: local
+  certbot_www:
+    driver: local
+
+# ── Red interna ─────────────────────────────────────────────────────────────
+networks:
+  wingnet:
+    driver: bridge
+

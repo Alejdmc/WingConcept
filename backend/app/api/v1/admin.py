@@ -1,0 +1,154 @@
+"""
+WingConcept Backend — Admin Endpoints
+Panel de administración: usuarios, órdenes, estadísticas
+Solo accesible con rol admin.
+"""
+import uuid
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.dependencies import get_current_admin
+from app.database import get_db
+from app.models.orden import Orden
+from app.models.producto import Producto
+from app.models.usuario import Usuario
+from app.schemas.orden import OrdenUpdate, OrdenResponse, PaginatedOrdenes
+from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
+from app.services.orden_service import orden_service
+
+router = APIRouter(prefix="/admin", tags=["Admin"])
+
+
+# ── Dashboard Stats ───────────────────────────────────────────────────────────
+
+@router.get("/stats")
+async def dashboard_stats(
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Estadísticas generales del dashboard."""
+    total_usuarios = (await db.execute(select(func.count(Usuario.id)))).scalar()
+    total_productos = (await db.execute(
+        select(func.count(Producto.id)).where(Producto.activo == True)
+    )).scalar()
+    total_ordenes = (await db.execute(select(func.count(Orden.id)))).scalar()
+    ordenes_pendientes = (await db.execute(
+        select(func.count(Orden.id)).where(Orden.estado == "pendiente")
+    )).scalar()
+    ingresos_result = await db.execute(
+        select(func.sum(Orden.total)).where(Orden.estado.in_(["pagado", "procesando", "enviado", "entregado"]))
+    )
+    ingresos_totales = float(ingresos_result.scalar() or 0)
+
+    return {
+        "total_usuarios": total_usuarios,
+        "total_productos_activos": total_productos,
+        "total_ordenes": total_ordenes,
+        "ordenes_pendientes": ordenes_pendientes,
+        "ingresos_totales": ingresos_totales,
+    }
+
+
+# ── Usuarios ──────────────────────────────────────────────────────────────────
+
+@router.get("/usuarios")
+async def listar_usuarios(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+    buscar: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista todos los usuarios del sistema."""
+    import math
+    query = select(Usuario)
+    if buscar:
+        from sqlalchemy import or_
+        query = query.where(
+            or_(
+                Usuario.email.ilike(f"%{buscar}%"),
+                Usuario.nombre.ilike(f"%{buscar}%"),
+            )
+        )
+    total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar() or 0
+    query = query.order_by(Usuario.created_at.desc()).offset((pagina - 1) * por_pagina).limit(por_pagina)
+    result = await db.execute(query)
+    usuarios = result.scalars().all()
+
+    return {
+        "items": [UsuarioResponse.model_validate(u) for u in usuarios],
+        "total": total,
+        "pagina": pagina,
+        "paginas": math.ceil(total / por_pagina) if total > 0 else 0,
+    }
+
+
+@router.put("/usuarios/{usuario_id}", response_model=UsuarioResponse)
+async def actualizar_usuario(
+    usuario_id: uuid.UUID,
+    data: UsuarioAdminUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza datos de un usuario (rol, activo, etc.)."""
+    from app.core.exceptions import RecursoNoEncontradoError
+    result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
+    usuario = result.scalar_one_or_none()
+    if not usuario:
+        raise RecursoNoEncontradoError("Usuario")
+
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(usuario, key, value)
+
+    await db.flush()
+    return UsuarioResponse.model_validate(usuario)
+
+
+# ── Órdenes Admin ─────────────────────────────────────────────────────────────
+
+@router.get("/ordenes", response_model=PaginatedOrdenes)
+async def listar_todas_ordenes(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+    estado: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista todas las órdenes del sistema con filtros."""
+    return await orden_service.listar_admin(db, pagina, por_pagina, estado)
+
+
+@router.put("/ordenes/{orden_id}", response_model=OrdenResponse)
+async def actualizar_orden(
+    orden_id: uuid.UUID,
+    data: OrdenUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza estado, guía y notas de una orden."""
+    orden_response = await orden_service.actualizar_estado(db, orden_id, data)
+
+    # Enviar email si se marca como enviada
+    if data.estado == "enviado" and data.numero_guia and data.transportadora:
+        from sqlalchemy.orm import selectinload
+        result = await db.execute(
+            select(Orden).options(
+                selectinload(Orden.usuario)
+            ).where(Orden.id == orden_id)
+        )
+        orden = result.scalar_one_or_none()
+        if orden and orden.usuario:
+            from app.services.email_service import email_service
+            await email_service.enviar_orden_enviada(
+                email=orden.usuario.email,
+                nombre=orden.usuario.nombre,
+                numero_orden=orden.numero_orden,
+                numero_guia=data.numero_guia,
+                transportadora=data.transportadora,
+            )
+
+    return orden_response
+
