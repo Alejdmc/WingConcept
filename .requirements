@@ -1,0 +1,68 @@
+# ============================================================
+# WingConcept Backend — Requirements
+# Equipo: ZomiDev
+# ============================================================
+
+# --- Framework principal ---
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# --- Validación y configuración ---
+pydantic==2.5.0
+pydantic-settings==2.1.0
+email-validator==2.1.0
+phonenumbers==8.13.26
+
+# --- Base de datos (PostgreSQL via Supabase) ---
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
+
+# --- Cache / Sesiones / Rate Limiting (Redis) ---
+redis==5.0.1
+hiredis==2.2.3
+
+# --- Autenticación JWT ---
+# Se usa junto con SECRET_KEY de .env
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+# IMPORTANTE: bcrypt 5.x es incompatible con passlib 1.7.4 — mantener en 4.x
+bcrypt==4.0.1
+
+# --- HTTP Client (para llamadas a APIs externas) ---
+httpx==0.25.2
+requests==2.31.0
+
+# --- Pasarela de pagos: Wompi (Colombia) ---
+# Documentación: https://docs.wompi.co
+# Requiere: WOMPI_PUBLIC_KEY, WOMPI_PRIVATE_KEY, WOMPI_EVENTS_SECRET
+
+# --- Pasarela de pagos: Stripe (Global) ---
+# Documentación: https://stripe.com/docs/api
+# Requiere: STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
+stripe==7.8.0
+
+# --- Email transaccional: Resend ---
+# Documentación: https://resend.com/docs
+# Requiere: RESEND_API_KEY, FROM_EMAIL
+resend==0.7.0
+
+# --- Utilidades ---
+python-dotenv==1.0.0
+pytz==2023.3
+python-slugify==8.0.1
+Pillow==10.1.0
+
+# --- Logging estructurado ---
+structlog==23.2.0
+
+# --- Testing ---
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# --- Calidad de código ---
+black==23.12.0
+flake8==6.1.0
+mypy==1.7.1
