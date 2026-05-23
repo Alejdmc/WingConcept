@@ -81,15 +81,16 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-16 px-8">
+      <div className="flex items-center justify-between h-24 px-8">
         {/* Logo */}
       <Link href="/" className="flex items-center">
         <Image
           src="/images/logo.png"
           alt="Wing Concept"
-          width={200}
-          height={80}
+          width={400}
+          height={100}
           priority
+          className="h-24 w-auto"
       />
       </Link>
 
