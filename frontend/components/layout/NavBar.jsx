@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
@@ -10,8 +11,8 @@ const NAV_ITEMS = [
     label: 'Adventure',
     children: [
       { label: 'W.C Adventure', href: '/adventure' },
-      { label: 'W.C Shows',    href: '/shows' },
-      { label: 'W.C Events',   href: '/events' },
+      { label: 'W.C Shows',     href: '/shows' },
+      { label: 'W.C Events',    href: '/events' },
     ],
   },
   {
@@ -34,13 +35,6 @@ const NAV_ITEMS = [
 
 function DropdownItem({ item }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handler = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   if (!item.children) {
     return (
@@ -53,15 +47,20 @@ function DropdownItem({ item }) {
   }
 
   return (
-    <div ref={ref} className="relative">
-      <button onClick={() => setOpen(o => !o)}
+    <div 
+      className="relative p-1" // El padding ayuda a que el área de hover sea más estable
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button 
         className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold tracking-[0.08em]
                    uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors">
         {item.label}
         <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
+      
       {open && (
-        <div className="absolute top-[calc(100%+8px)] left-0 bg-bg border border-borderline rounded-lg
+        <div className="absolute top-[calc(100%+4px)] left-0 bg-bg border border-borderline rounded-lg
                         min-w-[180px] shadow-[0_8px_32px_rgba(0,0,0,0.10)] overflow-hidden z-50">
           {item.children.map((child) => (
             <Link key={child.href} href={child.href}
@@ -84,12 +83,17 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
       <div className="flex items-center justify-between h-16 px-8">
         {/* Logo */}
-        <Link href="/"
-          className="font-['Barlow_Condensed'] font-black italic text-[22px] tracking-[0.04em] uppercase text-ink">
-          WING<span className="text-brand">&nbsp;CONCEPT</span>
-        </Link>
+      <Link href="/" className="flex items-center">
+        <Image
+          src="/images/logo.png"
+          alt="Wing Concept"
+          width={200}
+          height={80}
+          priority
+      />
+      </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav: Usa hover */}
         <div className="hidden md:flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
             <DropdownItem key={item.label} item={item} />
@@ -116,7 +120,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu: Usa clic (nativo de <details>) */}
       {mobileOpen && (
         <div className="md:hidden border-t border-borderline bg-bg px-4 py-3 flex flex-col gap-1">
           {NAV_ITEMS.map((item) =>

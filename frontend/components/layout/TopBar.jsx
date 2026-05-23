@@ -11,7 +11,7 @@ export default function TopBar() {
   return (
     <div className="bg-bg2 border-b border-borderline h-9 flex items-center justify-between px-8">
       <div className="flex items-center gap-5">
-        <a href="mailto:info@wingconcept.com"
+        <a href="mailto:info@wingconcepts.com"
           className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink2 tracking-wide hover:text-brand transition-colors">
           <Mail className="w-3.5 h-3.5" />
           info@wingconcept.com

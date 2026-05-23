@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-  './app/**/*.{js,jsx,ts,tsx}',
-  './components/**/*.{js,jsx,ts,tsx}',
-],
+    './app/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
@@ -17,8 +17,10 @@ module.exports = {
         borderline:   '#e5e5ea',
       },
       fontFamily: {
+       
+        sans: ['Montserrat', 'sans-serif'],
+        barlow:    ['"Barlow"', 'sans-serif'],
         condensed: ['"Barlow Condensed"', 'sans-serif'],
-        sans:      ['"Barlow"', 'sans-serif'],
       },
     },
   },
