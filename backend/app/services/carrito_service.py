@@ -3,6 +3,7 @@ WingConcept Backend — Carrito Service
 Manejo dual: usuarios autenticados (PostgreSQL) y anónimos (Redis)
 """
 import logging
+import uuid
 from typing import Optional
 from uuid import UUID
 
@@ -125,20 +126,22 @@ class CarritoService:
         await db.flush()
 
     async def _carrito_a_response(self, db: AsyncSession, carrito: Carrito) -> CarritoResponse:
-        """Construye la respuesta del carrito con info de variantes."""
+        """Construye la respuesta del carrito con info de variantes y productos."""
         items_response = []
         total = 0.0
 
         for item in carrito.items:
             variante_result = await db.execute(
-                select(Variante).where(Variante.id == item.variante_id)
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.id == item.variante_id)
             )
             variante = variante_result.scalar_one_or_none()
             producto_nombre = None
             imagen = None
             variante_nombre = variante.nombre if variante else None
 
-            if variante and hasattr(variante, 'producto') and variante.producto:
+            if variante and variante.producto:
                 producto_nombre = variante.producto.nombre
                 imagenes = variante.producto.imagenes
                 imagen = imagenes[0] if imagenes else None
@@ -193,7 +196,7 @@ class CarritoService:
             item_existente["subtotal"] = item_existente["precio_unitario"] * item_existente["cantidad"]
         else:
             items.append({
-                "id": str(UUID.uuid4() if hasattr(UUID, 'uuid4') else __import__('uuid').uuid4()),
+                "id": str(uuid.uuid4()),
                 "variante_id": variante_id,
                 "cantidad": cantidad,
                 "precio_unitario": precio,
@@ -209,8 +212,42 @@ class CarritoService:
         return CarritoResponse(**carrito_data)
 
     async def limpiar_anonimo(self, session_id: str) -> None:
-        """Elimina el carrito anónimo de Redis."""
+        """Elimina el carrito anónimo de Redis (tras login o checkout)."""
         await carrito_delete(session_id)
+
+    async def fusionar_anonimo_con_usuario(
+        self, db: AsyncSession, usuario_id: UUID, session_id: str
+    ) -> CarritoResponse:
+        """
+        Fusiona el carrito anónimo (Redis) con el del usuario autenticado (DB).
+        Se llama tras el login. Los items anónimos se suman al carrito existente.
+        """
+        data = await carrito_get(session_id)
+        items_anonimos = data.get("items", []) if data else []
+
+        if not items_anonimos:
+            carrito = await self.obtener_o_crear(db, usuario_id)
+            return await self._carrito_a_response(db, carrito)
+
+        for item in items_anonimos:
+            try:
+                variante_id = UUID(item["variante_id"])
+                cantidad = item.get("cantidad", 1)
+                # Verificar variante activa y con stock antes de fusionar
+                variante_result = await db.execute(
+                    select(Variante).where(Variante.id == variante_id, Variante.activo == True)
+                )
+                variante = variante_result.scalar_one_or_none()
+                if variante and variante.stock >= cantidad:
+                    await self.agregar_item(db, usuario_id, variante_id, cantidad)
+            except Exception as e:
+                logger.warning(f"Error fusionando item anónimo {item.get('variante_id')}: {e}")
+
+        # Limpiar carrito anónimo tras fusión
+        await carrito_delete(session_id)
+
+        carrito = await self.obtener_o_crear(db, usuario_id)
+        return await self._carrito_a_response(db, carrito)
 
 
 carrito_service = CarritoService()

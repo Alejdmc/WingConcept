@@ -111,6 +111,7 @@ class ProductoListResponse(BaseModel):
     slug: str
     descripcion_corta: Optional[str]
     categoria: str
+    subcategoria: Optional[str]
     imagenes: Optional[List[str]]
     activo: bool
     destacado: bool
@@ -125,4 +126,11 @@ class PaginatedProductos(BaseModel):
     pagina: int
     por_pagina: int
     paginas: int
+
+
+class CategoriaResponse(BaseModel):
+    """Categoría disponible con conteo de productos."""
+    categoria: str
+    total: int
+
 

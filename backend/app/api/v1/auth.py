@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas.auth import (
     LoginRequest,
+    LoginResponse,
     RecuperarPasswordRequest,
     RefreshRequest,
     RegisterRequest,
@@ -50,13 +51,13 @@ async def register(
     return usuario
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=LoginResponse)
 async def login(
     data: LoginRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Autentica usuario y retorna JWT. Rate limit: 10 intentos/15min por IP."""
+    """Autentica usuario y retorna JWT + datos básicos. Rate limit: 10 intentos/15min por IP."""
     client_ip = request.client.host if request.client else "unknown"
     permitido, _ = await check_rate_limit(
         f"{client_ip}:{data.email}", limit=10, window_seconds=900, prefix="rl:login"
@@ -89,13 +90,13 @@ async def recuperar_password(
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos. Espera 1 hora.")
 
-    token = await auth_service.solicitar_recuperacion(db, data.email)
+    token_data = await auth_service.solicitar_recuperacion(db, data.email)
 
-    if token:
-        # TODO: pasar la URL del frontend desde config
+    if token_data:
+        token, nombre = token_data
         await email_service.enviar_recuperacion_password(
             email=data.email,
-            nombre="",
+            nombre=nombre,
             token=token,
         )
 

@@ -1,6 +1,8 @@
 """
 WingConcept Backend — Productos Endpoints
 GET  /api/v1/productos
+GET  /api/v1/productos/destacados
+GET  /api/v1/productos/categorias
 GET  /api/v1/productos/{slug}
 POST /api/v1/productos (admin)
 PUT  /api/v1/productos/{id} (admin)
@@ -9,7 +11,7 @@ POST /api/v1/productos/{id}/variantes (admin)
 PUT  /api/v1/productos/{id}/variantes/{variante_id} (admin)
 """
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,8 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_admin
 from app.database import get_db
 from app.schemas.producto import (
+    CategoriaResponse,
     PaginatedProductos,
     ProductoCreate,
+    ProductoListResponse,
     ProductoResponse,
     ProductoUpdate,
     VarianteCreate,
@@ -40,6 +44,21 @@ async def listar_productos(
 ):
     """Lista productos con paginación y filtros. Público."""
     return await producto_service.listar(db, pagina, por_pagina, categoria, buscar)
+
+
+@router.get("/destacados", response_model=List[ProductoListResponse])
+async def listar_destacados(
+    limite: int = Query(6, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+):
+    """Lista productos destacados para la página principal. Público."""
+    return await producto_service.listar_destacados(db, limite)
+
+
+@router.get("/categorias", response_model=List[CategoriaResponse])
+async def listar_categorias(db: AsyncSession = Depends(get_db)):
+    """Retorna categorías disponibles con conteo de productos activos. Público."""
+    return await producto_service.listar_categorias(db)
 
 
 @router.get("/{slug}", response_model=ProductoResponse)

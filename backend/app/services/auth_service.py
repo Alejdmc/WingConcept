@@ -14,7 +14,6 @@ from app.config import settings
 from app.core.exceptions import (
     CredencialesInvalidasError,
     RecursoDuplicadoError,
-    RecursoNoEncontradoError,
     TokenExpiradoError,
 )
 from app.core.security import (
@@ -25,7 +24,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.usuario import Usuario
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, TokenResponse
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +54,8 @@ class AuthService:
         logger.info(f"Nuevo usuario registrado: {usuario.email}")
         return usuario
 
-    async def login(self, db: AsyncSession, data: LoginRequest) -> TokenResponse:
-        """Autentica usuario y retorna access + refresh tokens."""
+    async def login(self, db: AsyncSession, data: LoginRequest) -> LoginResponse:
+        """Autentica usuario y retorna access + refresh tokens junto con datos básicos del usuario."""
         result = await db.execute(
             select(Usuario).where(Usuario.email == data.email.lower())
         )
@@ -76,10 +75,15 @@ class AuthService:
         refresh_token = create_refresh_token(subject=str(usuario.id))
 
         logger.info(f"Login exitoso: {usuario.email}")
-        return TokenResponse(
+        return LoginResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            usuario_id=usuario.id,
+            email=usuario.email,
+            nombre=usuario.nombre,
+            apellido=usuario.apellido,
+            rol=usuario.rol,
         )
 
     async def refresh(self, db: AsyncSession, refresh_token: str) -> TokenResponse:
@@ -108,11 +112,11 @@ class AuthService:
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
 
-    async def solicitar_recuperacion(self, db: AsyncSession, email: str) -> Optional[str]:
+    async def solicitar_recuperacion(self, db: AsyncSession, email: str) -> Optional[tuple]:
         """
         Genera token de recuperación y lo guarda en DB.
-        Retorna el token para enviarlo por email.
-        Siempre responde exitosamente (no revelar si email existe).
+        Retorna (token, nombre) para enviarlo por email.
+        Retorna None si el email no existe (no revelar que no existe).
         """
         result = await db.execute(
             select(Usuario).where(Usuario.email == email.lower())
@@ -127,7 +131,7 @@ class AuthService:
         await db.flush()
 
         logger.info(f"Token de recuperación generado para: {email}")
-        return token
+        return token, usuario.nombre
 
     async def resetear_password(
         self, db: AsyncSession, token: str, nueva_password: str

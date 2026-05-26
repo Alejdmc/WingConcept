@@ -4,6 +4,7 @@ CRUD de productos y variantes con caché Redis
 """
 import logging
 import math
+import uuid as uuid_module
 from typing import List, Optional
 from uuid import UUID
 
@@ -12,10 +13,11 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import RecursoDuplicadoError, RecursoNoEncontradoError
+from app.core.exceptions import RecursoNoEncontradoError
 from app.models.producto import Producto
 from app.models.variante import Variante
 from app.schemas.producto import (
+    CategoriaResponse,
     PaginatedProductos,
     ProductoCreate,
     ProductoListResponse,
@@ -91,6 +93,7 @@ class ProductoService:
                     slug=p.slug,
                     descripcion_corta=p.descripcion_corta,
                     categoria=p.categoria,
+                    subcategoria=p.subcategoria,
                     imagenes=p.imagenes,
                     activo=p.activo,
                     destacado=p.destacado,
@@ -147,7 +150,7 @@ class ProductoService:
         # Verificar slug único
         existe = await db.execute(select(Producto).where(Producto.slug == slug))
         if existe.scalar_one_or_none():
-            slug = f"{slug}-{str(UUID.uuid4())[:8]}"
+            slug = f"{slug}-{str(uuid_module.uuid4())[:8]}"
 
         producto = Producto(slug=slug, **data.model_dump())
         db.add(producto)
@@ -212,6 +215,69 @@ class ProductoService:
         await db.flush()
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         return VarianteResponse.model_validate(variante)
+
+    # ── Endpoints de utilidad ──────────────────────────────────────────────────
+
+    async def listar_destacados(
+        self,
+        db: AsyncSession,
+        limite: int = 6,
+    ) -> List[ProductoListResponse]:
+        """Lista productos destacados para la página principal."""
+        cache_key = f"{CACHE_PREFIX}:destacados:{limite}"
+        cached = await cache_get(cache_key)
+        if cached:
+            return [ProductoListResponse(**p) for p in cached]
+
+        result = await db.execute(
+            select(Producto)
+            .options(selectinload(Producto.variantes))
+            .where(Producto.activo == True, Producto.destacado == True)
+            .order_by(Producto.orden_display, Producto.created_at.desc())
+            .limit(limite)
+        )
+        productos = result.scalars().all()
+
+        items = []
+        for p in productos:
+            variantes_activas = [v for v in p.variantes if v.activo]
+            precio_desde = min((v.precio for v in variantes_activas), default=None)
+            items.append(
+                ProductoListResponse(
+                    id=p.id,
+                    nombre=p.nombre,
+                    slug=p.slug,
+                    descripcion_corta=p.descripcion_corta,
+                    categoria=p.categoria,
+                    subcategoria=p.subcategoria,
+                    imagenes=p.imagenes,
+                    activo=p.activo,
+                    destacado=p.destacado,
+                    precio_desde=float(precio_desde) if precio_desde else None,
+                )
+            )
+
+        await cache_set(cache_key, [i.model_dump() for i in items], ttl=settings.REDIS_CACHE_TTL)
+        return items
+
+    async def listar_categorias(self, db: AsyncSession) -> List[CategoriaResponse]:
+        """Retorna categorías disponibles con conteo de productos activos."""
+        cache_key = f"{CACHE_PREFIX}:categorias"
+        cached = await cache_get(cache_key)
+        if cached:
+            return [CategoriaResponse(**c) for c in cached]
+
+        result = await db.execute(
+            select(Producto.categoria, func.count(Producto.id).label("total"))
+            .where(Producto.activo == True)
+            .group_by(Producto.categoria)
+            .order_by(Producto.categoria)
+        )
+        rows = result.all()
+        categorias = [CategoriaResponse(categoria=row.categoria, total=row.total) for row in rows]
+
+        await cache_set(cache_key, [c.model_dump() for c in categorias], ttl=settings.REDIS_CACHE_TTL)
+        return categorias
 
 
 producto_service = ProductoService()

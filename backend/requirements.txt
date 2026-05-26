@@ -15,8 +15,10 @@ email-validator==2.1.0
 phonenumbers==8.13.26
 
 # --- Base de datos (PostgreSQL via Supabase) ---
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
+sqlalchemy>=2.0.36          # 2.0.23 NO es compatible con Python 3.14+
+asyncpg>=0.29.0             # Driver async para PostgreSQL (requerido por postgresql+asyncpg://)
+greenlet>=3.0               # Requerido por SQLAlchemy async
+psycopg2-binary>=2.9.9
 alembic==1.12.1
 
 # --- Cache / Sesiones / Rate Limiting (Redis) ---

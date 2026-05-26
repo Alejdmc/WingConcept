@@ -89,6 +89,8 @@ async def log_requests(request: Request, call_next):
 
 
 # ── Routers ───────────────────────────────────────────────────────────────────
+# Importar modelos primero para que SQLAlchemy resuelva todas las relaciones
+import app.models as _models_registry  # noqa: F401
 from app.api.router import api_router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 

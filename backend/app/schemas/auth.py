@@ -1,6 +1,7 @@
 """
 WingConcept Backend — Schemas Auth (Pydantic V2)
 """
+import uuid
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.utils.validators import validar_password
@@ -32,6 +33,16 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int  # segundos
+
+
+class LoginResponse(TokenResponse):
+    """Respuesta extendida de login con datos básicos del usuario.
+    Evita que el frontend tenga que hacer un segundo GET /me."""
+    usuario_id: uuid.UUID
+    email: str
+    nombre: str
+    apellido: str
+    rol: str
 
 
 class RefreshRequest(BaseModel):

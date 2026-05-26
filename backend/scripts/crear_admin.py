@@ -26,17 +26,17 @@ async def crear_admin():
     APELLIDO = os.getenv("ADMIN_APELLIDO", "WingConcept")
 
     if not PASSWORD:
-        print("❌ Debe definir ADMIN_PASSWORD como variable de entorno")
+        print(" Debe definir ADMIN_PASSWORD como variable de entorno")
         return
 
     if AsyncSessionLocal is None:
-        print("❌ DATABASE_URL no configurado en .env")
+        print(" DATABASE_URL no configurado en .env")
         return
 
     async with AsyncSessionLocal() as db:
         existe = await db.execute(select(Usuario).where(Usuario.email == EMAIL))
         if existe.scalar_one_or_none():
-            print(f"⚠️  Ya existe un usuario con el email: {EMAIL}")
+            print(f"  Ya existe un usuario con el email: {EMAIL}")
             return
 
         admin = Usuario(
@@ -50,7 +50,7 @@ async def crear_admin():
         )
         db.add(admin)
         await db.commit()
-        print(f"✅ Admin creado: {EMAIL}")
+        print(f" Admin creado: {EMAIL}")
 
 
 if __name__ == "__main__":

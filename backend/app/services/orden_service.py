@@ -37,15 +37,11 @@ class OrdenService:
         Crea una orden a partir del carrito del usuario.
         Valida stock antes de crear.
         """
-        # Obtener carrito con items
-        result = await db.execute(
-            select(Carrito)
-            .options(selectinload(Carrito.items).selectinload(ItemOrden.variante if False else Carrito.items))
-            .where(Carrito.usuario_id == usuario_id)
-        )
-        # Simplificado: obtener carrito e items directamente
+        # Obtener carrito con todos sus items
         carrito_result = await db.execute(
-            select(Carrito).where(Carrito.usuario_id == usuario_id)
+            select(Carrito)
+            .options(selectinload(Carrito.items))
+            .where(Carrito.usuario_id == usuario_id)
         )
         carrito = carrito_result.scalar_one_or_none()
 
@@ -58,7 +54,9 @@ class OrdenService:
 
         for item in carrito.items:
             variante_result = await db.execute(
-                select(Variante).where(Variante.id == item.variante_id)
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.id == item.variante_id)
             )
             variante = variante_result.scalar_one_or_none()
 
@@ -70,12 +68,13 @@ class OrdenService:
 
             subtotal += float(variante.precio) * item.cantidad
 
-            # Snapshot del producto para auditoría
+            # Snapshot del producto para auditoría histórica
             snapshot = {
-                "nombre": variante.producto.nombre if hasattr(variante, 'producto') and variante.producto else "Producto",
+                "nombre": variante.producto.nombre if variante.producto else "Producto",
                 "variante": variante.nombre,
                 "sku": variante.sku,
                 "precio": float(variante.precio),
+                "imagen": (variante.producto.imagenes[0] if variante.producto and variante.producto.imagenes else None),
             }
 
             items_orden.append(
