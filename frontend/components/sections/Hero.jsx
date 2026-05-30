@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 
 export default function Hero() {
-  const images = ['/images/paramotor_image.jpg', '/images/paramotor_image2.jpg']
+  const images = ['/images/paramotor_image.jpg', '/images/paramotor_image2.jpg', '/images/image1.jpg']
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -22,15 +22,14 @@ export default function Hero() {
       <div className="absolute inset-0 z-0">
         <AnimatePresence mode="popLayout">
           <motion.img
-            key={images[index]}
-            src={images[index]}
-            // Entra desde la derecha (100%) y sale hacia la izquierda (-100%)
-            initial={{ x: '100%' }}
-            animate={{ x: '0%' }}
-            exit={{ x: '-100%' }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute w-full h-full object-cover"
-          />
+          key={images[index]}
+          src={images[index]}
+          initial={index === 0 ? { x: '0%' } : { x: '100%' }}
+          animate={{ x: '0%' }}
+          exit={{ x: '-100%' }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className="absolute w-full h-full object-cover"
+        />
         </AnimatePresence>
       </div>
 
@@ -44,15 +43,12 @@ export default function Hero() {
         </p>
 
         <h1 className="font-sans font-black uppercase leading-[0.95] text-[clamp(50px,8vw,100px)] tracking-[-0.03em] text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.6)] mb-8">
-          EXPERIENCE THE<br />
-          <span className="text-brand">FREEDOM</span><br />
-          OF FLIGHT
+          WHERE<br />
+          <span className="text-brand">FREEDOM TAKES</span><br />
+          WINGS
         </h1>
 
-        <p className="text-[clamp(15px,1.2vw,18px)] leading-[1.6] text-gray-300 max-w-[600px] mx-auto mb-12 font-medium">
-          Paramotoring unlocks a world of airborne adventure, freedom, and unforgettable moments. 
-          Soar above landscapes, discover new horizons, and join a passionate community of pilots.
-        </p>
+        
 
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link href="/paramotors" className="inline-flex items-center gap-2 bg-brand text-white border-2 border-brand px-8 py-4 rounded-none font-bold text-[12px] tracking-[0.2em] uppercase hover:bg-transparent hover:border-white transition-all">

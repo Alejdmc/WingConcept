@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { useCart } from '@/hooks/useCart'
 
 const products = [
   { 
@@ -31,7 +32,8 @@ const products = [
 ]
 
 export default function Catalog() {
-  const [selectedId, setSelectedId] = useState(null)
+    const [selectedId, setSelectedId] = useState(null)
+    const { addToCart } = useCart()
 
   return (
     <section id="paramotors-section" className="py-24 bg-black text-white px-6 scroll-mt-24">
@@ -79,7 +81,12 @@ export default function Catalog() {
                   >
                     <div className="p-6">
                       <p className="text-sm text-gray-300 mb-4 font-mono">{product.specs}</p>
-                      <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-sm transition-all">
+                      <button 
+                        onClick={() => {
+                          addToCart(product)
+                          setSelectedId(null)
+                        }}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest text-sm transition-all">
                         Add to Cart
                       </button>
                     </div>

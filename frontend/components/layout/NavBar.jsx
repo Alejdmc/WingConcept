@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
+import { useCart } from '@/hooks/useCart'
 
 const NAV_ITEMS = [
   { label: 'Paramotors', href: '/#paramotors-section' },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { items } = useCart()
 
   const handleScroll = (e, href) => {
     if (!href.startsWith('/#')) return
@@ -25,9 +27,9 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-24 px-8">
+      <div className="flex items-center justify-between h-32 px-8">
         <Link href="/" className="flex items-center">
-          <Image src="/images/logo.png" alt="Wing Concept" width={400} height={100} priority className="h-24 w-auto" />
+          <Image src="/images/logo.png" alt="Wing Concept" width={500} height={140} priority className="h-32 w-auto" />
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
@@ -37,8 +39,17 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"><User className="w-5 h-5" /></button>
-          <button className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"><ShoppingCart className="w-5 h-5" /></button>
+          <Link href="/login" className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center">
+            <User className="w-5 h-5" />
+          </Link>
+          <Link href="/cart" className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center">
+            <ShoppingCart className="w-5 h-5" />
+            {items.length > 0 && (
+              <span className="absolute top-1 right-1 bg-brand text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {items.length}
+              </span>
+            )}
+          </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
