@@ -3,14 +3,26 @@ WingConcept Backend — Schemas Auth (Pydantic V2)
 """
 import uuid
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
 from app.utils.validators import validar_password
 
 
 class RegisterRequest(BaseModel):
+    """
+    Soporta tanto nombres en español (nombre/apellido) como en inglés
+    (firstName/lastName) para compatibilidad con el formulario del frontend.
+    """
+    model_config = {"populate_by_name": True}
+
     email: EmailStr
-    nombre: str = Field(..., min_length=2, max_length=100)
-    apellido: str = Field(..., min_length=2, max_length=100)
+    nombre: str = Field(
+        ..., min_length=2, max_length=100,
+        validation_alias=AliasChoices("nombre", "firstName")
+    )
+    apellido: str = Field(
+        ..., min_length=2, max_length=100,
+        validation_alias=AliasChoices("apellido", "lastName")
+    )
     telefono: Optional[str] = Field(None, max_length=20)
     password: str = Field(..., min_length=8)
 

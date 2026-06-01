@@ -105,7 +105,16 @@ class ProductoResponse(BaseModel):
 
 
 class ProductoListResponse(BaseModel):
-    """Respuesta reducida para listados (sin variantes completas)."""
+    """Respuesta reducida para listados (sin variantes completas).
+
+    Incluye campos en inglés para compatibilidad directa con los componentes
+    del frontend (Catalog.jsx, ProductCard.jsx, useCart.js):
+      - name   → alias de nombre
+      - image  → primera URL del array imagenes
+      - price  → precio formateado como string '$5,000' (compatible con useCart)
+      - desc   → alias de descripcion_corta
+      - specs  → resumen técnico extraído de los atributos de la variante principal
+    """
     id: uuid.UUID
     nombre: str
     slug: str
@@ -116,6 +125,13 @@ class ProductoListResponse(BaseModel):
     activo: bool
     destacado: bool
     precio_desde: Optional[float] = None  # Precio mínimo de variantes activas
+
+    # ── Campos amigables para el frontend ─────────────────────────────────────
+    name: Optional[str] = None    # = nombre
+    image: Optional[str] = None   # primera imagen del array
+    price: Optional[str] = None   # precio formateado "$5,000"
+    desc: Optional[str] = None    # = descripcion_corta
+    specs: Optional[str] = None   # e.g. "28kg | 95kg thrust"
 
     model_config = {"from_attributes": True}
 

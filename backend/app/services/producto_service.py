@@ -35,6 +35,60 @@ logger = logging.getLogger(__name__)
 CACHE_PREFIX = "productos"
 
 
+def _format_price(precio: Optional[float]) -> Optional[str]:
+    """Formatea un precio numérico como string con signo $ y separadores de miles.
+    Ejemplo: 5000.0 → '$5,000'  (compatible con useCart.js del frontend)
+    """
+    if precio is None:
+        return None
+    return f"${precio:,.0f}"
+
+
+def _format_specs(atributos: Optional[dict]) -> Optional[str]:
+    """Construye el string de specs técnicas desde los atributos de la variante.
+    Ejemplo: {"peso_kg": 28, "empuje_kg": 95} → '28kg | 95kg thrust'
+    """
+    if not atributos:
+        return None
+    parts = []
+    if "peso_kg" in atributos:
+        parts.append(f"{atributos['peso_kg']}kg")
+    if "empuje_kg" in atributos:
+        parts.append(f"{atributos['empuje_kg']}kg thrust")
+    return " | ".join(parts) if parts else None
+
+
+def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoListResponse":
+    """Construye un ProductoListResponse con todos los campos (backend + frontend)."""
+    precio_desde = min((v.precio for v in variantes_activas), default=None)
+
+    # Specs: tomar atributos de la variante principal (es_principal=True) o la primera
+    variante_principal = next(
+        (v for v in variantes_activas if v.es_principal),
+        variantes_activas[0] if variantes_activas else None,
+    )
+    specs = _format_specs(variante_principal.atributos if variante_principal else None)
+
+    return ProductoListResponse(
+        id=p.id,
+        nombre=p.nombre,
+        slug=p.slug,
+        descripcion_corta=p.descripcion_corta,
+        categoria=p.categoria,
+        subcategoria=p.subcategoria,
+        imagenes=p.imagenes,
+        activo=p.activo,
+        destacado=p.destacado,
+        precio_desde=precio_desde,
+        # Campos amigables para el frontend
+        name=p.nombre,
+        image=p.imagenes[0] if p.imagenes else None,
+        price=_format_price(precio_desde),
+        desc=p.descripcion_corta,
+        specs=specs,
+    )
+
+
 class ProductoService:
 
     async def listar(
@@ -85,21 +139,7 @@ class ProductoService:
         items = []
         for p in productos:
             variantes_activas = [v for v in p.variantes if v.activo]
-            precio_desde = min((v.precio for v in variantes_activas), default=None)
-            items.append(
-                ProductoListResponse(
-                    id=p.id,
-                    nombre=p.nombre,
-                    slug=p.slug,
-                    descripcion_corta=p.descripcion_corta,
-                    categoria=p.categoria,
-                    subcategoria=p.subcategoria,
-                    imagenes=p.imagenes,
-                    activo=p.activo,
-                    destacado=p.destacado,
-                    precio_desde=precio_desde,
-                )
-            )
+            items.append(_build_list_response(p, variantes_activas))
 
         paginated = PaginatedProductos(
             items=items,
@@ -241,21 +281,7 @@ class ProductoService:
         items = []
         for p in productos:
             variantes_activas = [v for v in p.variantes if v.activo]
-            precio_desde = min((v.precio for v in variantes_activas), default=None)
-            items.append(
-                ProductoListResponse(
-                    id=p.id,
-                    nombre=p.nombre,
-                    slug=p.slug,
-                    descripcion_corta=p.descripcion_corta,
-                    categoria=p.categoria,
-                    subcategoria=p.subcategoria,
-                    imagenes=p.imagenes,
-                    activo=p.activo,
-                    destacado=p.destacado,
-                    precio_desde=float(precio_desde) if precio_desde else None,
-                )
-            )
+            items.append(_build_list_response(p, variantes_activas))
 
         await cache_set(cache_key, [i.model_dump() for i in items], ttl=settings.REDIS_CACHE_TTL)
         return items
