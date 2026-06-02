@@ -6,8 +6,8 @@ import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 
 const NAV_ITEMS = [
-  { label: 'Paramotors', href: '/#paramotors-section' },
-  { label: 'Paratrike',  href: '/paratrike' },
+  { label: 'Paramotors', href: '/paramotors/catalog' },
+  { label: 'Paratrike',  href: '/paratrike/catalog' },
   { label: 'Adventure', children: [{ label: 'W.C Adventure', href: '/adventure' }, { label: 'W.C Shows', href: '/shows' }, { label: 'W.C Events', href: '/events' }] },
   { label: 'Support', children: [{ label: 'Find Dealer', href: '/dealers' }, { label: 'User Manuals', href: '/manuals' }, { label: 'Find Schools', href: '/schools' }] },
   { label: 'More', children: [{ label: 'About Us', href: '/about' }, { label: 'W.C Milestones', href: '/milestones' }, { label: 'Contact Us', href: '/contact' }] },
