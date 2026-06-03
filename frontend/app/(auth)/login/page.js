@@ -1,30 +1,56 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { api } from '@/lib/api'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    // Mock API call
-    setTimeout(() => setLoading(false), 1500)
-  }
+      e.preventDefault()
+      setError('')
+      setLoading(true)
+
+      try {
+        const res = await api.auth.login(formData)
+        
+        // Guardar tokens
+        localStorage.setItem('access_token', res.access_token)
+        localStorage.setItem('refresh_token', res.refresh_token)
+        localStorage.setItem('user', JSON.stringify({ nombre: res.nombre, rol: res.rol }))
+
+        // Fusionar carrito anónimo con el del usuario
+        try {
+          await api.carrito.merge()
+        } catch (err) {
+          console.warn('Cart merge failed:', err)
+        }
+
+        // Redirigir
+        router.push('/')
+      } catch (err) {
+        setError(err.detail || 'Login failed')
+      } finally {
+        setLoading(false)
+      }
+    }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg via-bg2 to-bg3 flex items-center justify-center px-4 py-12">
       <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-ink hover:text-brand transition">
         <ArrowLeft className="w-4 h-4" />
-        Volver
+        Back
       </Link>
 
       <motion.div
@@ -39,6 +65,12 @@ export default function LoginPage() {
             <p className="text-ink2 font-semibold tracking-widest text-sm">SIGN IN</p>
             <div className="w-12 h-1 bg-brand mx-auto mt-4" />
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm font-semibold">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
@@ -85,17 +117,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 border border-borderline rounded" />
-                <span className="text-ink2">Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-brand hover:text-brand/80 font-semibold">
-                Forgot your password?
-              </Link>
-            </div>
-
             {/* Submit */}
             <button
               type="submit"
@@ -105,14 +126,11 @@ export default function LoginPage() {
             </button>
           </form>
 
-          
-         
-
           {/* Register Link */}
-          <p className="text-center text-ink2">
+          <p className="text-center text-ink2 mt-8">
             Don't have an account?{' '}
             <Link href="/register" className="text-brand font-bold hover:text-brand/80">
-              Register here
+              Sign up here
             </Link>
           </p>
         </div>
