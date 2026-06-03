@@ -242,34 +242,64 @@ class PagoService:
         """
         Marca el pago como aprobado y actualiza el estado de la orden.
         Llamado desde los webhooks de Wompi o Stripe.
+
+        IDEMPOTENTE: Si el pago ya fue procesado (estado "approved"),
+        retorna sin modificar nada — protege contra webhooks duplicados.
         """
         from sqlalchemy.orm import selectinload
+        from app.core.exceptions import StockInsuficienteError
+        from app.models.orden import Orden as OrdenModel
 
         result = await db.execute(
             select(Pago)
             .where(Pago.referencia == referencia)
-            .options(selectinload(Pago.orden))
+            .options(
+                selectinload(Pago.orden).selectinload(OrdenModel.items),
+                selectinload(Pago.orden).selectinload(OrdenModel.usuario),
+            )
         )
         pago = result.scalar_one_or_none()
 
         if not pago:
             raise RecursoNoEncontradoError("Pago")
 
+        # ── IDEMPOTENCIA ─────────────────────────────────────────────────────────
+        # Si el pago ya fue procesado, retornar sin cambios para ignorar
+        # webhooks duplicados de Wompi/Stripe (ambos reintentan ante fallos de red).
+        if pago.estado == "approved":
+            logger.warning(
+                f"[IDEMPOTENCIA] Pago {referencia} ya fue procesado. "
+                f"Ignorando webhook duplicado. tx:{transaction_id}"
+            )
+            return pago
+
+        # Marcar pago como aprobado
         pago.estado = "approved"
         pago.transaction_id = transaction_id
         if respuesta_proveedor:
             pago.respuesta_proveedor = respuesta_proveedor
 
-        # Actualizar orden a "pagado"
-        pago.orden.estado = "pagado"
+        # ── STOCK CON BLOQUEO PESIMISTA ──────────────────────────────────────────
+        # _descontar_stock usa SELECT FOR UPDATE para evitar condiciones de carrera
+        # en pagos concurrentes del mismo producto. Si el stock es insuficiente,
+        # la orden queda en "error_stock" para intervención manual (reembolso).
+        try:
+            await self._descontar_stock(db, pago.orden)
+            pago.orden.estado = "pagado"
+            logger.info(
+                f"Pago aprobado: {referencia} tx:{transaction_id} "
+                f"orden:{pago.orden.numero_orden}"
+            )
+        except StockInsuficienteError as e:
+            # El proveedor cobró al cliente pero el stock no alcanzó.
+            # Se marca como error para que el equipo gestione el reembolso.
+            pago.orden.estado = "error_stock"
+            logger.critical(
+                f"[CRÍTICO - ACCIÓN REQUERIDA] Pago {referencia} aprobado por el proveedor "
+                f"pero stock INSUFICIENTE al confirmar orden {pago.orden.numero_orden}. "
+                f"Detalle: {e}. Se requiere reembolso manual al cliente."
+            )
 
-        # Descontar stock de las variantes
-        await self._descontar_stock(db, pago.orden)
-
-        logger.info(
-            f"Pago aprobado: {referencia} tx:{transaction_id} "
-            f"orden:{pago.orden.numero_orden}"
-        )
         return pago
 
     async def procesar_pago_rechazado(
@@ -284,30 +314,63 @@ class PagoService:
         if not pago:
             raise RecursoNoEncontradoError("Pago")
 
-        pago.estado = "declined"
-        if respuesta_proveedor:
-            pago.respuesta_proveedor = respuesta_proveedor
+        # Solo actualizar si no fue ya aprobado (idempotencia)
+        if pago.estado != "approved":
+            pago.estado = "declined"
+            if respuesta_proveedor:
+                pago.respuesta_proveedor = respuesta_proveedor
+            logger.warning(f"Pago rechazado: {referencia}")
+        else:
+            logger.warning(
+                f"[IDEMPOTENCIA] Pago {referencia} ya aprobado — "
+                f"ignorando evento de rechazo tardío."
+            )
 
-        logger.warning(f"Pago rechazado: {referencia}")
         return pago
 
     async def _descontar_stock(self, db: AsyncSession, orden: Orden) -> None:
-        """Reduce el stock de las variantes al confirmar el pago."""
+        """
+        Reduce el stock de las variantes al confirmar el pago.
+
+        SEGURIDAD: Usa SELECT ... FOR UPDATE (bloqueo pesimista) para prevenir
+        condiciones de carrera cuando dos pagos concurrentes compiten por el mismo
+        stock. Si el stock es insuficiente, lanza StockInsuficienteError antes de
+        hacer cualquier modificación.
+        """
         from app.models.variante import Variante
         from app.core.exceptions import StockInsuficienteError
 
+        # Fase 1: Verificar y bloquear todas las variantes ANTES de modificar.
+        # Si cualquiera no tiene stock, lanzamos error sin haber cambiado nada.
+        variantes_a_actualizar = []
         for item in orden.items:
             result = await db.execute(
-                select(Variante).where(Variante.id == item.variante_id)
+                select(Variante)
+                .where(Variante.id == item.variante_id)
+                .with_for_update()  # Bloqueo pesimista: espera a otras transacciones
             )
             variante = result.scalar_one_or_none()
-            if variante:
-                if variante.stock < item.cantidad:
-                    logger.error(
-                        f"Stock insuficiente para variante {variante.id} "
-                        f"al confirmar orden {orden.numero_orden}"
-                    )
-                variante.stock = max(0, variante.stock - item.cantidad)
+
+            if not variante:
+                raise StockInsuficienteError(
+                    f"Variante {item.variante_id} no encontrada al confirmar pago"
+                )
+
+            if variante.stock < item.cantidad:
+                raise StockInsuficienteError(
+                    f"Stock insuficiente para '{variante.nombre}': "
+                    f"disponible={variante.stock}, requerido={item.cantidad}"
+                )
+
+            variantes_a_actualizar.append((variante, item.cantidad))
+
+        # Fase 2: Solo si TODAS las variantes tienen stock suficiente, descontar.
+        for variante, cantidad in variantes_a_actualizar:
+            variante.stock -= cantidad
+            logger.info(
+                f"Stock descontado: variante={variante.id} "
+                f"cantidad={cantidad} restante={variante.stock}"
+            )
 
 
 pago_service = PagoService()

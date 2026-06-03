@@ -1,6 +1,7 @@
 """
 WingConcept Backend — Modelo Orden
 Estados: pendiente → pagado → procesando → enviado → entregado | cancelado | reembolsado
+         pagado → error_stock (pago aprobado por proveedor pero sin stock — requiere reembolso)
 """
 import uuid
 from datetime import datetime, timezone
@@ -40,7 +41,7 @@ class Orden(Base):
     estado: Mapped[str] = mapped_column(
         String(30), nullable=False, default="pendiente", index=True
     )
-    # pendiente | pagado | procesando | enviado | entregado | cancelado | reembolsado
+    # pendiente | pagado | procesando | enviado | entregado | cancelado | reembolsado | error_stock
 
     # Montos
     subtotal: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)

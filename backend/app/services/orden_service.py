@@ -4,6 +4,7 @@ Creación, gestión de estado y ciclo de vida de órdenes
 """
 import logging
 import math
+import uuid as uuid_module
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
@@ -16,16 +17,36 @@ from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError
 from app.models.carrito import Carrito
 from app.models.orden import ItemOrden, Orden
 from app.models.variante import Variante
-from app.schemas.orden import OrdenCreate, OrdenResponse, OrdenUpdate, PaginatedOrdenes
+from app.schemas.orden import (
+    AdminOrdenResponse,
+    ESTADO_DISPLAY_MAP,
+    OrdenCreate,
+    OrdenResponse,
+    OrdenUpdate,
+    PaginatedAdminOrdenes,
+    PaginatedOrdenes,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _generar_numero_orden() -> str:
-    """Genera número de orden legible: WC-2026-XXXXXX."""
-    year = datetime.now(timezone.utc).year
-    sufijo = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
-    return f"WC-{year}-{sufijo}"
+    """
+    Genera número de orden legible con baja probabilidad de colisión.
+
+    Formato: WC-{AÑO}-{4 dígitos de microsegundos}{5 hex aleatorios}
+    Ejemplo: WC-2026-8312A3F9C
+
+    El timestamp en segundos era vulnerable a colisiones en requests simultáneos.
+    Ahora se usan microsegundos (4 dígitos) + UUID aleatorio (5 hex) como sufijo,
+    lo que hace prácticamente imposible la colisión. El campo numero_orden tiene
+    UNIQUE constraint en la DB como último respaldo.
+    """
+    now = datetime.now(timezone.utc)
+    year = now.year
+    micro_part = now.strftime("%f")[:4]          # 4 dígitos de microsegundos (0000-9999)
+    uuid_part = uuid_module.uuid4().hex[:5].upper()  # 5 hex aleatorios (A3F9C)
+    return f"WC-{year}-{micro_part}{uuid_part}"
 
 
 class OrdenService:
@@ -176,9 +197,12 @@ class OrdenService:
         pagina: int = 1,
         por_pagina: int = 20,
         estado: Optional[str] = None,
-    ) -> PaginatedOrdenes:
-        """Lista todas las órdenes (admin)."""
-        query = select(Orden).options(selectinload(Orden.items))
+    ) -> PaginatedAdminOrdenes:
+        """Lista todas las órdenes (admin) con datos del cliente."""
+        query = (
+            select(Orden)
+            .options(selectinload(Orden.items), selectinload(Orden.usuario))
+        )
         if estado:
             query = query.where(Orden.estado == estado)
 
@@ -193,8 +217,36 @@ class OrdenService:
         result = await db.execute(query)
         ordenes = result.scalars().all()
 
-        return PaginatedOrdenes(
-            items=[OrdenResponse.model_validate(o) for o in ordenes],
+        items = []
+        for o in ordenes:
+            usuario = o.usuario
+            nombre_completo = None
+            email = None
+            if usuario:
+                nombre_completo = f"{usuario.nombre} {usuario.apellido}".strip()
+                email = usuario.email
+
+            estado_display = ESTADO_DISPLAY_MAP.get(o.estado, o.estado.capitalize())
+            precio_total = float(o.total)
+            total_formateado = f"${precio_total:,.0f}"
+            fecha = o.created_at.strftime("%Y-%m-%d") if o.created_at else ""
+
+            items.append(AdminOrdenResponse(
+                id=o.id,
+                numero_orden=o.numero_orden,
+                cliente_nombre=nombre_completo,
+                cliente_email=email,
+                total=precio_total,
+                total_formateado=total_formateado,
+                estado=o.estado,
+                estado_display=estado_display,
+                fecha=fecha,
+                cantidad_items=len(o.items),
+                moneda=o.moneda,
+            ))
+
+        return PaginatedAdminOrdenes(
+            items=items,
             total=total,
             pagina=pagina,
             por_pagina=por_pagina,
