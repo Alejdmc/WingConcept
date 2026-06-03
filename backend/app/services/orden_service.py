@@ -16,7 +16,15 @@ from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError
 from app.models.carrito import Carrito
 from app.models.orden import ItemOrden, Orden
 from app.models.variante import Variante
-from app.schemas.orden import OrdenCreate, OrdenResponse, OrdenUpdate, PaginatedOrdenes
+from app.schemas.orden import (
+    AdminOrdenResponse,
+    ESTADO_DISPLAY_MAP,
+    OrdenCreate,
+    OrdenResponse,
+    OrdenUpdate,
+    PaginatedAdminOrdenes,
+    PaginatedOrdenes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -176,9 +184,12 @@ class OrdenService:
         pagina: int = 1,
         por_pagina: int = 20,
         estado: Optional[str] = None,
-    ) -> PaginatedOrdenes:
-        """Lista todas las órdenes (admin)."""
-        query = select(Orden).options(selectinload(Orden.items))
+    ) -> PaginatedAdminOrdenes:
+        """Lista todas las órdenes (admin) con datos del cliente."""
+        query = (
+            select(Orden)
+            .options(selectinload(Orden.items), selectinload(Orden.usuario))
+        )
         if estado:
             query = query.where(Orden.estado == estado)
 
@@ -193,8 +204,36 @@ class OrdenService:
         result = await db.execute(query)
         ordenes = result.scalars().all()
 
-        return PaginatedOrdenes(
-            items=[OrdenResponse.model_validate(o) for o in ordenes],
+        items = []
+        for o in ordenes:
+            usuario = o.usuario
+            nombre_completo = None
+            email = None
+            if usuario:
+                nombre_completo = f"{usuario.nombre} {usuario.apellido}".strip()
+                email = usuario.email
+
+            estado_display = ESTADO_DISPLAY_MAP.get(o.estado, o.estado.capitalize())
+            precio_total = float(o.total)
+            total_formateado = f"${precio_total:,.0f}"
+            fecha = o.created_at.strftime("%Y-%m-%d") if o.created_at else ""
+
+            items.append(AdminOrdenResponse(
+                id=o.id,
+                numero_orden=o.numero_orden,
+                cliente_nombre=nombre_completo,
+                cliente_email=email,
+                total=precio_total,
+                total_formateado=total_formateado,
+                estado=o.estado,
+                estado_display=estado_display,
+                fecha=fecha,
+                cantidad_items=len(o.items),
+                moneda=o.moneda,
+            ))
+
+        return PaginatedAdminOrdenes(
+            items=items,
             total=total,
             pagina=pagina,
             por_pagina=por_pagina,

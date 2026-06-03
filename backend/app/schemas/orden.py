@@ -7,6 +7,28 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+# Mapeo estado interno (español) → display frontend (inglés)
+ESTADO_DISPLAY_MAP: Dict[str, str] = {
+    "pendiente": "Pending",
+    "pagado": "Paid",
+    "procesando": "Processing",
+    "enviado": "Shipped",
+    "entregado": "Delivered",
+    "cancelado": "Cancelled",
+    "reembolsado": "Refunded",
+}
+
+# Mapeo inverso: valores que puede enviar el frontend → estado interno
+ESTADO_FRONTEND_MAP: Dict[str, str] = {
+    "Pending": "pendiente",
+    "Paid": "pagado",
+    "Processing": "procesando",
+    "Shipped": "enviado",
+    "Delivered": "entregado",
+    "Cancelled": "cancelado",
+    "Refunded": "reembolsado",
+}
+
 
 class ItemOrdenResponse(BaseModel):
     id: uuid.UUID
@@ -26,7 +48,10 @@ class OrdenCreate(BaseModel):
 
 
 class OrdenUpdate(BaseModel):
-    """Solo para administradores."""
+    """Solo para administradores.
+    Acepta estado en español (pendiente/enviado…) o en inglés (Pending/Shipped…).
+    La normalización al valor interno se realiza en el endpoint.
+    """
     estado: Optional[str] = None
     notas_admin: Optional[str] = None
     numero_guia: Optional[str] = Field(None, max_length=100)
@@ -60,4 +85,37 @@ class PaginatedOrdenes(BaseModel):
     pagina: int
     por_pagina: int
     paginas: int
+
+
+# ── Respuestas enriquecidas para el panel de administración ───────────────────
+
+class AdminOrdenResponse(BaseModel):
+    """Respuesta optimizada para el admin panel del frontend.
+
+    Incluye datos del cliente, estado en inglés (estado_display),
+    total formateado, fecha y conteo de ítems — todo lo que necesita
+    /admin/orders/page.js sin tener que hacer JOINs en el frontend.
+    """
+    id: uuid.UUID
+    numero_orden: str           # usado como "Order ID" en la tabla
+    cliente_nombre: Optional[str] = None   # Usuario.nombre + apellido
+    cliente_email: Optional[str] = None    # Usuario.email
+    total: float
+    total_formateado: Optional[str] = None  # "$5,200"
+    estado: str                  # estado interno en español
+    estado_display: str          # "Pending" | "Shipped" | "Delivered" …
+    fecha: str                   # "2025-06-01"
+    cantidad_items: int = 0      # count de ítems en la orden
+    moneda: str = "COP"
+
+    model_config = {"from_attributes": False}
+
+
+class PaginatedAdminOrdenes(BaseModel):
+    items: List[AdminOrdenResponse]
+    total: int
+    pagina: int
+    por_pagina: int
+    paginas: int
+
 

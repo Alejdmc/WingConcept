@@ -17,7 +17,9 @@ from app.core.exceptions import RecursoNoEncontradoError
 from app.models.producto import Producto
 from app.models.variante import Variante
 from app.schemas.producto import (
+    AdminProductoResponse,
     CategoriaResponse,
+    PaginatedAdminProductos,
     PaginatedProductos,
     ProductoCreate,
     ProductoListResponse,
@@ -285,6 +287,72 @@ class ProductoService:
 
         await cache_set(cache_key, [i.model_dump() for i in items], ttl=settings.REDIS_CACHE_TTL)
         return items
+
+    async def listar_admin(
+        self,
+        db: AsyncSession,
+        pagina: int = 1,
+        por_pagina: int = 20,
+        buscar: Optional[str] = None,
+    ) -> PaginatedAdminProductos:
+        """Lista productos para el panel de admin con stock total y ventas."""
+        from app.models.variante import Variante
+        from app.models.orden import ItemOrden
+
+        query = select(Producto).options(selectinload(Producto.variantes))
+        if buscar:
+            query = query.where(Producto.nombre.ilike(f"%{buscar}%"))
+
+        count_result = await db.execute(
+            select(func.count()).select_from(query.subquery())
+        )
+        total = count_result.scalar() or 0
+
+        query = (
+            query
+            .order_by(Producto.orden_display, Producto.nombre)
+            .offset((pagina - 1) * por_pagina)
+            .limit(por_pagina)
+        )
+        result = await db.execute(query)
+        productos = result.scalars().all()
+
+        # Obtener ventas totales por producto mediante una subquery
+        # ventas_map: { producto_id → total_unidades_vendidas }
+        ventas_result = await db.execute(
+            select(
+                Variante.producto_id,
+                func.coalesce(func.sum(ItemOrden.cantidad), 0).label("total_ventas"),
+            )
+            .join(ItemOrden, ItemOrden.variante_id == Variante.id, isouter=True)
+            .group_by(Variante.producto_id)
+        )
+        ventas_map = {str(row.producto_id): int(row.total_ventas) for row in ventas_result.all()}
+
+        items = []
+        for p in productos:
+            variantes_activas = [v for v in p.variantes if v.activo]
+            stock_total = sum(v.stock for v in variantes_activas)
+            precio_desde = min((v.precio for v in variantes_activas), default=None)
+            ventas = ventas_map.get(str(p.id), 0)
+
+            items.append(AdminProductoResponse(
+                id=p.id,
+                name=p.nombre,
+                price=_format_price(precio_desde),
+                stock=stock_total,
+                sales=ventas,
+                activo=p.activo,
+                categoria=p.categoria,
+            ))
+
+        return PaginatedAdminProductos(
+            items=items,
+            total=total,
+            pagina=pagina,
+            por_pagina=por_pagina,
+            paginas=math.ceil(total / por_pagina) if total > 0 else 0,
+        )
 
     async def listar_categorias(self, db: AsyncSession) -> List[CategoriaResponse]:
         """Retorna categorías disponibles con conteo de productos activos."""

@@ -6,18 +6,25 @@ Solo accesible con rol admin.
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_admin
 from app.database import get_db
-from app.models.orden import Orden
+from app.models.orden import Orden, ItemOrden
 from app.models.producto import Producto
 from app.models.usuario import Usuario
-from app.schemas.orden import OrdenUpdate, OrdenResponse, PaginatedOrdenes
+from app.schemas.orden import (
+    ESTADO_FRONTEND_MAP,
+    OrdenUpdate,
+    OrdenResponse,
+    PaginatedAdminOrdenes,
+)
+from app.schemas.producto import PaginatedAdminProductos
 from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
 from app.services.orden_service import orden_service
+from app.services.producto_service import producto_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -43,12 +50,22 @@ async def dashboard_stats(
     )
     ingresos_totales = float(ingresos_result.scalar() or 0)
 
+    # Kg vendidos: suma de ItemOrden.cantidad de órdenes completadas.
+    # (En el futuro se puede ponderar por el peso_kg del snapshot.)
+    kg_result = await db.execute(
+        select(func.coalesce(func.sum(ItemOrden.cantidad), 0))
+        .join(Orden, Orden.id == ItemOrden.orden_id)
+        .where(Orden.estado.in_(["enviado", "entregado"]))
+    )
+    kg_vendidos = float(kg_result.scalar() or 0)
+
     return {
         "total_usuarios": total_usuarios,
         "total_productos_activos": total_productos,
         "total_ordenes": total_ordenes,
         "ordenes_pendientes": ordenes_pendientes,
         "ingresos_totales": ingresos_totales,
+        "kg_vendidos": kg_vendidos,
     }
 
 
@@ -107,9 +124,23 @@ async def actualizar_usuario(
     return UsuarioResponse.model_validate(usuario)
 
 
+# ── Productos Admin ───────────────────────────────────────────────────────────
+
+@router.get("/productos", response_model=PaginatedAdminProductos)
+async def listar_productos_admin(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+    buscar: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista todos los productos con stock y ventas para el panel de admin."""
+    return await producto_service.listar_admin(db, pagina, por_pagina, buscar)
+
+
 # ── Órdenes Admin ─────────────────────────────────────────────────────────────
 
-@router.get("/ordenes", response_model=PaginatedOrdenes)
+@router.get("/ordenes", response_model=PaginatedAdminOrdenes)
 async def listar_todas_ordenes(
     pagina: int = Query(1, ge=1),
     por_pagina: int = Query(20, ge=1, le=100),
@@ -117,8 +148,17 @@ async def listar_todas_ordenes(
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Lista todas las órdenes del sistema con filtros."""
-    return await orden_service.listar_admin(db, pagina, por_pagina, estado)
+    """Lista todas las órdenes del sistema con datos de cliente.
+
+    El parámetro ``estado`` acepta tanto el valor en español (``pendiente``,
+    ``enviado``…) como en inglés (``Pending``, ``Shipped``…).
+    """
+    # Normalizar estado recibido al valor interno
+    estado_interno: Optional[str] = None
+    if estado:
+        estado_interno = ESTADO_FRONTEND_MAP.get(estado, estado)
+
+    return await orden_service.listar_admin(db, pagina, por_pagina, estado_interno)
 
 
 @router.put("/ordenes/{orden_id}", response_model=OrdenResponse)
@@ -128,11 +168,19 @@ async def actualizar_orden(
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Actualiza estado, guía y notas de una orden."""
+    """Actualiza estado, guía y notas de una orden.
+
+    El campo ``estado`` acepta valores en inglés (``Pending``, ``Shipped``,
+    ``Delivered``…) además de los valores internos en español.
+    """
+    # Normalizar estado al valor interno antes de persistir
+    if data.estado and data.estado in ESTADO_FRONTEND_MAP:
+        data = data.model_copy(update={"estado": ESTADO_FRONTEND_MAP[data.estado]})
+
     orden_response = await orden_service.actualizar_estado(db, orden_id, data)
 
     # Enviar email si se marca como enviada
-    if data.estado == "enviado" and data.numero_guia and data.transportadora:
+    if data.estado in ("enviado", "Shipped") and data.numero_guia and data.transportadora:
         from sqlalchemy.orm import selectinload
         result = await db.execute(
             select(Orden).options(
@@ -151,4 +199,8 @@ async def actualizar_orden(
             )
 
     return orden_response
+
+
+
+
 

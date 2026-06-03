@@ -25,21 +25,21 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Inicialización y limpieza de recursos."""
-    logger.info(f"🚀 Iniciando {settings.APP_NAME} v{settings.APP_VERSION} [{settings.ENVIRONMENT}]")
+    logger.info(f" Iniciando {settings.APP_NAME} v{settings.APP_VERSION} [{settings.ENVIRONMENT}]")
 
     # Verificar conexión Redis (no fatal si falla en dev)
     try:
         from app.utils.redis_client import get_redis
         redis = await get_redis()
         await redis.ping()
-        logger.info("✅ Redis conectado")
+        logger.info("Redis conectado")
     except Exception as e:
-        logger.warning(f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)")
+        logger.warning(f"  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)")
 
     yield
 
     # Shutdown
-    logger.info("👋 Cerrando aplicación...")
+    logger.info(" Cerrando aplicación...")
     from app.utils.redis_client import close_redis
     await close_redis()
 

@@ -150,3 +150,32 @@ class CategoriaResponse(BaseModel):
     total: int
 
 
+# ── Respuestas para el panel de administración ────────────────────────────────
+
+class AdminProductoResponse(BaseModel):
+    """Respuesta optimizada para /admin/products/page.js del frontend.
+
+    Agrega stock total (suma de variantes activas) y ventas totales
+    (suma de ItemOrden.cantidad para ese producto).
+    Los campos name/price imitan el formato que ya usa ProductoListResponse
+    para compatibilidad directa con la tabla del admin.
+    """
+    id: uuid.UUID
+    name: str               # = nombre
+    price: Optional[str]    # precio formateado "$5,000" de la variante principal
+    stock: int = 0          # stock total sumado de todas las variantes activas
+    sales: int = 0          # unidades vendidas (suma ItemOrden.cantidad)
+    activo: bool
+    categoria: str
+
+    model_config = {"from_attributes": False}
+
+
+class PaginatedAdminProductos(BaseModel):
+    items: List[AdminProductoResponse]
+    total: int
+    pagina: int
+    por_pagina: int
+    paginas: int
+
+
