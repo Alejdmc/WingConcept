@@ -16,6 +16,7 @@ ESTADO_DISPLAY_MAP: Dict[str, str] = {
     "entregado": "Delivered",
     "cancelado": "Cancelled",
     "reembolsado": "Refunded",
+    "error_stock": "Stock Error",   # Pago aprobado pero sin stock — requiere intervención manual
 }
 
 # Mapeo inverso: valores que puede enviar el frontend → estado interno
@@ -27,6 +28,7 @@ ESTADO_FRONTEND_MAP: Dict[str, str] = {
     "Delivered": "entregado",
     "Cancelled": "cancelado",
     "Refunded": "reembolsado",
+    "Stock Error": "error_stock",
 }
 
 

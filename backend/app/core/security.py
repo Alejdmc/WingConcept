@@ -2,6 +2,7 @@
 WingConcept Backend — Seguridad: JWT + Hashing de contraseñas
 """
 import logging
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -55,14 +56,20 @@ def create_access_token(
 def create_refresh_token(subject: str | Any) -> str:
     """
     Crea un JWT de refresh (7 días por defecto).
-    Solo contiene el subject para mínima superficie de ataque.
+
+    Incluye un claim `jti` (JWT ID) único por token.
+    Esto prepara la infraestructura para refresh token rotation:
+    al usar el token, se puede marcar el jti como consumido en Redis
+    para detectar y bloquear tokens robados o reutilizados.
     """
     expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    token_jti = str(uuid.uuid4())  # ID único para este token específico
     payload: dict[str, Any] = {
         "sub": str(subject),
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "refresh",
+        "jti": token_jti,  # JWT ID — permite invalidar tokens individuales
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

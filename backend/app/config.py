@@ -5,7 +5,7 @@ Usa pydantic-settings para cargar variables desde .env
 from functools import lru_cache
 from typing import List
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -91,6 +91,10 @@ class Settings(BaseSettings):
     # ── CORS ─────────────────────────────────────────────────
     ALLOWED_ORIGINS: str = "http://localhost:3000"
 
+    # ── Hosts confiables (TrustedHostMiddleware) ──────────────
+    # En producción: "wingconcept.com,www.wingconcept.com"
+    ALLOWED_HOSTS: str = "localhost,127.0.0.1"
+
     # ── Logging ──────────────────────────────────────────────
     LOG_LEVEL: str = "INFO"
 
@@ -104,9 +108,51 @@ class Settings(BaseSettings):
     def parse_origins(cls, v: str) -> str:
         return v
 
+    @model_validator(mode="after")
+    def validate_critical_settings(self) -> "Settings":
+        """
+        Valida que las variables críticas de seguridad estén configuradas.
+
+        SECRET_KEY vacío permite fabricar tokens JWT válidos trivialmente.
+        En producción se exigen además las credenciales de pagos y webhooks.
+        """
+        if not self.SECRET_KEY:
+            raise ValueError(
+                "SECRET_KEY no puede estar vacío. "
+                "Generarlo con: openssl rand -hex 32"
+            )
+        if len(self.SECRET_KEY) < 32:
+            raise ValueError(
+                "SECRET_KEY debe tener al menos 32 caracteres para ser seguro."
+            )
+
+        if self.ENVIRONMENT == "production":
+            if not self.DATABASE_URL:
+                raise ValueError("DATABASE_URL es requerido en producción.")
+            if not self.WOMPI_PRIVATE_KEY and not self.STRIPE_SECRET_KEY:
+                raise ValueError(
+                    "Al menos un proveedor de pagos debe configurarse en producción: "
+                    "WOMPI_PRIVATE_KEY o STRIPE_SECRET_KEY."
+                )
+            if self.WOMPI_PRIVATE_KEY and not self.WOMPI_EVENTS_SECRET:
+                raise ValueError(
+                    "WOMPI_EVENTS_SECRET es requerido cuando WOMPI_PRIVATE_KEY está "
+                    "configurado — sin él los webhooks de Wompi no pueden validarse."
+                )
+            if self.STRIPE_SECRET_KEY and not self.STRIPE_WEBHOOK_SECRET:
+                raise ValueError(
+                    "STRIPE_WEBHOOK_SECRET es requerido cuando STRIPE_SECRET_KEY está "
+                    "configurado — sin él los webhooks de Stripe no pueden validarse."
+                )
+        return self
+
     def get_cors_origins(self) -> List[str]:
         """Retorna lista de orígenes CORS permitidos."""
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+
+    def get_allowed_hosts(self) -> List[str]:
+        """Retorna lista de hosts confiables para TrustedHostMiddleware."""
+        return [host.strip() for host in self.ALLOWED_HOSTS.split(",")]
 
     def get_allowed_image_types(self) -> List[str]:
         return [t.strip() for t in self.ALLOWED_IMAGE_TYPES.split(",")]

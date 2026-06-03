@@ -18,7 +18,6 @@ Soporta dos proveedores de pago:
    Keys:    STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY (en .env)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
-import uuid
 import logging
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
@@ -29,7 +28,8 @@ from app.core.dependencies import get_current_user
 from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
 from app.database import get_db
 from app.models.orden import Orden
-from app.schemas.pago import CheckoutRequest, CheckoutResponse, PagoResponse
+from app.models.pago import Pago
+from app.schemas.pago import CheckoutRequest, CheckoutResponse
 from app.services.pago_service import pago_service
 
 router = APIRouter(prefix="/pagos", tags=["Pagos"])
@@ -48,6 +48,11 @@ async def iniciar_checkout(
     Proveedor:
     - "wompi"  → Pago en Colombia (COP). Retorna datos para el widget Wompi.
     - "stripe" → Pago internacional (USD). Retorna URL de Stripe Checkout.
+
+    Validaciones de seguridad:
+    - La orden debe pertenecer al usuario autenticado (o ser admin).
+    - La orden debe estar en estado "pendiente".
+    - No puede existir ya un pago aprobado para la misma orden.
     """
     # Verificar que la orden existe y pertenece al usuario
     result = await db.execute(
@@ -64,7 +69,30 @@ async def iniciar_checkout(
         raise PermisosDenegadosError()
 
     if orden.estado != "pendiente":
-        raise PermisosDenegadosError("Solo se pueden pagar órdenes pendientes")
+        raise PermisosDenegadosError(
+            "Solo se pueden pagar órdenes pendientes. "
+            f"Estado actual: {orden.estado}"
+        )
+
+    # ── Verificar que no existe ya un pago aprobado para esta orden ──────────
+    # Previene doble cobro si el cliente intenta pagar una orden ya procesada.
+    pago_existente = await db.execute(
+        select(Pago).where(
+            Pago.orden_id == data.orden_id,
+            Pago.estado == "approved",
+        )
+    )
+    if pago_existente.scalar_one_or_none():
+        logger.warning(
+            f"Intento de doble pago para orden {orden.numero_orden} "
+            f"por usuario {current_user.id}"
+        )
+        raise PermisosDenegadosError("Esta orden ya fue pagada exitosamente.")
+
+    logger.info(
+        f"Iniciando checkout: orden={orden.numero_orden} "
+        f"proveedor={data.proveedor} usuario={current_user.id}"
+    )
 
     # Enrutar al proveedor correspondiente
     if data.proveedor == "wompi":

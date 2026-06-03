@@ -4,6 +4,7 @@ Creación, gestión de estado y ciclo de vida de órdenes
 """
 import logging
 import math
+import uuid as uuid_module
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
@@ -30,10 +31,22 @@ logger = logging.getLogger(__name__)
 
 
 def _generar_numero_orden() -> str:
-    """Genera número de orden legible: WC-2026-XXXXXX."""
-    year = datetime.now(timezone.utc).year
-    sufijo = str(int(datetime.now(timezone.utc).timestamp()))[-6:]
-    return f"WC-{year}-{sufijo}"
+    """
+    Genera número de orden legible con baja probabilidad de colisión.
+
+    Formato: WC-{AÑO}-{4 dígitos de microsegundos}{5 hex aleatorios}
+    Ejemplo: WC-2026-8312A3F9C
+
+    El timestamp en segundos era vulnerable a colisiones en requests simultáneos.
+    Ahora se usan microsegundos (4 dígitos) + UUID aleatorio (5 hex) como sufijo,
+    lo que hace prácticamente imposible la colisión. El campo numero_orden tiene
+    UNIQUE constraint en la DB como último respaldo.
+    """
+    now = datetime.now(timezone.utc)
+    year = now.year
+    micro_part = now.strftime("%f")[:4]          # 4 dígitos de microsegundos (0000-9999)
+    uuid_part = uuid_module.uuid4().hex[:5].upper()  # 5 hex aleatorios (A3F9C)
+    return f"WC-{year}-{micro_part}{uuid_part}"
 
 
 class OrdenService:
