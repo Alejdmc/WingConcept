@@ -1,10 +1,13 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { api } from '@/lib/api'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
@@ -13,6 +16,7 @@ export default function RegisterPage() {
     password: '',
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -20,9 +24,17 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
     setLoading(true)
-    // Mock API call
-    setTimeout(() => setLoading(false), 1500)
+    try {
+      await api.auth.register(formData)
+      // Tras el registro exitoso, redirigir al login
+      router.push('/login')
+    } catch (err) {
+      setError(err.detail || 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -44,6 +56,12 @@ export default function RegisterPage() {
             <p className="text-ink2 font-semibold tracking-widest text-sm">CREATE YOUR ACCOUNT</p>
             <div className="w-12 h-1 bg-brand mx-auto mt-4" />
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm font-semibold">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* First Name & Last Name */}

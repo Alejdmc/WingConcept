@@ -28,6 +28,13 @@ class ItemCarritoResponse(BaseModel):
     producto_nombre: Optional[str] = None
     producto_imagen: Optional[str] = None
 
+    # ── Campos amigables para cart/page.js ────────────────────────────────
+    # cart/page.js usa item.cartId como key y para eliminar,
+    # item.name para mostrar el nombre, item.price como string formateado.
+    cartId: Optional[uuid.UUID] = None   # = id  (alias para React key + removeFromCart)
+    name: Optional[str] = None           # = producto_nombre
+    price: Optional[str] = None          # = precio_unitario formateado como "$5,200"
+
     model_config = {"from_attributes": True}
 
 

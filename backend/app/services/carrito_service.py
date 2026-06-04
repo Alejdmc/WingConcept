@@ -159,6 +159,9 @@ class CarritoService:
                     variante_nombre=variante_nombre,
                     producto_nombre=producto_nombre,
                     producto_imagen=imagen,
+                    cartId=item.id,
+                    name=producto_nombre or variante_nombre,
+                    price=f"${float(item.precio_unitario):,.0f}",
                 )
             )
 
@@ -195,8 +198,9 @@ class CarritoService:
             item_existente["cantidad"] += cantidad
             item_existente["subtotal"] = item_existente["precio_unitario"] * item_existente["cantidad"]
         else:
+            item_id = str(uuid.uuid4())
             items.append({
-                "id": str(uuid.uuid4()),
+                "id": item_id,
                 "variante_id": variante_id,
                 "cantidad": cantidad,
                 "precio_unitario": precio,
@@ -204,6 +208,9 @@ class CarritoService:
                 "variante_nombre": variante_nombre,
                 "producto_nombre": producto_nombre,
                 "producto_imagen": imagen,
+                "cartId": item_id,
+                "name": producto_nombre or variante_nombre,
+                "price": f"${precio:,.0f}",
             })
 
         total = sum(i["subtotal"] for i in items)

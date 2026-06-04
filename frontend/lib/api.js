@@ -24,7 +24,10 @@ async function request(path, options = {}) {
 
 export const api = {
   auth: {
-    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    login:    (data) => request('/auth/login',    { method: 'POST', body: JSON.stringify(data) }),
+    register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    refresh:  (data) => request('/auth/refresh',  { method: 'POST', body: JSON.stringify(data) }),
+    me:       ()     => request('/auth/me'),
   },
   carrito: {
     obtener: () => request('/carrito'),
