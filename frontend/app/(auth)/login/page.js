@@ -115,6 +115,11 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              <div className="text-right mt-2">
+                <Link href="/forgot-password" className="text-xs font-bold text-ink2 hover:text-brand">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             {/* Submit */}
@@ -125,6 +130,7 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+
 
           {/* Register Link */}
           <p className="text-center text-ink2 mt-8">

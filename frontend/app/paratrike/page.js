@@ -10,7 +10,7 @@ const vanguard = {
   name: 'Vanguard V7.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V7.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
-  image: '/images/vanguard_hero.png',
+  image: '/images/vanguard1.png',
   price: 'Contact for pricing',
   year: 2020,
   brand: 'Wing Concept',
