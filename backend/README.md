@@ -182,14 +182,43 @@ pytest --cov=app tests/ -v
 
 ## Migraciones Alembic
 
+### Primera vez (generar esquema completo):
 ```bash
-# Crear nueva migración
-alembic revision --autogenerate -m "descripcion del cambio"
+# Script automatizado
+bash scripts/init_migration.sh
 
-# Aplicar migraciones
+# Manual
+alembic revision --autogenerate -m "initial_schema"
+alembic upgrade head
+```
+
+### Cambios posteriores en modelos:
+```bash
+# Crear nueva migración cuando se modifique app/models/*.py
+alembic revision --autogenerate -m "descripcion_cambio"
+
+# Revisar el archivo generado en alembic/versions/
+# Aplicar migración
 alembic upgrade head
 
-# Revertir última migración
+# Revertir última migración (si sale mal jeje)
 alembic downgrade -1
+
+# Ver historial de migraciones
+alembic history
+
+# Ver migración actual
+alembic current
 ```
+
+### Flujo completo recomendado:
+1. **Modifica** un modelo en `app/models/` (ej: agregar columna)
+2. **Genera** la migración: `alembic revision --autogenerate -m "add_campo_x"`
+3. **Revisa** el archivo generado en `alembic/versions/` (Alembic no siempre detecta todo)
+4. **Aplica** la migración: `alembic upgrade head`
+5. **Commit** el archivo de migración: `git add alembic/versions/*.py`
+
+>  **IMPORTANTE**: Nunca edites la BD manualmente si usas Alembic. Siempre genera migraciones.
+>
+> **Documentación completa**: `ALEMBIC_SETUP.md` explica por qué esto es crítico para producción.
 
