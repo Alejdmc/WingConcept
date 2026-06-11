@@ -166,7 +166,7 @@ export default function ParatrikePage() {
       {/* CTA Section */}
       <section className="py-20 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
         <h2 className="text-5xl font-black uppercase mb-6">Ready to Customize?</h2>
-        <Link href="/paratrike/configurador" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
+        <Link href="/paratrike/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
           Start Customizing
         </Link>
       </section>
