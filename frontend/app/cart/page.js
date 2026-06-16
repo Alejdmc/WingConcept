@@ -11,13 +11,13 @@ export default function CartPage() {
       <div className="max-w-4xl mx-auto">
         <Link href="/" className="flex items-center gap-2 text-brand mb-8 hover:text-brand/80">
           <ArrowLeft className="w-4 h-4" />
-          Volver
+          Back
         </Link>
 
-        <h1 className="text-5xl font-black uppercase mb-12">Carrito</h1>
+        <h1 className="text-5xl font-black uppercase mb-12">Shopping Cart</h1>
 
         {items.length === 0 ? (
-          <p className="text-ink2 text-lg">Tu carrito está vacío</p>
+          <p className="text-ink2 text-lg">Your cart is empty</p>
         ) : (
           <>
             <div className="space-y-4 mb-8">
@@ -30,14 +30,18 @@ export default function CartPage() {
                   <button 
                     onClick={() => removeFromCart(item.cartId)}
                     className="text-red-500 hover:text-red-700 font-bold">
-                    Eliminar
+                    Remove
                   </button>
                 </div>
               ))}
             </div>
-            <div className="text-2xl font-bold mb-8">Total: ${total}</div>
-            <Link href="/checkout" className="inline-block bg-brand text-white px-8 py-4 font-bold uppercase rounded hover:bg-brand/90">
-              Ir al Checkout
+            
+            <div className="text-2xl font-bold mb-8">
+              Total: ${total.toLocaleString()}
+            </div>
+            
+            <Link href="/checkout" className="inline-block bg-brand text-white px-8 py-4 font-bold uppercase rounded hover:bg-brand/90 transition-all">
+              Proceed to Checkout
             </Link>
           </>
         )}

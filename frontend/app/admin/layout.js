@@ -7,9 +7,9 @@ export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-    { label: 'Productos', href: '/products', icon: Package },
-    { label: 'Pedidos', href: '/orders', icon: ShoppingCart },
+    { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
+    { label: 'Productos', href: '/admin/products', icon: Package },
+    { label: 'Pedidos', href: '/admin/orders', icon: ShoppingCart },
   ]
 
   return (

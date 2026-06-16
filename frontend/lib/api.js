@@ -1,9 +1,30 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const API = `${BASE}/api/v1`
 
+function getSessionId() {
+  if (typeof window === 'undefined') return null
+  let sessionId = localStorage.getItem('session_id')
+  if (!sessionId) {
+    sessionId = crypto.randomUUID()
+    localStorage.setItem('session_id', sessionId)
+  }
+  return sessionId
+}
+
+function buildQuery(params = {}) {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, String(value))
+    }
+  })
+  const query = searchParams.toString()
+  return query ? `?${query}` : ''
+}
+
 async function request(path, options = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-  const sessionId = typeof window !== 'undefined' ? localStorage.getItem('session_id') : null
+  const sessionId = getSessionId()
 
   const res = await fetch(`${API}${path}`, {
     headers: {
@@ -36,5 +57,15 @@ export const api = {
     eliminar: (itemId) => request(`/carrito/items/${itemId}`, { method: 'DELETE' }),
     vaciar: () => request('/carrito', { method: 'DELETE' }),
     merge: () => request('/carrito/merge', { method: 'POST' }),
+  },
+  productos: {
+    destacados: () => request('/productos/destacados'),
+    obtener: (slug) => request(`/productos/${slug}`),
+  },
+  admin: {
+    stats: () => request('/admin/stats'),
+    productos: (params = {}) => request(`/admin/productos${buildQuery(params)}`),
+    ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
+    actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
 }

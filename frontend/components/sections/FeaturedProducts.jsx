@@ -1,13 +1,14 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
+import { api } from '@/lib/api'
 import { ShoppingCart, Zap } from 'lucide-react'
 
-const products = [
+const fallbackProducts = [
   { 
-    id: 1, 
+    id: 'fallback-1', 
     name: 'Disruptor', 
     image: '/images/disruptor_ejemplo.png', 
     price: '$5,000', 
@@ -16,7 +17,7 @@ const products = [
     badge: 'Best Seller'
   },
   { 
-    id: 2, 
+    id: 'fallback-2', 
     name: 'I-Pro', 
     image: '/images/ipro_ejemplo.png', 
     price: '$5,200', 
@@ -25,7 +26,7 @@ const products = [
     badge: 'Premium'
   },
   { 
-    id: 3, 
+    id: 'fallback-3', 
     name: 'Paramotor Trike', 
     image: '/images/paramotor_trike_ejemplo.png', 
     price: '$1,350', 
@@ -57,7 +58,50 @@ const itemVariants = {
 
 export default function FeaturedProducts() {
   const [selectedId, setSelectedId] = useState(null)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const { addToCart } = useCart()
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const featured = await api.productos.destacados()
+        setProducts(featured || [])
+      } catch (err) {
+        console.error('Error loading featured products:', err)
+        setError('No se pudieron cargar los productos destacados.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFeatured()
+  }, [])
+
+  const handleAddToCart = async (product) => {
+    setSelectedId(null)
+    if (!product.slug) {
+      console.warn('No slug available for this product, cannot add to backend cart.')
+      return
+    }
+
+    try {
+      const detalle = await api.productos.obtener(product.slug)
+      const variant = detalle.variantes.find((v) => v.es_principal && v.activo) || detalle.variantes.find((v) => v.activo)
+
+      if (!variant) {
+        console.warn('No variant available for product', product.slug)
+        return
+      }
+
+      await addToCart({ variante_id: variant.id, ...product })
+    } catch (err) {
+      console.error('Error adding to cart:', err)
+    }
+  }
+
+  const items = products.length > 0 ? products : fallbackProducts
 
   return (
     <section 
@@ -98,7 +142,7 @@ export default function FeaturedProducts() {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}>
           
-          {products.map((product) => (
+          {items.map((product) => (
             <motion.div
               key={product.id}
               variants={itemVariants}
@@ -178,10 +222,7 @@ export default function FeaturedProducts() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.1 }}
-                          onClick={() => {
-                            addToCart(product)
-                            setSelectedId(null)
-                          }}
+                          onClick={() => handleAddToCart(product)}
                           className="w-full py-3 bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-black uppercase tracking-widest text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-300 group/btn hover:shadow-[0_0_20px_rgba(192,57,43,0.5)]">
                           <ShoppingCart className="w-4 h-4" />
                           Add to Cart

@@ -36,7 +36,7 @@ export function useCart() {
     setCargando(true)
     try {
       const res = await api.carrito.agregar({
-        variante_id: product.id,
+        variante_id: product.variante_id || product.id,
         cantidad: 1,
       })
       setItems(res.items || [])
