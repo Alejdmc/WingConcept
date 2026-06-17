@@ -3,7 +3,8 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronDown, ShoppingCart, ArrowLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ShoppingCart, ArrowLeft, ChevronRight, Check } from 'lucide-react'
+import { useCart } from '@/hooks/useCart'
 
 const CONFIG_OPTIONS = {
   engines: [
@@ -30,6 +31,8 @@ export default function ConfiguratorPage() {
   const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
   const [selectedFinish, setSelectedFinish] = useState(CONFIG_OPTIONS.chassisFinishes[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
+  const [addedToCart, setAddedToCart] = useState(false)
+  const { addConfiguredProduct, cargando } = useCart()
 
   const totalPrice = useMemo(() => {
     const enginePrice = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)?.basePrice || 0
@@ -46,6 +49,23 @@ export default function ConfiguratorPage() {
         ? prev.filter(id => id !== upgradeId)
         : [...prev, upgradeId]
     )
+  }
+
+  const handleAddToCart = async () => {
+    const engineObj = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
+    const finishObj = CONFIG_OPTIONS.chassisFinishes.find(f => f.id === selectedFinish)
+    
+    await addConfiguredProduct({
+      engine: selectedEngine,
+      engineName: engineObj?.name,
+      finish: selectedFinish,
+      finishName: finishObj?.name,
+      upgrades: selectedUpgrades,
+      totalPrice
+    })
+    
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 2000)
   }
 
   const selectedEngineObj = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
@@ -217,11 +237,38 @@ export default function ConfiguratorPage() {
 
             {/* CTA Button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              onClick={handleAddToCart}
+              disabled={cargando || addedToCart}
+              whileHover={{ scale: cargando || addedToCart ? 1 : 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-brand text-white py-4 rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-brand/90 transition-all">
-              <ShoppingCart className="w-5 h-5" />
-              Add to Cart
+              className={`w-full py-4 rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
+                addedToCart 
+                  ? 'bg-green-500 text-white' 
+                  : cargando 
+                  ? 'bg-brand/50 text-white cursor-not-allowed'
+                  : 'bg-brand text-white hover:bg-brand/90'
+              }`}>
+              {addedToCart ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  Added to Cart!
+                </>
+              ) : cargando ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                  </motion.div>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-5 h-5" />
+                  Add to Cart
+                </>
+              )}
             </motion.button>
           </motion.div>
         </div>

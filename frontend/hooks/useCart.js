@@ -48,6 +48,28 @@ export function useCart() {
     }
   }, [])
 
+  const addConfiguredProduct = useCallback(async (config) => {
+    setCargando(true)
+    try {
+      const res = await api.carrito.agregar({
+        producto_id: 1, // Vanguard V7.0
+        cantidad: 1,
+        configuracion: {
+          engine: config.engine,
+          finish: config.finish,
+          upgrades: config.upgrades,
+          totalPrice: config.totalPrice,
+        }
+      })
+      setItems(res.items || [])
+      setTotal(res.total || 0)
+    } catch (err) {
+      console.error('Error adding configured product:', err)
+    } finally {
+      setCargando(false)
+    }
+  }, [])
+
   const removeFromCart = useCallback(async (itemId) => {
     try {
       const res = await api.carrito.eliminar(itemId)
@@ -83,6 +105,7 @@ export function useCart() {
     total, 
     cargando, 
     addToCart, 
+    addConfiguredProduct,
     removeFromCart, 
     updateQuantity, 
     clearCart,
