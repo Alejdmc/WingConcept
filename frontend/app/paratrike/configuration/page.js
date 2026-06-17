@@ -57,13 +57,13 @@ export default function ConfiguratorPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-white border-b border-borderline py-6 px-6">
+        className="sticky top-0 z-10 bg-white border-b border-borderline py-4 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/paratrike" className="flex items-center gap-2 text-ink hover:text-brand transition">
             <ArrowLeft className="w-5 h-5" />
             <span className="font-semibold">Back</span>
           </Link>
-          <h1 className="text-3xl font-black uppercase text-ink tracking-tight">Vanguard V7.0</h1>
+          <h1 className="text-lg font-black uppercase text-ink tracking-tight">Vanguard V7.0</h1>
           <div className="w-20" />
         </div>
       </motion.div>

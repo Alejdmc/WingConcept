@@ -76,7 +76,7 @@ export default function ParatrikePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/paratrike/configurador" className="bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand/90 transition text-center">Customize Now</Link>
+              <Link href="/paratrike/configuration" className="bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand/90 transition text-center">Customize Now</Link>
               <a href="#specs" className="border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand hover:text-white transition text-center">View Specs</a>
             </div>
           </motion.div>
@@ -164,7 +164,7 @@ export default function ParatrikePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
+      <section className="relative z-10 py-20 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
         <h2 className="text-5xl font-black uppercase mb-6">Ready to Customize?</h2>
         <Link href="/paratrike/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
           Start Customizing
