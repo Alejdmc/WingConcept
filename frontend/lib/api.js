@@ -50,6 +50,7 @@ export const api = {
     refresh:  (data) => request('/auth/refresh',  { method: 'POST', body: JSON.stringify(data) }),
     me:       ()     => request('/auth/me'),
   },
+
   carrito: {
     obtener: () => request('/carrito'),
     agregar: (data) => request('/carrito/items', { method: 'POST', body: JSON.stringify(data) }),
@@ -58,13 +59,25 @@ export const api = {
     vaciar: () => request('/carrito', { method: 'DELETE' }),
     merge: () => request('/carrito/merge', { method: 'POST' }),
   },
+
+  configurador: {
+    guardar: (data) => request('/configurador', { method: 'POST', body: JSON.stringify(data) }),
+    obtener: (configId) => request(`/configurador/${configId}`),
+    miConfiguraciones: () => request('/configurador'),
+  },
+
   productos: {
     destacados: () => request('/productos/destacados'),
     obtener: (slug) => request(`/productos/${slug}`),
+    listar: (params = {}) => request(`/productos${buildQuery(params)}`),
   },
+
   admin: {
     stats: () => request('/admin/stats'),
     productos: (params = {}) => request(`/admin/productos${buildQuery(params)}`),
+    crearProducto: (data) => request('/admin/productos', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarProducto: (productoId, data) => request(`/admin/productos/${productoId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarProducto: (productoId) => request(`/admin/productos/${productoId}`, { method: 'DELETE' }),
     ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
     actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
