@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await api.auth.forgotPassword(email)
+      await api.auth.forgotPassword({ email })
       setSuccess(true)
     } catch (err) {
       alert('Error sending recovery email')

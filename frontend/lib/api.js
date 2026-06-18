@@ -45,10 +45,12 @@ async function request(path, options = {}) {
 
 export const api = {
   auth: {
-    login:    (data) => request('/auth/login',    { method: 'POST', body: JSON.stringify(data) }),
-    register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-    refresh:  (data) => request('/auth/refresh',  { method: 'POST', body: JSON.stringify(data) }),
-    me:       ()     => request('/auth/me'),
+    login:          (data) => request('/auth/login',    { method: 'POST', body: JSON.stringify(data) }),
+    register:       (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    refresh:        (data) => request('/auth/refresh',  { method: 'POST', body: JSON.stringify(data) }),
+    forgotPassword: (data) => request('/auth/recuperar', { method: 'POST', body: JSON.stringify(data) }),
+    resetPassword:  (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+    me:             ()     => request('/auth/me'),
   },
 
   carrito: {

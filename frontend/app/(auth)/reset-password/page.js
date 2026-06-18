@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await api.auth.resetPassword({ token, password })
+      await api.auth.resetPassword({ token, nueva_password: password })
       router.push('/login')
     } catch (err) {
       alert('Error updating password')
