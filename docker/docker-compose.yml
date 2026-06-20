@@ -55,11 +55,19 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --save 60 1 --loglevel warning
+    # En desarrollo sin contraseña; en producción usar docker-compose.prod.yml
+    command: >
+      sh -c "if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass $$REDIS_PASSWORD --save 60 1 --loglevel warning;
+      else
+        redis-server --save 60 1 --loglevel warning;
+      fi"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     networks:
       - wingnet
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then redis-cli -a $$REDIS_PASSWORD ping; else redis-cli ping; fi"]
       interval: 10s
       timeout: 5s
       retries: 5

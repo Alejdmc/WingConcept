@@ -1,0 +1,38 @@
+# ============================================================
+# WingConcept — Docker Compose PRODUCCIÓN
+# Override de docker-compose.yml para entorno productivo
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    volumes: []  # Sin montar código fuente en producción
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+  redis:
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --save 60 1
+      --loglevel warning
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports: []  # No exponer Redis al exterior en producción
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+
+  nginx:
+    # En producción, descomentar el bloqueo de docs en nginx.conf
+    restart: always

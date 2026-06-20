@@ -18,11 +18,13 @@ from app.core.exceptions import (
 )
 from app.core.security import (
     create_access_token,
+    create_email_verify_token,
     create_refresh_token,
     decode_token,
     hash_password,
     verify_password,
 )
+from app.utils.redis_client import marcar_refresh_token_usado, refresh_token_fue_usado
 from app.models.usuario import Usuario
 from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, TokenResponse
 
@@ -87,9 +89,21 @@ class AuthService:
         )
 
     async def refresh(self, db: AsyncSession, refresh_token: str) -> TokenResponse:
-        """Genera un nuevo access token a partir de un refresh token válido."""
+        """
+        Genera un nuevo access token a partir de un refresh token válido.
+
+        Implementa refresh token rotation:
+        - El token usado se invalida inmediatamente (blacklist en Redis via jti)
+        - Se emite un par nuevo access + refresh
+        - Si un token ya usado se reutiliza, se rechaza (posible robo)
+        """
         payload = decode_token(refresh_token)
         if payload is None or payload.get("type") != "refresh":
+            raise TokenExpiradoError()
+
+        jti = payload.get("jti")
+        if jti and await refresh_token_fue_usado(jti):
+            logger.warning(f"Refresh token reutilizado detectado (jti={jti}). Posible robo.")
             raise TokenExpiradoError()
 
         from uuid import UUID
@@ -99,6 +113,11 @@ class AuthService:
 
         if not usuario or not usuario.activo:
             raise CredencialesInvalidasError("Usuario no válido")
+
+        # Invalidar el refresh token actual antes de emitir uno nuevo
+        if jti:
+            ttl = settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
+            await marcar_refresh_token_usado(jti, ttl)
 
         access_token = create_access_token(
             subject=str(usuario.id),
@@ -166,6 +185,58 @@ class AuthService:
 
         logger.info(f"Contraseña actualizada para: {usuario.email}")
         return True
+
+    def generar_token_verificacion(self, usuario: Usuario) -> str:
+        """Genera JWT de verificación de email (24h)."""
+        return create_email_verify_token(subject=str(usuario.id), email=usuario.email)
+
+    async def verificar_email(self, db: AsyncSession, token: str) -> bool:
+        """
+        Valida el token JWT de verificación y marca email_verificado=True.
+        Retorna False si el token es inválido, expirado o ya verificado.
+        """
+        payload = decode_token(token)
+        if payload is None or payload.get("type") != "email_verify":
+            return False
+
+        from uuid import UUID
+        user_id = payload.get("sub")
+        email_claim = payload.get("email")
+        if not user_id:
+            return False
+
+        result = await db.execute(select(Usuario).where(Usuario.id == UUID(user_id)))
+        usuario = result.scalar_one_or_none()
+        if not usuario:
+            return False
+
+        # Verificar que el email del token coincide (previene uso cruzado)
+        if email_claim and usuario.email != email_claim:
+            logger.warning(f"Token verificación email mismatch: {usuario.email} vs {email_claim}")
+            return False
+
+        if usuario.email_verificado:
+            return True  # Idempotente: ya verificado
+
+        usuario.email_verificado = True
+        await db.flush()
+        logger.info(f"Email verificado: {usuario.email}")
+        return True
+
+    async def reenviar_verificacion(self, db: AsyncSession, email: str) -> Optional[tuple]:
+        """
+        Genera nuevo token de verificación si el usuario existe y no está verificado.
+        Retorna (token, nombre) o None (no revelar si el email existe).
+        """
+        result = await db.execute(
+            select(Usuario).where(Usuario.email == email.lower())
+        )
+        usuario = result.scalar_one_or_none()
+        if not usuario or usuario.email_verificado:
+            return None
+
+        token = self.generar_token_verificacion(usuario)
+        return token, usuario.nombre
 
 
 auth_service = AuthService()

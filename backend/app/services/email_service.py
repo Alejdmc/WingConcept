@@ -54,9 +54,9 @@ class EmailService:
         El link apunta al frontend que procesa el token.
         """
         if not frontend_url:
-            frontend_url = "https://wingconcept.com"
+            frontend_url = settings.FRONTEND_URL
 
-        reset_url = f"{frontend_url}/auth/recuperar?token={token}"
+        reset_url = f"{frontend_url.rstrip('/')}/reset-password?token={token}"
 
         try:
             resend.Emails.send({
@@ -82,6 +82,45 @@ class EmailService:
             return True
         except Exception as e:
             logger.error(f"Error enviando email recuperación a {email}: {e}")
+            return False
+
+    async def enviar_verificacion_email(
+        self,
+        email: str,
+        nombre: str,
+        token: str,
+        frontend_url: str = "",
+    ) -> bool:
+        """Email con enlace para verificar la cuenta."""
+        if not frontend_url:
+            frontend_url = settings.FRONTEND_URL
+
+        verify_url = f"{frontend_url.rstrip('/')}/verify-email?token={token}"
+
+        try:
+            resend.Emails.send({
+                "from": self._from_address(),
+                "to": [email],
+                "subject": "Verifica tu email — WingConcept",
+                "html": f"""
+                <h2>Hola {nombre},</h2>
+                <p>Gracias por registrarte en WingConcept. Verifica tu email para activar tu cuenta:</p>
+                <p>
+                    <a href="{verify_url}" style="
+                        background:#000;color:#fff;padding:12px 24px;
+                        text-decoration:none;border-radius:6px;display:inline-block
+                    ">
+                        Verificar email
+                    </a>
+                </p>
+                <p><small>Este enlace expira en {settings.EMAIL_VERIFY_EXPIRE_HOURS} horas.</small></p>
+                <p><small>Si no creaste esta cuenta, ignora este email.</small></p>
+                """,
+            })
+            logger.info(f"Email verificación enviado a: {email}")
+            return True
+        except Exception as e:
+            logger.error(f"Error enviando email verificación a {email}: {e}")
             return False
 
     async def enviar_confirmacion_orden(

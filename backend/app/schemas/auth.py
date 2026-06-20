@@ -77,3 +77,11 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError(error)
         return v
 
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(..., min_length=10)
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+

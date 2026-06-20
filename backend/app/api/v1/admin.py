@@ -6,7 +6,7 @@ Solo accesible con rol admin.
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +21,12 @@ from app.schemas.orden import (
     OrdenResponse,
     PaginatedAdminOrdenes,
 )
-from app.schemas.producto import PaginatedAdminProductos
+from app.schemas.producto import (
+    PaginatedAdminProductos,
+    ProductoCreate,
+    ProductoResponse,
+    ProductoUpdate,
+)
 from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
@@ -130,12 +135,43 @@ async def actualizar_usuario(
 async def listar_productos_admin(
     pagina: int = Query(1, ge=1),
     por_pagina: int = Query(20, ge=1, le=100),
-    buscar: Optional[str] = Query(None),
+    buscar: Optional[str] = Query(None, max_length=100),
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
     """Lista todos los productos con stock y ventas para el panel de admin."""
     return await producto_service.listar_admin(db, pagina, por_pagina, buscar)
+
+
+@router.post("/productos", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
+async def crear_producto_admin(
+    data: ProductoCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Crea un producto. Alias de POST /productos para el panel admin."""
+    return await producto_service.crear(db, data)
+
+
+@router.put("/productos/{producto_id}", response_model=ProductoResponse)
+async def actualizar_producto_admin(
+    producto_id: uuid.UUID,
+    data: ProductoUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza un producto. Alias de PUT /productos/{id} para el panel admin."""
+    return await producto_service.actualizar(db, producto_id, data)
+
+
+@router.delete("/productos/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_producto_admin(
+    producto_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Desactiva un producto (soft delete). Alias para el panel admin."""
+    await producto_service.eliminar(db, producto_id)
 
 
 # ── Órdenes Admin ─────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
+from app.core.middleware import global_rate_limit_middleware, validate_session_id_middleware
 
 # ── Logging estructurado ──────────────────────────────────────────────────────
 logging.basicConfig(
@@ -86,8 +87,20 @@ app.add_middleware(
     allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Authorization", "Content-Type", "X-Session-ID", "X-Request-ID"],
+    allow_headers=["Authorization", "Content-Type", "X-Session-ID", "X-Request-ID", "Cookie"],
 )
+
+
+# ── Middleware: Validación X-Session-ID (anti-inyección Redis) ────────────────
+@app.middleware("http")
+async def session_id_validation(request: Request, call_next):
+    return await validate_session_id_middleware(request, call_next)
+
+
+# ── Middleware: Rate limiting global (anti-DDoS) ───────────────────────────────
+@app.middleware("http")
+async def global_rate_limit(request: Request, call_next):
+    return await global_rate_limit_middleware(request, call_next)
 
 
 # ── Middleware: Límite de tamaño de body (anti-DoS) ───────────────────────────

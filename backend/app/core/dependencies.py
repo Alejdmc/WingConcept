@@ -16,6 +16,7 @@ from app.core.exceptions import (
     PermisosDenegadosError,
     TokenExpiradoError,
 )
+from app.core.middleware import validar_session_id
 from app.core.security import decode_token
 from app.database import get_db
 
@@ -108,13 +109,13 @@ async def get_optional_user(
 def get_session_id(request: Request) -> str:
     """
     Extrae o genera un session_id para carritos anónimos.
-    Primero busca X-Session-ID header, luego cookie, luego IP.
+    Primero busca X-Session-ID header (validado por middleware), luego cookie.
     """
     session_id = request.headers.get("X-Session-ID")
-    if session_id:
+    if session_id and validar_session_id(session_id):
         return session_id
     session_cookie = request.cookies.get("session_id")
-    if session_cookie:
+    if session_cookie and validar_session_id(session_cookie):
         return session_cookie
     # Fallback: usar IP (no recomendado en producción, solo para dev)
     client_ip = request.client.host if request.client else "unknown"

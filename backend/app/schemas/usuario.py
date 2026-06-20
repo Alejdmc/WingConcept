@@ -4,7 +4,9 @@ WingConcept Backend — Schemas Usuario (Pydantic V2)
 import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+ROLES_VALIDOS = frozenset({"client", "admin"})
 
 
 class UsuarioBase(BaseModel):
@@ -34,6 +36,13 @@ class UsuarioAdminUpdate(UsuarioUpdate):
     """Solo administradores pueden modificar estos campos."""
     rol: Optional[str] = None
     activo: Optional[bool] = None
+
+    @field_validator("rol")
+    @classmethod
+    def validar_rol(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in ROLES_VALIDOS:
+            raise ValueError(f"Rol '{v}' no válido. Opciones: client, admin")
+        return v
 
 
 class DireccionEnvioCreate(BaseModel):

@@ -74,6 +74,22 @@ def create_refresh_token(subject: str | Any) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def create_email_verify_token(subject: str | Any, email: str) -> str:
+    """
+    Crea un JWT de verificación de email (24h por defecto).
+    Tipo 'email_verify' — no intercambiable con access/refresh tokens.
+    """
+    expire = datetime.now(timezone.utc) + timedelta(hours=settings.EMAIL_VERIFY_EXPIRE_HOURS)
+    payload: dict[str, Any] = {
+        "sub": str(subject),
+        "email": email,
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "type": "email_verify",
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
 def decode_token(token: str) -> Optional[dict]:
     """
     Decodifica y valida un JWT.

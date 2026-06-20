@@ -119,6 +119,33 @@ async def check_rate_limit(
         return True, limit  # En caso de error Redis, permitir la request
 
 
+# ── Refresh Token Blacklist (rotation) ────────────────────────────────────────
+
+REFRESH_TOKEN_PREFIX = "rt:used"
+
+
+async def marcar_refresh_token_usado(jti: str, ttl_seconds: int) -> None:
+    """
+    Marca un refresh token como consumido en Redis.
+    TTL = duración restante del token para auto-limpieza.
+    """
+    try:
+        r = await get_redis()
+        await r.setex(f"{REFRESH_TOKEN_PREFIX}:{jti}", ttl_seconds, "used")
+    except Exception as e:
+        logger.warning(f"Redis marcar_refresh_token error [{jti}]: {e}")
+
+
+async def refresh_token_fue_usado(jti: str) -> bool:
+    """Verifica si un refresh token ya fue consumido (detecta reuso/robo)."""
+    try:
+        r = await get_redis()
+        return await r.exists(f"{REFRESH_TOKEN_PREFIX}:{jti}") > 0
+    except Exception as e:
+        logger.warning(f"Redis refresh_token_fue_usado error [{jti}]: {e}")
+        return False
+
+
 # ── Carrito temporal (usuarios anónimos) ──────────────────────────────────────
 
 CARRITO_PREFIX = "cart"

@@ -5,7 +5,12 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+# Categorías válidas para productos de paramotores
+CATEGORIAS_VALIDAS = frozenset({
+    "paramotor", "vela", "motor", "accesorios", "repuestos", "paratrike",
+})
 
 
 # ── Variante ──────────────────────────────────────────────────────────────────
@@ -66,6 +71,17 @@ class ProductoCreate(BaseModel):
     destacado: bool = False
     orden_display: int = 0
 
+    @field_validator("categoria")
+    @classmethod
+    def validar_categoria(cls, v: str) -> str:
+        v_lower = v.lower().strip()
+        if v_lower not in CATEGORIAS_VALIDAS:
+            raise ValueError(
+                f"Categoría '{v}' no válida. "
+                f"Opciones: {', '.join(sorted(CATEGORIAS_VALIDAS))}"
+            )
+        return v_lower
+
 
 class ProductoUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=255)
@@ -80,6 +96,19 @@ class ProductoUpdate(BaseModel):
     activo: Optional[bool] = None
     destacado: Optional[bool] = None
     orden_display: Optional[int] = None
+
+    @field_validator("categoria")
+    @classmethod
+    def validar_categoria(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v_lower = v.lower().strip()
+        if v_lower not in CATEGORIAS_VALIDAS:
+            raise ValueError(
+                f"Categoría '{v}' no válida. "
+                f"Opciones: {', '.join(sorted(CATEGORIAS_VALIDAS))}"
+            )
+        return v_lower
 
 
 class ProductoResponse(BaseModel):

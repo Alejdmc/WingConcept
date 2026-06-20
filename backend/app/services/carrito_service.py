@@ -127,16 +127,22 @@ class CarritoService:
 
     async def _carrito_a_response(self, db: AsyncSession, carrito: Carrito) -> CarritoResponse:
         """Construye la respuesta del carrito con info de variantes y productos."""
+        # Cargar variantes con productos en una sola query (evita N+1)
+        variante_ids = [item.variante_id for item in carrito.items]
+        variantes_map: dict = {}
+        if variante_ids:
+            variantes_result = await db.execute(
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.id.in_(variante_ids))
+            )
+            variantes_map = {v.id: v for v in variantes_result.scalars().all()}
+
         items_response = []
         total = 0.0
 
         for item in carrito.items:
-            variante_result = await db.execute(
-                select(Variante)
-                .options(selectinload(Variante.producto))
-                .where(Variante.id == item.variante_id)
-            )
-            variante = variante_result.scalar_one_or_none()
+            variante = variantes_map.get(item.variante_id)
             producto_nombre = None
             imagen = None
             variante_nombre = variante.nombre if variante else None

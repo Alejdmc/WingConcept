@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    EMAIL_VERIFY_EXPIRE_HOURS: int = 24
 
     # ── Wompi — Pagos Colombia ───────────────────────────────
     # Panel: https://comercios.wompi.co
@@ -90,6 +91,9 @@ class Settings(BaseSettings):
 
     # ── CORS ─────────────────────────────────────────────────
     ALLOWED_ORIGINS: str = "http://localhost:3000"
+
+    # ── Frontend URL (links en emails) ───────────────────────
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # ── Hosts confiables (TrustedHostMiddleware) ──────────────
     # En producción: "wingconcept.com,www.wingconcept.com"
