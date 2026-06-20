@@ -56,3 +56,17 @@ class ServicioExternoError(HTTPException):
             msg += f": {detail}"
         super().__init__(status_code=status.HTTP_502_BAD_GATEWAY, detail=msg)
 
+
+class ServicioNoDisponibleError(HTTPException):
+    """Servicio temporalmente no disponible (ej: BD aún no configurada)."""
+    def __init__(self, detail: str = "Servicio temporalmente no disponible"):
+        super().__init__(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
+
+
+class EmailVerificadoRequeridoError(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Debes verificar tu email antes de realizar esta acción.",
+        )
+

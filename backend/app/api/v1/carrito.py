@@ -10,20 +10,17 @@ POST   /api/v1/carrito/merge  (fusionar carrito anónimo al hacer login)
 import uuid
 
 from fastapi import APIRouter, Depends, Request, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import get_optional_user, get_session_id, get_current_user
-from app.core.exceptions import CredencialesInvalidasError, RecursoNoEncontradoError
+from app.core.dependencies import get_current_user, get_optional_user, get_session_id
+from app.core.exceptions import CredencialesInvalidasError
 from app.database import get_db
-from app.models.variante import Variante
 from app.schemas.carrito import (
     ActualizarCantidadRequest,
     AgregarItemRequest,
     CarritoResponse,
 )
-from app.services.carrito_service import carrito_service
+from app.services.carrito_service import _precio_desde_configuracion, carrito_service
 
 router = APIRouter(prefix="/carrito", tags=["Carrito"])
 
@@ -41,9 +38,9 @@ async def obtener_carrito(
     if current_user:
         carrito = await carrito_service.obtener_o_crear(db, current_user.id)
         return await carrito_service._carrito_a_response(db, carrito)
-    else:
-        session_id = get_session_id(request)
-        return await carrito_service.obtener_anonimo(session_id)
+
+    session_id = get_session_id(request)
+    return await carrito_service.obtener_anonimo(session_id)
 
 
 @router.post("/items", response_model=CarritoResponse, status_code=status.HTTP_201_CREATED)
@@ -53,32 +50,42 @@ async def agregar_item(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
-    """Agrega un item al carrito."""
+    """
+    Agrega un item al carrito.
+
+    Acepta variante_id o producto_id (configurador 3D).
+    Opcionalmente configuracion con totalPrice para precio personalizado.
+    """
+    variante = await carrito_service.resolver_variante(
+        db, variante_id=data.variante_id, producto_id=data.producto_id
+    )
+    precio = _precio_desde_configuracion(data.configuracion, float(variante.precio))
+
     if current_user:
         return await carrito_service.agregar_item(
-            db, current_user.id, data.variante_id, data.cantidad
+            db,
+            current_user.id,
+            variante.id,
+            data.cantidad,
+            configuracion=data.configuracion,
+            precio_unitario=precio,
         )
-    else:
-        # Para carrito anónimo: buscar precio real + metadata del producto en una sola query
-        variante_result = await db.execute(
-            select(Variante)
-            .options(selectinload(Variante.producto))
-            .where(Variante.id == data.variante_id, Variante.activo == True)
-        )
-        variante = variante_result.scalar_one_or_none()
-        if not variante:
-            raise RecursoNoEncontradoError("Variante")
 
-        session_id = get_session_id(request)
-        return await carrito_service.agregar_item_anonimo(
-            session_id=session_id,
-            variante_id=str(data.variante_id),
-            cantidad=data.cantidad,
-            precio=float(variante.precio),
-            variante_nombre=variante.nombre,
-            producto_nombre=variante.producto.nombre if variante.producto else "",
-            imagen=(variante.producto.imagenes[0] if variante.producto and variante.producto.imagenes else ""),
-        )
+    session_id = get_session_id(request)
+    return await carrito_service.agregar_item_anonimo(
+        session_id=session_id,
+        variante_id=str(variante.id),
+        cantidad=data.cantidad,
+        precio=precio,
+        variante_nombre=variante.nombre,
+        producto_nombre=variante.producto.nombre if variante.producto else "",
+        imagen=(
+            variante.producto.imagenes[0]
+            if variante.producto and variante.producto.imagenes
+            else ""
+        ),
+        configuracion=data.configuracion,
+    )
 
 
 @router.put("/items/{item_id}", response_model=CarritoResponse)
@@ -133,5 +140,3 @@ async def fusionar_carrito(
     """
     session_id = get_session_id(request)
     return await carrito_service.fusionar_anonimo_con_usuario(db, current_user.id, session_id)
-
-

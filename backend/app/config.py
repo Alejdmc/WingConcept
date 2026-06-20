@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     EMAIL_VERIFY_EXPIRE_HOURS: int = 24
+    # Si True, bloquea crear órdenes sin email_verificado=True
+    REQUIRE_EMAIL_VERIFIED: bool = False
 
     # ── Wompi — Pagos Colombia ───────────────────────────────
     # Panel: https://comercios.wompi.co

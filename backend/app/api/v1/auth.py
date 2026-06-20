@@ -157,12 +157,24 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
 
 
 @router.post("/verify-email", status_code=status.HTTP_200_OK)
-async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_db)):
-    """Verifica el email del usuario usando el token JWT del enlace."""
+async def verify_email_post(data: VerifyEmailRequest, db: AsyncSession = Depends(get_db)):
+    """Verifica el email del usuario usando el token JWT (POST)."""
     exitoso = await auth_service.verificar_email(db, data.token)
     if not exitoso:
         raise CredencialesInvalidasError("Token de verificación inválido o expirado")
-    return {"message": "Email verificado correctamente."}
+    return {"message": "Email verificado correctamente.", "email_verificado": True}
+
+
+@router.get("/verify-email", status_code=status.HTTP_200_OK)
+async def verify_email_get(token: str, db: AsyncSession = Depends(get_db)):
+    """
+    Verifica el email vía enlace directo del correo (GET ?token=...).
+    Útil si el frontend aún no tiene la página; también la puede consumir.
+    """
+    exitoso = await auth_service.verificar_email(db, token)
+    if not exitoso:
+        raise CredencialesInvalidasError("Token de verificación inválido o expirado")
+    return {"message": "Email verificado correctamente.", "email_verificado": True}
 
 
 @router.post("/resend-verification", status_code=status.HTTP_200_OK)

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -79,6 +79,9 @@ class ItemCarrito(Base):
 
     # Precio al momento de agregar (puede cambiar el precio del producto)
     precio_unitario: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+
+    # Opciones del configurador 3D (motor, acabado, upgrades…) si aplica
+    configuracion: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

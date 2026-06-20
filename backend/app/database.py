@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
+from app.core.exceptions import ServicioNoDisponibleError
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     Maneja commit/rollback automáticamente.
     """
     if AsyncSessionLocal is None:
-        raise RuntimeError("Base de datos no configurada. Verifica DATABASE_URL en .env")
+        raise ServicioNoDisponibleError(
+            "Base de datos no configurada. Configura DATABASE_URL en .env cuando esté disponible."
+        )
 
     async with AsyncSessionLocal() as session:
         try:

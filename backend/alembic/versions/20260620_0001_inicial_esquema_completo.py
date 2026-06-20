@@ -115,6 +115,7 @@ def upgrade() -> None:
         sa.Column("variante_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("cantidad", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("precio_unitario", sa.Numeric(12, 2), nullable=False),
+        sa.Column("configuracion", postgresql.JSONB(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["carrito_id"], ["carritos.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["variante_id"], ["variantes.id"], ondelete="CASCADE"),

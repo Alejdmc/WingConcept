@@ -2,15 +2,28 @@
 WingConcept Backend — Schemas Carrito (Pydantic V2)
 """
 import uuid
-from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class AgregarItemRequest(BaseModel):
-    variante_id: uuid.UUID
+    """
+    Agrega un item al carrito.
+
+    Acepta variante_id (estándar) o producto_id (configurador 3D del frontend).
+    Si solo se envía producto_id, se usa la variante principal activa del producto.
+    """
+    variante_id: Optional[uuid.UUID] = None
+    producto_id: Optional[uuid.UUID] = None
     cantidad: int = Field(1, ge=1, le=99)
+    configuracion: Optional[Dict[str, Any]] = None
+
+    @model_validator(mode="after")
+    def validar_referencia_producto(self) -> "AgregarItemRequest":
+        if not self.variante_id and not self.producto_id:
+            raise ValueError("Se requiere variante_id o producto_id")
+        return self
 
 
 class ActualizarCantidadRequest(BaseModel):
@@ -27,6 +40,7 @@ class ItemCarritoResponse(BaseModel):
     variante_nombre: Optional[str] = None
     producto_nombre: Optional[str] = None
     producto_imagen: Optional[str] = None
+    configuracion: Optional[Dict[str, Any]] = None
 
     # ── Campos amigables para cart/page.js ────────────────────────────────
     # cart/page.js usa item.cartId como key y para eliminar,

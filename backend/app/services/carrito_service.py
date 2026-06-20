@@ -4,7 +4,7 @@ Manejo dual: usuarios autenticados (PostgreSQL) y anónimos (Redis)
 """
 import logging
 import uuid
-from typing import Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -20,7 +20,44 @@ from app.utils.redis_client import carrito_delete, carrito_get, carrito_set
 logger = logging.getLogger(__name__)
 
 
+def _precio_desde_configuracion(configuracion: Optional[dict], precio_variante: float) -> float:
+    """Usa totalPrice del configurador 3D si viene en la configuración."""
+    if not configuracion:
+        return precio_variante
+    for key in ("totalPrice", "total_price", "precio"):
+        if key in configuracion and configuracion[key] is not None:
+            return float(configuracion[key])
+    return precio_variante
+
+
 class CarritoService:
+
+    async def resolver_variante(
+        self,
+        db: AsyncSession,
+        variante_id: Optional[UUID] = None,
+        producto_id: Optional[UUID] = None,
+    ) -> Variante:
+        """Obtiene variante por ID o la principal de un producto."""
+        if variante_id:
+            result = await db.execute(
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.id == variante_id, Variante.activo == True)
+            )
+            variante = result.scalar_one_or_none()
+        else:
+            result = await db.execute(
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.producto_id == producto_id, Variante.activo == True)
+                .order_by(Variante.es_principal.desc(), Variante.created_at.asc())
+            )
+            variante = result.scalars().first()
+
+        if not variante:
+            raise RecursoNoEncontradoError("Variante")
+        return variante
 
     # ── Carrito autenticado (DB) ──────────────────────────────────────────────
 
@@ -44,9 +81,10 @@ class CarritoService:
         usuario_id: UUID,
         variante_id: UUID,
         cantidad: int,
+        configuracion: Optional[Dict[str, Any]] = None,
+        precio_unitario: Optional[float] = None,
     ) -> CarritoResponse:
         """Agrega o incrementa un item en el carrito del usuario autenticado."""
-        # Verificar que la variante existe y tiene stock
         variante_result = await db.execute(
             select(Variante).where(Variante.id == variante_id, Variante.activo == True)
         )
@@ -56,12 +94,17 @@ class CarritoService:
         if variante.stock < cantidad:
             raise StockInsuficienteError(variante.nombre)
 
+        precio = precio_unitario or _precio_desde_configuracion(configuracion, float(variante.precio))
         carrito = await self.obtener_o_crear(db, usuario_id)
 
-        # Buscar si ya existe el item
-        item_existente = next(
-            (i for i in carrito.items if i.variante_id == variante_id), None
-        )
+        # Items configurados siempre son línea nueva (misma variante, distinta config)
+        item_existente = None
+        if not configuracion:
+            item_existente = next(
+                (i for i in carrito.items if i.variante_id == variante_id and not i.configuracion),
+                None,
+            )
+
         if item_existente:
             nueva_cantidad = item_existente.cantidad + cantidad
             if variante.stock < nueva_cantidad:
@@ -72,7 +115,8 @@ class CarritoService:
                 carrito_id=carrito.id,
                 variante_id=variante_id,
                 cantidad=cantidad,
-                precio_unitario=variante.precio,
+                precio_unitario=precio,
+                configuracion=configuracion,
             )
             db.add(nuevo_item)
             carrito.items.append(nuevo_item)
@@ -168,6 +212,7 @@ class CarritoService:
                     cartId=item.id,
                     name=producto_nombre or variante_nombre,
                     price=f"${float(item.precio_unitario):,.0f}",
+                    configuracion=item.configuracion,
                 )
             )
 
@@ -194,12 +239,20 @@ class CarritoService:
         variante_nombre: str = "",
         producto_nombre: str = "",
         imagen: str = "",
+        configuracion: Optional[Dict[str, Any]] = None,
     ) -> CarritoResponse:
         """Agrega un item al carrito anónimo en Redis."""
         data = await carrito_get(session_id)
         items = data.get("items", []) if data else []
 
-        item_existente = next((i for i in items if i["variante_id"] == variante_id), None)
+        # Configuraciones distintas = líneas distintas aunque sea la misma variante
+        item_existente = None
+        if not configuracion:
+            item_existente = next(
+                (i for i in items if i["variante_id"] == variante_id and not i.get("configuracion")),
+                None,
+            )
+
         if item_existente:
             item_existente["cantidad"] += cantidad
             item_existente["subtotal"] = item_existente["precio_unitario"] * item_existente["cantidad"]
@@ -214,6 +267,7 @@ class CarritoService:
                 "variante_nombre": variante_nombre,
                 "producto_nombre": producto_nombre,
                 "producto_imagen": imagen,
+                "configuracion": configuracion,
                 "cartId": item_id,
                 "name": producto_nombre or variante_nombre,
                 "price": f"${precio:,.0f}",
@@ -252,7 +306,14 @@ class CarritoService:
                 )
                 variante = variante_result.scalar_one_or_none()
                 if variante and variante.stock >= cantidad:
-                    await self.agregar_item(db, usuario_id, variante_id, cantidad)
+                    await self.agregar_item(
+                        db,
+                        usuario_id,
+                        variante_id,
+                        cantidad,
+                        configuracion=item.get("configuracion"),
+                        precio_unitario=item.get("precio_unitario"),
+                    )
             except Exception as e:
                 logger.warning(f"Error fusionando item anónimo {item.get('variante_id')}: {e}")
 
