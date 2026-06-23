@@ -7,10 +7,23 @@ import { useCart } from '@/hooks/useCart'
 
 const NAV_ITEMS = [
   { label: 'Paramotors', href: '/paramotors' },
-  { label: 'Paratrike',  href: '/paratrike' },
-  { label: 'Adventure', children: [{ label: 'W.C Adventure', href: '/adventure' }, { label: 'W.C Shows', href: '/shows' }, { label: 'W.C Events', href: '/events' }] },
-  { label: 'Support', children: [{ label: 'Find Dealer', href: '/dealers' }, { label: 'User Manuals', href: '/manuals' }, { label: 'Find Schools', href: '/schools' }] },
-  { label: 'More', children: [{ label: 'About Us', href: '/about' }, { label: 'W.C Milestones', href: '/milestones' }, { label: 'Contact Us', href: '/contact' }] },
+  { label: 'Paratrike', href: '/paratrike' },
+  {
+    label: 'Adventure',
+    children: [
+      { label: 'W.C Adventure', href: '/adventure' },
+      { label: 'W.C Shows', href: '/shows' },
+      { label: 'W.C Events', href: '/events' },
+    ],
+  },
+  {
+    label: 'More',
+    children: [
+      { label: 'About Us', href: '/about' },
+      { label: 'W.C Milestones', href: '/milestones' },
+      { label: 'Contact Us', href: '/contact' },
+    ],
+  },
 ]
 
 export default function Navbar() {
@@ -27,31 +40,58 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-32 px-8">
+      <div className="flex items-center justify-between h-40 px-8">
         <Link href="/" className="flex items-center">
-          <Image src="/images/logo.png" alt="Wing Concept" width={500} height={140} priority className="h-32 w-auto" />
+          <Image
+            src="/images/logo.png"
+            alt="Wing Concept"
+            width={700}
+            height={200}
+            priority
+            className="h-40 w-auto"
+          />
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
-            <DropdownItem key={item.label} item={item} handleScroll={handleScroll} />
+            <DropdownItem
+              key={item.label}
+              item={item}
+              handleScroll={handleScroll}
+            />
           ))}
         </div>
 
         <div className="flex items-center gap-1.5">
-          <Link href="/login" className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center">
+          <Link
+            href="/login"
+            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"
+          >
             <User className="w-5 h-5" />
           </Link>
-          <Link href="/cart" className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center">
+
+          <Link
+            href="/cart"
+            className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"
+          >
             <ShoppingCart className="w-5 h-5" />
+
             {items.length > 0 && (
               <span className="absolute top-1 right-1 bg-brand text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
                 {items.length}
               </span>
             )}
           </Link>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand">
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand"
+          >
+            {mobileOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
@@ -62,16 +102,30 @@ export default function Navbar() {
             item.children ? (
               <details key={item.label} className="group">
                 <summary className="flex items-center justify-between px-3 py-2.5 text-[13px] font-semibold uppercase text-ink cursor-pointer list-none hover:text-brand hover:bg-brand-soft rounded">
-                  {item.label} <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
+                  {item.label}
+                  <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
                 </summary>
+
                 <div className="pl-4 flex flex-col gap-0.5 mt-1">
                   {item.children.map((child) => (
-                    <Link key={child.href} href={child.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft rounded">{child.label}</Link>
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-3 py-2 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft rounded"
+                    >
+                      {child.label}
+                    </Link>
                   ))}
                 </div>
               </details>
             ) : (
-              <Link key={item.label} href={item.href} onClick={() => setMobileOpen(false)} className="block w-full text-left px-3 py-2.5 text-[13px] font-semibold uppercase text-ink hover:text-brand hover:bg-brand-soft rounded">
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className="block w-full text-left px-3 py-2.5 text-[13px] font-semibold uppercase text-ink hover:text-brand hover:bg-brand-soft rounded"
+              >
                 {item.label}
               </Link>
             )
@@ -95,18 +149,32 @@ function DropdownItem({ item, handleScroll }) {
     timeoutRef.current = setTimeout(() => setOpen(false), 150)
   }
 
-  // Si tiene hijos, renderiza el dropdown
   if (item.children) {
     return (
-      <div className="relative p-1" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <div
+        className="relative p-1"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <button className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft">
-          {item.label} <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+          {item.label}
+          <ChevronDown
+            className={`w-3 h-3 transition-transform ${
+              open ? 'rotate-180' : ''
+            }`}
+          />
         </button>
+
         {open && (
           <div className="absolute top-full pt-1 left-0 z-50">
             <div className="bg-bg border border-borderline rounded-lg shadow-xl min-w-[180px] overflow-hidden">
               {item.children.map((child) => (
-                <Link key={child.href} href={child.href} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft transition-all">
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2.5 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft transition-all"
+                >
                   {child.label}
                 </Link>
               ))}
@@ -117,18 +185,22 @@ function DropdownItem({ item, handleScroll }) {
     )
   }
 
-  // Si es un enlace de scroll (/#)
   if (item.href.startsWith('/#')) {
     return (
-      <button onClick={(e) => handleScroll(e, item.href)} className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer">
+      <button
+        onClick={(e) => handleScroll(e, item.href)}
+        className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer"
+      >
         {item.label}
       </button>
     )
   }
 
-  // Si es un enlace normal de página
   return (
-    <Link href={item.href} className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer">
+    <Link
+      href={item.href}
+      className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer"
+    >
       {item.label}
     </Link>
   )
