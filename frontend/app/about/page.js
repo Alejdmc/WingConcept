@@ -17,23 +17,39 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Hero Section - Evoke Excitement */}
-      <section className="py-32 px-6 bg-gradient-to-b from-bg2 to-white">
-        <div className="max-w-7xl mx-auto text-center">
+      {/* Hero Section - Con imagen de fondo tipo Parajet */}
+      <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Imagen de fondo */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/front1.jpg"
+            alt="WINGCONCEPT Paramotor"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay oscuro para mejorar legibilidad */}
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+
+        {/* Contenido sobre la imagen */}
+        <div className="relative z-10 max-w-7xl mx-auto text-center px-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <div className="mb-12 flex justify-center">
+            <div className="mb-8 flex justify-center">
               <Image
                 src="/images/logo.png"
                 alt="Wing Concept"
-                width={200}
-                height={80}
-                className="drop-shadow-lg"
+                width={500}
+                height={200}
+                className="drop-shadow-lg brightness-0 invert"
               />
             </div>
-            <h1 className="text-7xl font-black uppercase text-ink tracking-tighter mb-4">About Us</h1>
+            <h1 className="text-7xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
+              About Us
+            </h1>
             <div className="h-2 w-24 bg-brand mx-auto" />
           </motion.div>
 
@@ -41,8 +57,8 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-3xl font-black text-ink max-w-3xl mx-auto leading-tight mt-12">
-            Where passion meets the sky, and freedom finds its wings
+            className="text-2xl md:text-4xl font-black text-white max-w-3xl mx-auto leading-tight mt-8 drop-shadow-xl">
+            Where passion meets the sky,<br />and freedom finds its wings
           </motion.p>
         </div>
       </section>
@@ -254,7 +270,7 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/images/moto"
+                src="/images/founder-portrait.jpg"
                 alt="Andrés Arango"
                 fill
                 className="object-cover"
