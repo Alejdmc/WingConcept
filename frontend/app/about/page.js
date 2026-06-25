@@ -42,7 +42,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="text-3xl font-black text-ink max-w-3xl mx-auto leading-tight mt-12">
-            Evoke excitement and the ultimate sensation of freedom and adventure
+            Where passion meets the sky, and freedom finds its wings
           </motion.p>
         </div>
       </section>
@@ -55,12 +55,10 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
             <p className="text-lg text-ink leading-relaxed">
-              Throughout the world, paramotoring unites people deeply, passionately and authentically. 
-              From country to country, the ideals of freedom and self-expression that paramotoring 
-              embodies transcend cultures, gender and age. Being recognised as a leading brand is 
-              gratifying, but igniting the fire within people that fly the many skies above us is what 
-              drives WINGCONCEPT to continually push the boundaries – all in an effort to find the 
-              next great adventure.
+              Around the globe, paramotoring creates bonds that go beyond borders, languages, and cultures. 
+              It's a shared language of freedom, adventure, and pure emotion that unites pilots from every 
+              corner of the world. At WINGCONCEPT, we don't just build machines - we fuel dreams, ignite 
+              spirits, and empower those who dare to look up and take flight.
             </p>
           </motion.div>
         </div>
@@ -73,26 +71,26 @@ export default function AboutPage() {
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}>
-            <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">From Shed</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-8">To Success</h2>
+            <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">From Humble Beginnings</p>
+            <h2 className="text-5xl font-black uppercase text-ink mb-8">To Global Recognition</h2>
             <div className="h-1 w-16 bg-brand mb-8" />
             <p className="text-lg text-ink leading-relaxed">
-              There really isn't a humbler place to begin than a converted shed, tucked away on a quiet, 
-              leafy country lane. It was in this small workshop that our founder Andrés Arango first 
-              pursued an endeavour to advance personal aviation, where every WINGCONCEPT paramotor 
-              built was a point of pride.
+              Every great story starts somewhere, and ours began in a modest workshop where Andrés Arango 
+              devoted countless hours to perfecting his craft. With little more than determination and an 
+              unwavering belief in his vision, he built the very first WINGCONCEPT paramotor - a machine 
+              born from passion and built with precision.
             </p>
             <p className="text-lg text-ink leading-relaxed mt-6">
-              With our roots going back to the sport's earliest days, WINGCONCEPT has now become a 
-              leader in paramotor design and manufacture. Andrés has been an ongoing pioneer in the 
-              sport and our company has been credited with creating some of the most influential 
-              designs and innovations within the paramotoring industry.
+              Today, what started as a one-man dream has grown into a brand recognized across continents. 
+              Andrés' relentless pursuit of innovation has positioned WINGCONCEPT at the forefront of 
+              paramotor engineering, with designs that continue to inspire pilots and shape the future 
+              of personal aviation.
             </p>
             <div className="mt-8 p-6 border-l-4 border-brand bg-white/50 rounded-r-lg">
               <p className="text-xl font-bold text-ink italic">
-                "It is our passion and determination that defines what we do as a company."
+                "Excellence is not a goal - it's the standard we live by every single day."
               </p>
-              <p className="text-ink2 font-semibold mt-2">Andrés Arango, Founder</p>
+              <p className="text-ink2 font-semibold mt-2">Andrés Arango, Founder & Chief Engineer</p>
             </div>
           </motion.div>
           <motion.div
@@ -101,7 +99,7 @@ export default function AboutPage() {
             transition={{ duration: 0.8 }}
             className="relative aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
             <Image
-              src="/images/vanguard_hero.png"
+              src="/images/front1.jpg"
               alt="Wing Concept Workshop"
               fill
               className="object-cover"
@@ -127,14 +125,14 @@ export default function AboutPage() {
             transition={{ delay: 0.2 }}
             className="max-w-4xl mx-auto text-center">
             <p className="text-lg text-ink leading-relaxed">
-              To this day, though we've grown far beyond our roots, every WINGCONCEPT paramotor we 
-              manufacture is a testament to Andrés' founding principles. Everything we do is designed 
-              to make every moment in the air exceptional.
+              Despite our growth and global reach, every WINGCONCEPT paramotor is still built with the 
+              same dedication and attention to detail that defined our very first model. Our philosophy 
+              is simple: create equipment that makes every flight unforgettable.
             </p>
             <p className="text-lg text-ink leading-relaxed mt-6">
-              We have a strong ideology made up of five basic tenets that guide everything we do. 
-              From inspired design and meticulous craftsmanship, to effortless performance, unrivalled 
-              support and elevated experiences, every WINGCONCEPT paramotor must abide by these principles.
+              We are guided by five core principles that shape everything we do - from the drawing board 
+              to the final assembly. These are the pillars that define our identity and ensure that every 
+              pilot who chooses WINGCONCEPT experiences the very best that aviation has to offer.
             </p>
           </motion.div>
         </div>
@@ -147,23 +145,23 @@ export default function AboutPage() {
             {[
               {
                 title: 'Inspired Design',
-                desc: 'Every product is born from a vision of excellence, combining aesthetics and functionality to create paramotors that are as beautiful as they are capable.'
+                desc: 'We believe that great engineering is also great art. Every curve, every component, and every detail is carefully crafted to be as visually stunning as it is functionally superior.'
               },
               {
                 title: 'Meticulous Craftsmanship',
-                desc: 'We build each paramotor with precision and care, using the finest materials and manufacturing techniques to ensure durability and reliability.'
+                desc: 'From the smallest screw to the largest frame, we build with obsessive precision. Only the finest materials and most rigorous manufacturing standards are good enough for WINGCONCEPT.'
               },
               {
                 title: 'Effortless Performance',
-                desc: 'Our engineering focuses on delivering smooth, powerful, and intuitive flight experiences that make every journey feel natural and exhilarating.'
+                desc: 'Our engineering philosophy centers on delivering smooth, responsive, and intuitive flight dynamics that make piloting feel like second nature - pure, unadulterated joy.'
               },
               {
                 title: 'Unrivalled Support',
-                desc: 'We stand behind every product we make, providing world-class customer service and technical support to keep you flying with confidence.'
+                desc: "We don't just sell paramotors - we build lasting relationships. Our commitment to customer care extends far beyond the purchase, ensuring every pilot feels supported and valued."
               },
               {
                 title: 'Elevated Experiences',
-                desc: 'Beyond the equipment, we are committed to creating memorable adventures that connect pilots with the true spirit of flight and freedom.'
+                desc: 'For us, flying is not just a sport - it is a way of life. We are dedicated to creating moments of pure magic in the sky, turning every flight into a cherished memory.'
               },
             ].map((tenet, i) => (
               <motion.div
@@ -189,7 +187,7 @@ export default function AboutPage() {
             transition={{ duration: 0.8 }}
             className="relative aspect-square bg-bg2 rounded-2xl shadow-lg overflow-hidden order-2 lg:order-1">
             <Image
-              src="/images/vanguard_hero.png"
+              src="/images/motor.png"
               alt="Global Network"
               fill
               className="object-cover"
@@ -204,16 +202,15 @@ export default function AboutPage() {
             <h2 className="text-5xl font-black uppercase text-ink mb-8">to market</h2>
             <div className="h-1 w-16 bg-brand mb-8" />
             <p className="text-lg text-ink leading-relaxed">
-              Our paramotors are exclusively built in Colombia and distributed through a global network 
-              of independent distributors and dealers, most of which exclusively carry WINGCONCEPT products 
-              and provide the same world class customer service and experience you would get from our team 
-              here at WINGCONCEPT HQ.
+              Every WINGCONCEPT paramotor is proudly manufactured in Colombia, combining local talent 
+              with global standards of excellence. Through our carefully selected network of distributors 
+              and authorized dealers, we bring our passion for flight to pilots around the world.
             </p>
             <p className="text-lg text-ink leading-relaxed mt-6">
-              We have more than 40 independently owned accredited paramotor training schools in nearly 
-              15 countries. These are the people who show up every day to deliver unrivalled experiences 
-              for our amazing customers. Our dealers are ambassadors of the brand and create experiences 
-              and bonds that can last a lifetime.
+              Our community includes over 40 certified training centers across 15 countries, staffed by 
+              passionate instructors who share our commitment to safety and quality. These dedicated 
+              professionals are the heart of the WINGCONCEPT family - they don't just sell our products; 
+              they live our values and create connections that last a lifetime.
             </p>
           </motion.div>
         </div>
@@ -226,14 +223,14 @@ export default function AboutPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             className="text-7xl font-black uppercase mb-8 leading-tight">
-            Flying is not just<br />an activity
+            Flying is more<br />than a sport
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
             className="text-3xl font-bold text-white/90">
-            It's the perfect union of passion, science, and freedom.
+            It's where passion, engineering, and freedom become one.
           </motion.p>
         </div>
       </section>
@@ -257,7 +254,7 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/images/vanguard_hero.png"
+                src="/images/moto"
                 alt="Andrés Arango"
                 fill
                 className="object-cover"
@@ -271,32 +268,35 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="space-y-6">
               <p className="text-ink leading-relaxed">
-                Andrés Arango was born on August 24, 1973, in Medellín, Colombia. He is an Industrial 
-                Engineer graduated from the Universidad Libre de Colombia, with postgraduate studies 
-                in Production Management and Productivity from the Universidad Jorge Tadeo Lozano, 
-                and a Master's Degree in Productivity Management from Spain.
+                Born on August 24, 1973, in the vibrant city of Medellín, Colombia, Andrés Arango has 
+                always been driven by a deep curiosity for how things work. He earned his degree in 
+                Industrial Engineering from the Universidad Libre de Colombia, later completing advanced 
+                studies in Production Management at the Universidad Jorge Tadeo Lozano and earning a 
+                Master's in Productivity Management from Spain.
               </p>
               <p className="text-ink leading-relaxed">
-                His passion for aviation and engineering began at a very early age. At 9 years old, 
-                he was building scale models. By 12, he was actively practicing aeromodeling. He also 
-                developed an outstanding career in motocross, becoming district champion at 17 and 
-                national champion at 22.
+                His fascination with flight and mechanics began early - at just 9 years old, he was 
+                already building scale models, and by 12, he was deeply immersed in aeromodeling. His 
+                competitive spirit also led him to excel in motocross, where he became district champion 
+                at 17 and national champion at 22.
               </p>
               <p className="text-ink leading-relaxed">
-                It was precisely this passion for flight that led him to discover the world of 
-                paragliding and later paramotoring. After his first paramotor flight with experienced 
-                pilot Carlos Maldonado, he decided to dedicate much of his life to the development 
-                and perfection of these aircraft.
+                It was his passion for flight that eventually introduced him to the world of paragliding 
+                and paramotoring. After his first paramotor flight alongside renowned pilot Carlos 
+                Maldonado, Andrés knew he had found his life's calling - to design and build aircraft 
+                that would push the boundaries of what's possible.
               </p>
               <p className="text-ink leading-relaxed">
-                In 2007, he designed and built his first motorized chassis. The experience gained 
-                from this project led to new developments in aluminum and steel, some of which were 
-                exported to Europe and continue in operation today.
+                In 2007, he designed and constructed his first motorized chassis, a project that laid 
+                the foundation for future innovations in aluminum and steel. Some of those early designs 
+                were exported to Europe and are still flying today - a testament to their enduring quality 
+                and timeless engineering.
               </p>
               <p className="text-ink leading-relaxed font-bold">
-                Today, his work is focused on providing increasingly safe, efficient, and reliable 
-                aircraft, allowing pilots around the world to enjoy the freedom of flight with the 
-                highest quality standards.
+                Today, Andrés continues to pursue his mission: creating aircraft that are safer, more 
+                efficient, and more reliable than anything that came before. His work allows pilots 
+                around the world to experience the ultimate freedom of flight with absolute confidence 
+                and peace of mind.
               </p>
             </motion.div>
           </div>
