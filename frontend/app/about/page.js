@@ -7,15 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with Back Button */}
-      <div className="border-b border-borderline py-6 px-6 sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-        </div>
-      </div>
+      
 
       {/* Hero Section - Con imagen de fondo tipo Parajet */}
       <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
