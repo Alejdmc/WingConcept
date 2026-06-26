@@ -5,6 +5,9 @@ import os
 
 import pytest
 
+# Marcar entorno de tests antes de importar la app (NullPool en database.py)
+os.environ["TESTING"] = "1"
+
 # Variables mínimas requeridas por Settings antes de importar la app
 os.environ.setdefault(
     "SECRET_KEY",
@@ -12,6 +15,8 @@ os.environ.setdefault(
 )
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("ALLOWED_HOSTS", "localhost,127.0.0.1,test")
+os.environ.setdefault("REDIS_HOST", "localhost")
+os.environ.setdefault("REDIS_PORT", "6379")
 
 # Limpiar caché de settings si ya fue importado en otra sesión
 try:
@@ -21,6 +26,18 @@ except ImportError:
     pass
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def dispose_db_engine():
+    """Evita errores de event loop al cerrar el pool async de SQLAlchemy."""
+    yield
+    try:
+        from app.database import engine
+        if engine is not None:
+            await engine.dispose()
+    except Exception:
+        pass

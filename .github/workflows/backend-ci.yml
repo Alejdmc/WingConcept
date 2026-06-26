@@ -48,6 +48,7 @@ jobs:
     env:
       SECRET_KEY: ci_test_secret_key_minimum_32_characters_long
       ENVIRONMENT: development
+      TESTING: "1"
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/wingconcept_test
       REDIS_HOST: localhost
       REDIS_PORT: 6379
@@ -76,6 +77,10 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
+
+      - name: Validate Docker Compose config
+        working-directory: docker
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
 
       - name: Build Docker image
         run: docker build -t wingconcept-backend:ci .

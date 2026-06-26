@@ -9,6 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import get_current_admin
 from app.database import get_db
@@ -16,9 +17,9 @@ from app.models.orden import Orden, ItemOrden
 from app.models.producto import Producto
 from app.models.usuario import Usuario
 from app.schemas.orden import (
+    AdminOrdenResponse,
     ESTADO_FRONTEND_MAP,
     OrdenUpdate,
-    OrdenResponse,
     PaginatedAdminOrdenes,
 )
 from app.schemas.producto import (
@@ -197,7 +198,7 @@ async def listar_todas_ordenes(
     return await orden_service.listar_admin(db, pagina, por_pagina, estado_interno)
 
 
-@router.put("/ordenes/{orden_id}", response_model=OrdenResponse)
+@router.put("/ordenes/{orden_id}", response_model=AdminOrdenResponse)
 async def actualizar_orden(
     orden_id: uuid.UUID,
     data: OrdenUpdate,
@@ -209,19 +210,23 @@ async def actualizar_orden(
     El campo ``estado`` acepta valores en inglés (``Pending``, ``Shipped``,
     ``Delivered``…) además de los valores internos en español.
     """
-    # Normalizar estado al valor interno antes de persistir
-    if data.estado and data.estado in ESTADO_FRONTEND_MAP:
-        data = data.model_copy(update={"estado": ESTADO_FRONTEND_MAP[data.estado]})
+    estado_interno = data.estado
+    if data.estado:
+        estado_interno = ESTADO_FRONTEND_MAP.get(data.estado, data.estado)
+        data = data.model_copy(update={"estado": estado_interno})
 
     orden_response = await orden_service.actualizar_estado(db, orden_id, data)
 
     # Enviar email si se marca como enviada
-    if data.estado in ("enviado", "Shipped") and data.numero_guia and data.transportadora:
-        from sqlalchemy.orm import selectinload
+    if (
+        estado_interno == "enviado"
+        and data.numero_guia
+        and data.transportadora
+    ):
         result = await db.execute(
-            select(Orden).options(
-                selectinload(Orden.usuario)
-            ).where(Orden.id == orden_id)
+            select(Orden)
+            .options(selectinload(Orden.usuario))
+            .where(Orden.id == orden_id)
         )
         orden = result.scalar_one_or_none()
         if orden and orden.usuario:

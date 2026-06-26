@@ -28,9 +28,8 @@ hiredis==2.2.3
 # --- Autenticación JWT ---
 # Se usa junto con SECRET_KEY de .env
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-# IMPORTANTE: bcrypt 5.x es incompatible con passlib 1.7.4 — mantener en 4.x
-bcrypt==4.0.1
+# bcrypt directo (ver app/core/security.py) — evitar passlib obsoleto
+bcrypt>=4.0.1,<5.0.0
 
 # --- HTTP Client (para llamadas a APIs externas) ---
 httpx==0.25.2

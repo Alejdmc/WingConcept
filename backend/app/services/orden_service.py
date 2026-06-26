@@ -30,6 +30,35 @@ from app.schemas.orden import (
 logger = logging.getLogger(__name__)
 
 
+def _build_admin_orden_response(orden: Orden) -> AdminOrdenResponse:
+    """Construye respuesta enriquecida para el panel admin."""
+    usuario = orden.usuario
+    nombre_completo = None
+    email = None
+    if usuario:
+        nombre_completo = f"{usuario.nombre} {usuario.apellido}".strip()
+        email = usuario.email
+
+    estado_display = ESTADO_DISPLAY_MAP.get(orden.estado, orden.estado.capitalize())
+    precio_total = float(orden.total)
+    total_formateado = f"${precio_total:,.0f}"
+    fecha = orden.created_at.strftime("%Y-%m-%d") if orden.created_at else ""
+
+    return AdminOrdenResponse(
+        id=orden.id,
+        numero_orden=orden.numero_orden,
+        cliente_nombre=nombre_completo,
+        cliente_email=email,
+        total=precio_total,
+        total_formateado=total_formateado,
+        estado=orden.estado,
+        estado_display=estado_display,
+        fecha=fecha,
+        cantidad_items=len(orden.items),
+        moneda=orden.moneda,
+    )
+
+
 def _generar_numero_orden() -> str:
     """
     Genera número de orden legible con baja probabilidad de colisión.
@@ -217,33 +246,7 @@ class OrdenService:
         result = await db.execute(query)
         ordenes = result.scalars().all()
 
-        items = []
-        for o in ordenes:
-            usuario = o.usuario
-            nombre_completo = None
-            email = None
-            if usuario:
-                nombre_completo = f"{usuario.nombre} {usuario.apellido}".strip()
-                email = usuario.email
-
-            estado_display = ESTADO_DISPLAY_MAP.get(o.estado, o.estado.capitalize())
-            precio_total = float(o.total)
-            total_formateado = f"${precio_total:,.0f}"
-            fecha = o.created_at.strftime("%Y-%m-%d") if o.created_at else ""
-
-            items.append(AdminOrdenResponse(
-                id=o.id,
-                numero_orden=o.numero_orden,
-                cliente_nombre=nombre_completo,
-                cliente_email=email,
-                total=precio_total,
-                total_formateado=total_formateado,
-                estado=o.estado,
-                estado_display=estado_display,
-                fecha=fecha,
-                cantidad_items=len(o.items),
-                moneda=o.moneda,
-            ))
+        items = [_build_admin_orden_response(o) for o in ordenes]
 
         return PaginatedAdminOrdenes(
             items=items,
@@ -255,10 +258,12 @@ class OrdenService:
 
     async def actualizar_estado(
         self, db: AsyncSession, orden_id: UUID, data: OrdenUpdate
-    ) -> OrdenResponse:
+    ) -> AdminOrdenResponse:
         """Actualiza estado y detalles de una orden (admin)."""
         result = await db.execute(
-            select(Orden).options(selectinload(Orden.items)).where(Orden.id == orden_id)
+            select(Orden)
+            .options(selectinload(Orden.items), selectinload(Orden.usuario))
+            .where(Orden.id == orden_id)
         )
         orden = result.scalar_one_or_none()
         if not orden:
@@ -269,7 +274,7 @@ class OrdenService:
 
         await db.flush()
         logger.info(f"Orden {orden.numero_orden} actualizada: {data.model_dump(exclude_unset=True)}")
-        return OrdenResponse.model_validate(orden)
+        return _build_admin_orden_response(orden)
 
 
 orden_service = OrdenService()

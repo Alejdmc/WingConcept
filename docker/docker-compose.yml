@@ -26,6 +26,7 @@ services:
     environment:
       # Override para Docker networking
       - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     ports:
       - "8000:8000"
     volumes:

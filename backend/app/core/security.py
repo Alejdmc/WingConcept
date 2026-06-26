@@ -6,25 +6,33 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# ── Hashing de contraseñas (bcrypt) ──────────────────────────────────────────
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# ── Hashing de contraseñas (bcrypt directo) ───────────────────────────────────
+# passlib 1.7.4 rompe con bcrypt 4.1+ / Python 3.13; usamos bcrypt nativo.
+BCRYPT_ROUNDS = 12
 
 
 def hash_password(password: str) -> str:
     """Hashea una contraseña con bcrypt."""
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt(rounds=BCRYPT_ROUNDS)
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica una contraseña contra su hash bcrypt."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except (ValueError, TypeError):
+        return False
 
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
