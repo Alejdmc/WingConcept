@@ -31,16 +31,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Support */}
-          <div>
-            <h4 className="font-black uppercase text-sm mb-4 tracking-widest">Support</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/manuals" className="text-white/60 hover:text-brand transition">User Manuals</Link></li>
-              <li><Link href="/dealers" className="text-white/60 hover:text-brand transition">Find Dealer</Link></li>
-              <li><Link href="/schools" className="text-white/60 hover:text-brand transition">Find Schools</Link></li>
-              <li><Link href="/faq" className="text-white/60 hover:text-brand transition">FAQ</Link></li>
-            </ul>
-          </div>
 
           {/* Contact */}
           <div>

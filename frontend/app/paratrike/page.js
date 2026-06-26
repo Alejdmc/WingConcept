@@ -7,7 +7,7 @@ import { Check, Zap, Shield, Gauge } from 'lucide-react'
 
 const vanguard = {
   id: 1,
-  name: 'Vanguard V7.0',
+  name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V7.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
   image: '/images/vanguard1.png',
@@ -42,7 +42,7 @@ const vanguard = {
   engines: [
     { name: 'Rotax 912', power: '80 HP' },
     { name: 'Simonini Victor 2 Super', power: '112 HP' },
-    { name: 'Rotax 582', power: '64 HP' },
+    { name: 'RMZ500', power: '' },
     { name: 'Vanguard EFI w/ reduction', power: '70 HP' },
     { name: 'Hirth 3503', power: '70 HP' },
   ],
