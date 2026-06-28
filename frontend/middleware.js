@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-const adminPaths = ['/dashboard', '/products', '/orders']
+const adminPaths = ['/admin']
 
 export async function middleware(request) {
   const token = request.cookies.get('access_token')?.value
@@ -36,5 +36,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/products/:path*', '/orders/:path*']
+  matcher: ['/admin/:path*']
 }

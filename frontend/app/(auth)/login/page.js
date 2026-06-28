@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
+import { persistAuthSession } from '@/lib/auth'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,10 +26,8 @@ export default function LoginPage() {
       try {
         const res = await api.auth.login(formData)
         
-        // Guardar tokens
-        localStorage.setItem('access_token', res.access_token)
-        localStorage.setItem('refresh_token', res.refresh_token)
-        localStorage.setItem('user', JSON.stringify({ nombre: res.nombre, rol: res.rol }))
+        // Guardar tokens y sincronizar sesión para el middleware/admin
+        persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
 
         // Fusionar carrito anónimo con el del usuario
         try {
@@ -38,7 +37,7 @@ export default function LoginPage() {
         }
 
         // Redirigir
-        router.push('/')
+        router.push(res.rol === 'admin' ? '/admin/dashboard' : '/')
       } catch (err) {
         setError(err.detail || 'Login failed')
       } finally {

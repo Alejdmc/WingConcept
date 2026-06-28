@@ -1,16 +1,37 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Menu, X, BarChart3, Package, ShoppingCart, LogOut } from 'lucide-react'
+import { isAdminUser } from '@/lib/auth'
 
 export default function AdminLayout({ children }) {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [ready, setReady] = useState(false)
 
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { label: 'Productos', href: '/admin/products', icon: Package },
     { label: 'Pedidos', href: '/admin/orders', icon: ShoppingCart },
   ]
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    if (!token || !isAdminUser()) {
+      router.replace('/login')
+      return
+    }
+    setReady(true)
+  }, [router])
+
+  if (!ready) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-bg text-ink">
+        <p className="text-lg font-semibold">Validando acceso de administrador...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-bg">

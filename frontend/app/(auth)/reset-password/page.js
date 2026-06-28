@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Lock } from 'lucide-react'
 import { api } from '@/lib/api'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -34,5 +34,13 @@ export default function ResetPasswordPage() {
         </form>
       </motion.div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-bg2 text-ink">Cargando...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
