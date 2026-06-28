@@ -1,8 +1,8 @@
 'use client'
 import Image from 'next/image'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
+import { ChevronDown, User, ShoppingCart, Menu, X, Globe } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 
 const NAV_ITEMS = [
@@ -28,7 +28,34 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [language, setLanguage] = useState('en')
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const { items } = useCart()
+  const langMenuRef = useRef(null)
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') || 'en'
+    setLanguage(savedLang)
+  }, [])
+
+  // Save language to localStorage
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang)
+    localStorage.setItem('language', lang)
+    setLangMenuOpen(false)
+  }
+
+  // Close language menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target)) {
+        setLangMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleScroll = (e, href) => {
     if (!href.startsWith('/#')) return
@@ -63,16 +90,53 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Language Selector */}
+          <div className="relative" ref={langMenuRef}>
+            <button
+              onClick={() => setLangMenuOpen(!langMenuOpen)}
+              className="flex items-center gap-2 w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft justify-center transition-all"
+              title="Change language">
+              <Globe className="w-5 h-5" />
+            </button>
+
+            {langMenuOpen && (
+              <div className="absolute top-full pt-2 right-0 z-50">
+                <div className="bg-white border border-borderline rounded-lg shadow-xl overflow-hidden min-w-[120px]">
+                  <button
+                    onClick={() => handleLanguageChange('en')}
+                    className={`w-full px-4 py-2.5 text-sm font-bold uppercase text-left transition-colors ${
+                      language === 'en'
+                        ? 'bg-brand text-white'
+                        : 'text-ink2 hover:text-brand hover:bg-brand-soft'
+                    }`}>
+                    English
+                  </button>
+                  <button
+                    onClick={() => handleLanguageChange('es')}
+                    className={`w-full px-4 py-2.5 text-sm font-bold uppercase text-left transition-colors border-t border-borderline ${
+                      language === 'es'
+                        ? 'bg-brand text-white'
+                        : 'text-ink2 hover:text-brand hover:bg-brand-soft'
+                    }`}>
+                    Español
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Profile */}
           <Link
             href="/login"
-            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"
+            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
           >
             <User className="w-5 h-5" />
           </Link>
 
+          {/* Cart */}
           <Link
             href="/cart"
-            className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center"
+            className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
           >
             <ShoppingCart className="w-5 h-5" />
 
@@ -83,9 +147,10 @@ export default function Navbar() {
             )}
           </Link>
 
+          {/* Mobile Menu */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand"
+            className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand transition-colors"
           >
             {mobileOpen ? (
               <X className="w-5 h-5" />
@@ -96,6 +161,7 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-borderline bg-bg px-4 py-3 flex flex-col gap-1">
           {NAV_ITEMS.map((item) =>
@@ -130,6 +196,29 @@ export default function Navbar() {
               </Link>
             )
           )}
+
+          {/* Mobile Language Selector */}
+          <div className="border-t border-borderline mt-3 pt-3">
+            <p className="px-3 py-2 text-[12.5px] font-semibold uppercase text-ink2">Language</p>
+            <button
+              onClick={() => handleLanguageChange('en')}
+              className={`w-full text-left px-3 py-2 text-[12.5px] rounded transition-colors ${
+                language === 'en'
+                  ? 'bg-brand text-white font-bold'
+                  : 'text-ink2 hover:text-brand hover:bg-brand-soft'
+              }`}>
+              🇺🇸 English
+            </button>
+            <button
+              onClick={() => handleLanguageChange('es')}
+              className={`w-full text-left px-3 py-2 text-[12.5px] rounded transition-colors ${
+                language === 'es'
+                  ? 'bg-brand text-white font-bold'
+                  : 'text-ink2 hover:text-brand hover:bg-brand-soft'
+              }`}>
+              🇨🇴 Español
+            </button>
+          </div>
         </div>
       )}
     </nav>
@@ -156,7 +245,7 @@ function DropdownItem({ item, handleScroll }) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <button className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft">
+        <button className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors">
           {item.label}
           <ChevronDown
             className={`w-3 h-3 transition-transform ${
