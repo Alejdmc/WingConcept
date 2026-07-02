@@ -1,50 +1,40 @@
 'use client'
 import Image from 'next/image'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { ChevronDown, User, ShoppingCart, Menu, X, Globe } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
+import { useLanguage } from '@/context/LanguageContext'
+import { getTranslation } from '@/lib/translations'
 
-const NAV_ITEMS = [
-  { label: 'Paramotors', href: '/paramotors' },
-  { label: 'Paratrike', href: '/paratrike' },
+const getNavItems = (language) => [
+  { labelKey: 'navbar.paramotors', href: '/paramotors' },
+  { labelKey: 'navbar.paratrike', href: '/paratrike' },
   {
-    label: 'Adventure',
+    labelKey: 'navbar.adventure',
     children: [
-      { label: 'W.C Adventure', href: '/adventure' },
-      { label: 'W.C Shows', href: '/shows' },
-      { label: 'W.C Events', href: '/events' },
+      { labelKey: 'navbar.adventureWC', href: '/adventure' },
+      { labelKey: 'navbar.shows', href: '/shows' },
+      { labelKey: 'navbar.events', href: '/events' },
     ],
   },
   {
-    label: 'More',
+    labelKey: 'navbar.more',
     children: [
-      { label: 'About Us', href: '/about' },
-      { label: 'W.C Milestones', href: '/milestones' },
-      { label: 'Contact Us', href: '/contact' },
+      { labelKey: 'navbar.aboutUs', href: '/about' },
+      { labelKey: 'navbar.milestones', href: '/milestones' },
+      { labelKey: 'navbar.contactUs', href: '/contact' },
     ],
   },
 ]
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [language, setLanguage] = useState('en')
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const { items } = useCart()
+  const { language, changeLanguage, isLoaded } = useLanguage()
   const langMenuRef = useRef(null)
-
-  // Load language from localStorage on mount
-  useEffect(() => {
-    const savedLang = localStorage.getItem('language') || 'en'
-    setLanguage(savedLang)
-  }, [])
-
-  // Save language to localStorage
-  const handleLanguageChange = (lang) => {
-    setLanguage(lang)
-    localStorage.setItem('language', lang)
-    setLangMenuOpen(false)
-  }
+  const navItems = useMemo(() => getNavItems(language), [language])
 
   // Close language menu when clicking outside
   useEffect(() => {
@@ -65,6 +55,8 @@ export default function Navbar() {
     if (el) el.scrollIntoView({ behavior: 'smooth' })
   }
 
+  if (!isLoaded) return null
+
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
       <div className="flex items-center justify-between h-40 px-8">
@@ -80,10 +72,11 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <DropdownItem
-              key={item.label}
+              key={item.labelKey}
               item={item}
+              language={language}
               handleScroll={handleScroll}
             />
           ))}
@@ -103,7 +96,7 @@ export default function Navbar() {
               <div className="absolute top-full pt-2 right-0 z-50">
                 <div className="bg-white border border-borderline rounded-lg shadow-xl overflow-hidden min-w-[120px]">
                   <button
-                    onClick={() => handleLanguageChange('en')}
+                    onClick={() => changeLanguage('en')}
                     className={`w-full px-4 py-2.5 text-sm font-bold uppercase text-left transition-colors ${
                       language === 'en'
                         ? 'bg-brand text-white'
@@ -112,7 +105,7 @@ export default function Navbar() {
                     English
                   </button>
                   <button
-                    onClick={() => handleLanguageChange('es')}
+                    onClick={() => changeLanguage('es')}
                     className={`w-full px-4 py-2.5 text-sm font-bold uppercase text-left transition-colors border-t border-borderline ${
                       language === 'es'
                         ? 'bg-brand text-white'
@@ -164,11 +157,11 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-borderline bg-bg px-4 py-3 flex flex-col gap-1">
-          {NAV_ITEMS.map((item) =>
+          {navItems.map((item) =>
             item.children ? (
-              <details key={item.label} className="group">
+              <details key={item.labelKey} className="group">
                 <summary className="flex items-center justify-between px-3 py-2.5 text-[13px] font-semibold uppercase text-ink cursor-pointer list-none hover:text-brand hover:bg-brand-soft rounded">
-                  {item.label}
+                  {getTranslation(language, item.labelKey)}
                   <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
                 </summary>
 
@@ -180,19 +173,19 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className="block px-3 py-2 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft rounded"
                     >
-                      {child.label}
+                      {getTranslation(language, child.labelKey)}
                     </Link>
                   ))}
                 </div>
               </details>
             ) : (
               <Link
-                key={item.label}
+                key={item.labelKey}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className="block w-full text-left px-3 py-2.5 text-[13px] font-semibold uppercase text-ink hover:text-brand hover:bg-brand-soft rounded"
               >
-                {item.label}
+                {getTranslation(language, item.labelKey)}
               </Link>
             )
           )}
@@ -201,7 +194,7 @@ export default function Navbar() {
           <div className="border-t border-borderline mt-3 pt-3">
             <p className="px-3 py-2 text-[12.5px] font-semibold uppercase text-ink2">Language</p>
             <button
-              onClick={() => handleLanguageChange('en')}
+              onClick={() => changeLanguage('en')}
               className={`w-full text-left px-3 py-2 text-[12.5px] rounded transition-colors ${
                 language === 'en'
                   ? 'bg-brand text-white font-bold'
@@ -210,7 +203,7 @@ export default function Navbar() {
               🇺🇸 English
             </button>
             <button
-              onClick={() => handleLanguageChange('es')}
+              onClick={() => changeLanguage('es')}
               className={`w-full text-left px-3 py-2 text-[12.5px] rounded transition-colors ${
                 language === 'es'
                   ? 'bg-brand text-white font-bold'
@@ -225,7 +218,7 @@ export default function Navbar() {
   )
 }
 
-function DropdownItem({ item, handleScroll }) {
+function DropdownItem({ item, language, handleScroll }) {
   const [open, setOpen] = useState(false)
   const timeoutRef = useRef(null)
 
@@ -246,7 +239,7 @@ function DropdownItem({ item, handleScroll }) {
         onMouseLeave={handleMouseLeave}
       >
         <button className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors">
-          {item.label}
+          {getTranslation(language, item.labelKey)}
           <ChevronDown
             className={`w-3 h-3 transition-transform ${
               open ? 'rotate-180' : ''
@@ -264,7 +257,7 @@ function DropdownItem({ item, handleScroll }) {
                   onClick={() => setOpen(false)}
                   className="block px-4 py-2.5 text-[12.5px] text-ink2 hover:text-brand hover:bg-brand-soft transition-all"
                 >
-                  {child.label}
+                  {getTranslation(language, child.labelKey)}
                 </Link>
               ))}
             </div>
@@ -280,7 +273,7 @@ function DropdownItem({ item, handleScroll }) {
         onClick={(e) => handleScroll(e, item.href)}
         className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer"
       >
-        {item.label}
+        {getTranslation(language, item.labelKey)}
       </button>
     )
   }
@@ -290,7 +283,7 @@ function DropdownItem({ item, handleScroll }) {
       href={item.href}
       className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors cursor-pointer"
     >
-      {item.label}
+      {getTranslation(language, item.labelKey)}
     </Link>
   )
 }
