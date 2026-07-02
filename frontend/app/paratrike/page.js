@@ -12,7 +12,7 @@ const TRIKES = [
     year: 2024,
     tagline: 'Performance Meets Precision',
     description: 'The ultimate high-performance trike for serious enthusiasts. Built with cutting-edge engineering and premium materials.',
-    image: '/images/vanguard_hero.png',
+    image: '/images/1vanguard.png',
     basePrice: 5950,
     features: [
       'Premium aluminum construction',

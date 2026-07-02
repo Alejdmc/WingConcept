@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ShoppingCart, ArrowLeft, Check } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check } from 'lucide-react'
 import { api } from '@/lib/api'
 
 const CONFIG_OPTIONS = {
@@ -40,6 +40,19 @@ const CONFIG_OPTIONS = {
 
 const VANGUARD_PRODUCTO_ID = 'c1a2b3d4-e5f6-7890-1234-567890abcdef' // Reemplazar con UUID real
 
+const PRODUCT_IMAGES = [
+  { src: '/images/1vanguard.png', alt: 'Vanguard 1' },
+  { src: '/images/2vanguard.png', alt: 'Vanguard 2' },
+  { src: '/images/3vanguard.png', alt: 'Vanguard 3' },
+  { src: '/images/4vanguard.png', alt: 'Vanguard 4' },
+  { src: '/images/5vanguard.png', alt: 'Vanguard 5' },
+  { src: '/images/6vanguard.png', alt: 'Vanguard 6' },
+  { src: '/images/7vanguard.png', alt: 'Vanguard 7' },
+  { src: '/images/8vanguard.png', alt: 'Vanguard 8' },
+  { src: '/images/9vanguard.png', alt: 'Vanguard 9' },
+  { src: '/images/10vanguard.png', alt: 'Vanguard 10' },
+]
+
 export default function ConfiguratorPage() {
   const router = useRouter()
   const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
@@ -47,6 +60,7 @@ export default function ConfiguratorPage() {
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
   const [selectedChassisColor, setSelectedChassisColor] = useState(CONFIG_OPTIONS.colors[0].name)
   const [selectedPeriphColor, setSelectedPeriphColor] = useState(CONFIG_OPTIONS.colors[0].name)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -59,6 +73,14 @@ export default function ConfiguratorPage() {
   }, [selectedEngine, selectedFinish, selectedUpgrades])
 
   const selectedEngineObj = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
+
+  const goToPreviousImage = () => {
+    setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
+  }
+
+  const goToNextImage = () => {
+    setSelectedImageIndex((prev) => (prev === PRODUCT_IMAGES.length - 1 ? 0 : prev + 1))
+  }
 
   const toggleUpgrade = (id) => {
     setSelectedUpgrades(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
@@ -127,13 +149,53 @@ export default function ConfiguratorPage() {
             
             <div className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-lg">
               <Image 
-                src="/images/vanguard1.png" 
-                alt="Vanguard V8.0" 
+                src={PRODUCT_IMAGES[selectedImageIndex].src}
+                alt={PRODUCT_IMAGES[selectedImageIndex].alt}
                 fill 
                 className="object-cover"
                 priority
               />
+
+              {PRODUCT_IMAGES.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPreviousImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={goToNextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
             </div>
+
+            {PRODUCT_IMAGES.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {PRODUCT_IMAGES.map((image, index) => (
+                  <motion.button
+                    key={image.src}
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                      selectedImageIndex === index ? 'border-brand' : 'border-borderline hover:border-brand/50'
+                    }`}
+                  >
+                    <Image src={image.src} alt={image.alt} fill className="object-cover" />
+                  </motion.button>
+                ))}
+              </div>
+            )}
 
             {/* Color Selectors */}
             <div className="space-y-4">

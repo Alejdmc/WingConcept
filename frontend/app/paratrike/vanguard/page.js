@@ -10,7 +10,7 @@ const vanguard = {
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V7.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
-  image: '/images/vanguard1.png',
+  image: '/images/1vanguard.png',
   price: 'Contact for pricing',
   year: 2020,
   brand: 'Wing Concept',
@@ -82,9 +82,8 @@ export default function ParatrikePage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="relative h-96 lg:h-full lg:min-h-[600px]">
-            <div className="relative w-full h-full bg-gradient-to-br from-bg2 to-bg rounded-xl overflow-hidden">
-              <Image src={vanguard.image} alt={vanguard.name} fill className="object-cover" priority />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="relative w-full h-full bg-transparent rounded-xl overflow-hidden">
+              <Image src={vanguard.image} alt={vanguard.name} fill className="object-contain" priority />
             </div>
           </motion.div>
         </div>
@@ -166,7 +165,7 @@ export default function ParatrikePage() {
       {/* CTA Section */}
       <section className="relative z-10 py-20 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
         <h2 className="text-5xl font-black uppercase mb-6">Ready to Customize?</h2>
-        <Link href="/paratrike/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
+        <Link href="/paratrike/vanguard/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
           Start Customizing
         </Link>
       </section>
