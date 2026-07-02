@@ -32,21 +32,39 @@ MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MB
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Inicialización y limpieza de recursos."""
-    logger.info(f" Iniciando {settings.APP_NAME} v{settings.APP_VERSION} [{settings.ENVIRONMENT}]")
+    logger.info(f"🚀 Iniciando {settings.APP_NAME} v{settings.APP_VERSION} [{settings.ENVIRONMENT}]")
+
+    # Inicializar Sentry si está configurado
+    if settings.SENTRY_DSN:
+        try:
+            import sentry_sdk
+            sentry_sdk.init(
+                dsn=settings.SENTRY_DSN,
+                environment=settings.SENTRY_ENVIRONMENT or settings.ENVIRONMENT,
+                traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+                profiles_sample_rate=0.1 if settings.is_production else 0,
+                send_default_pii=False,  # No enviar datos personales
+                attach_stacktrace=True,
+            )
+            logger.info("✅ Sentry inicializado")
+        except ImportError:
+            logger.warning("⚠️  Sentry configurado pero 'sentry-sdk' no instalado. Instalar: pip install sentry-sdk")
+        except Exception as e:
+            logger.warning(f"⚠️  Error inicializando Sentry: {e}")
 
     # Verificar conexión Redis (no fatal si falla en dev)
     try:
         from app.utils.redis_client import get_redis
         redis = await get_redis()
         await redis.ping()
-        logger.info("Redis conectado")
+        logger.info("✅ Redis conectado")
     except Exception as e:
-        logger.warning(f"  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)")
+        logger.warning(f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)")
 
     yield
 
     # Shutdown
-    logger.info(" Cerrando aplicación...")
+    logger.info("🛑 Cerrando aplicación...")
     from app.utils.redis_client import close_redis
     await close_redis()
 
@@ -140,6 +158,24 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     # Deshabilitar features de hardware innecesarias
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+
+    # Content Security Policy — Previene XSS y ataques de inyección
+    csp_directives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",  # unsafe-inline necesario para Swagger UI
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+    ]
+    if not settings.is_production:
+        # En desarrollo, permitir recursos locales de Swagger/Redoc
+        csp_directives.append("script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net")
+    response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
     # HSTS solo en producción (requiere HTTPS)
     if settings.is_production:
         response.headers["Strict-Transport-Security"] = (

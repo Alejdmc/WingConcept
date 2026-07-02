@@ -104,6 +104,13 @@ class Settings(BaseSettings):
     # ── Logging ──────────────────────────────────────────────
     LOG_LEVEL: str = "INFO"
 
+    # ── Sentry — Monitoreo de errores (opcional) ──────────────
+    # Panel: https://sentry.io
+    # Configurar SENTRY_DSN para habilitar logging centralizado
+    SENTRY_DSN: str = ""
+    SENTRY_ENVIRONMENT: str = ""  # Usa ENVIRONMENT si está vacío
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1  # 10% de traces en producción
+
     # ── Uploads / Storage ────────────────────────────────────
     MAX_UPLOAD_SIZE_MB: int = 10
     ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"

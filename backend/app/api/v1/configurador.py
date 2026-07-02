@@ -15,7 +15,7 @@ from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
 from app.database import get_db
 from app.models.configuracion import Configuracion
 from app.models.producto import Producto
-from app.schemas.pago import ConfiguracionCreate, ConfiguracionResponse
+from app.schemas.configuracion import ConfiguracionCreate, ConfiguracionResponse
 
 router = APIRouter(prefix="/configurador", tags=["Configurador 3D"])
 

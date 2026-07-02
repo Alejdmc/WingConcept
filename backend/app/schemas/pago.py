@@ -54,24 +54,3 @@ class PagoResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
-# ── Schemas de configuracion para el configurador 3D ─────────────────────────
-
-class ConfiguracionCreate(BaseModel):
-    producto_id: uuid.UUID
-    nombre: Optional[str] = Field(None, max_length=255)
-    opciones: Dict[str, Any] = Field(default_factory=dict)
-    notas: Optional[str] = Field(None, max_length=2000)
-
-
-class ConfiguracionResponse(BaseModel):
-    id: uuid.UUID
-    usuario_id: Optional[uuid.UUID]
-    producto_id: uuid.UUID
-    nombre: Optional[str]
-    opciones: Dict[str, Any]
-    notas: Optional[str]
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
