@@ -11,23 +11,23 @@ export default function TopBar() {
   return (
     <div className="bg-bg2 border-b border-borderline h-9 flex items-center justify-between px-8">
       <div className="flex items-center gap-5">
-        <a href="mailto:info@wingconcepts.com"
+        <a href="mailto:andres@wingconcept.com"
           className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink2 tracking-wide hover:text-brand transition-colors">
           <Mail className="w-3.5 h-3.5" />
-          info@wingconcept.com
+          andres@wingconcept.com
         </a>
-        <a href="tel:+573001234567"
+        <a href="tel:+1 (818) 749-4545"
           className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink2 tracking-wide hover:text-brand transition-colors">
           <Phone className="w-3.5 h-3.5" />
-          +57 300 123 4567
+          +1 (818) 749-4545
         </a>
       </div>
       <div className="flex items-center gap-3.5">
         {[
-          { Icon: Instagram, href: '#' },
-          { Icon: Facebook,  href: '#' },
-          { Icon: TikTokIcon, href: '#' },
-          { Icon: Youtube,   href: '#' },
+          { Icon: Instagram, href: 'https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0' },
+          { Icon: Facebook,  href: 'https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr' }
+          //{ Icon: TikTokIcon, href: '#' },
+          //{ Icon: Youtube,   href: '#' },
         ].map(({ Icon, href }, i) => (
           <a key={i} href={href} className="text-ink2 hover:text-brand transition-colors">
             <Icon className="w-[15px] h-[15px]" />

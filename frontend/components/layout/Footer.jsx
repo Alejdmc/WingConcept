@@ -36,13 +36,13 @@ export default function Footer() {
           <div>
             <h4 className="font-black uppercase text-sm mb-4 tracking-widest">Get In Touch</h4>
             <div className="space-y-3">
-              <a href="mailto:info@wingconcept.com" className="flex items-center gap-2 text-white/60 hover:text-brand transition text-sm">
+              <a href="mailto:andres@wingconcept.com" className="flex items-center gap-2 text-white/60 hover:text-brand transition text-sm">
                 <Mail className="w-4 h-4" />
-                info@wingconcept.com
+                andres@wingconcept.com
               </a>
               <a href="tel:+573001234567" className="flex items-center gap-2 text-white/60 hover:text-brand transition text-sm">
                 <Phone className="w-4 h-4" />
-                +57 300 123 4567
+                +1 (818) 749-4545
               </a>
             </div>
           </div>
@@ -61,10 +61,10 @@ export default function Footer() {
 
           {/* Right: Social */}
           <div className="flex items-center gap-6">
-            <a href="#" className="text-white/60 hover:text-brand transition"><Instagram className="w-5 h-5" /></a>
-            <a href="#" className="text-white/60 hover:text-brand transition"><Facebook className="w-5 h-5" /></a>
-            <a href="#" className="text-white/60 hover:text-brand transition"><TikTokIcon /></a>
-            <a href="#" className="text-white/60 hover:text-brand transition"><Youtube className="w-5 h-5" /></a>
+            <a href="https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0" className="text-white/60 hover:text-brand transition"><Instagram className="w-5 h-5" /></a>
+            <a href="https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr" className="text-white/60 hover:text-brand transition"><Facebook className="w-5 h-5" /></a>
+            {/* <a href="#" className="text-white/60 hover:text-brand transition"><TikTokIcon /></a> */}
+            {/* <a href="#" className="text-white/60 hover:text-brand transition"><Youtube className="w-5 h-5" /></a> */}
           </div>
 
           {/* Legal Links */}
