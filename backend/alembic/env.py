@@ -26,20 +26,37 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Usar DATABASE_URL de .env (convertida a sync para Alembic)
-database_url = os.getenv("DATABASE_URL", "")
-if database_url.startswith("postgresql+asyncpg://"):
-    database_url = database_url.replace("postgresql+asyncpg://", "postgresql://", 1)
-elif database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-config.set_main_option("sqlalchemy.url", database_url)
+def _normalize_database_url(url: str, *, for_async: bool) -> str:
+    """
+    Normaliza DATABASE_URL según el modo de migración.
+
+    - Online (async): requiere driver asyncpg (postgresql+asyncpg://)
+    - Offline (sync): usa psycopg2 (postgresql://)
+    """
+    if not url:
+        return url
+    if for_async:
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if url.startswith("postgres://"):
+            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+        return url
+    if url.startswith("postgresql+asyncpg://"):
+        return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql://", 1)
+    return url
+
+
+database_url = os.getenv("DATABASE_URL", "")
+config.set_main_option("sqlalchemy.url", _normalize_database_url(database_url, for_async=True))
 
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    url = _normalize_database_url(config.get_main_option("sqlalchemy.url"), for_async=False)
     context.configure(
         url=url,
         target_metadata=target_metadata,

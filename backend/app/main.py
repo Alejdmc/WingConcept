@@ -129,16 +129,23 @@ async def limit_request_body_size(request: Request, call_next):
     Previene ataques de saturación de memoria enviando payloads enormes.
     """
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_REQUEST_BODY_BYTES:
-        logger.warning(
-            f"Request rechazado: body demasiado grande "
-            f"({content_length} bytes > {MAX_REQUEST_BODY_BYTES}) "
-            f"desde {request.client.host if request.client else 'unknown'}"
-        )
-        return JSONResponse(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            content={"detail": "El cuerpo de la solicitud supera el límite permitido (2 MB)."},
-        )
+    if content_length:
+        try:
+            if int(content_length) > MAX_REQUEST_BODY_BYTES:
+                logger.warning(
+                    f"Request rechazado: body demasiado grande "
+                    f"({content_length} bytes > {MAX_REQUEST_BODY_BYTES}) "
+                    f"desde {request.client.host if request.client else 'unknown'}"
+                )
+                return JSONResponse(
+                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    content={"detail": "El cuerpo de la solicitud supera el límite permitido (2 MB)."},
+                )
+        except ValueError:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "Header Content-Length inválido."},
+            )
     return await call_next(request)
 
 

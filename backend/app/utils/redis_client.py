@@ -49,7 +49,7 @@ async def cache_set(key: str, value: Any, ttl: int = None) -> None:
         r = await get_redis()
         serialized = json.dumps(value, default=str)
         if ttl:
-            await r.setex(key, ttl, serialized)
+            await r.set(key, serialized, ex=ttl)
         else:
             await r.set(key, serialized)
     except Exception as e:
@@ -131,7 +131,7 @@ async def marcar_refresh_token_usado(jti: str, ttl_seconds: int) -> None:
     """
     try:
         r = await get_redis()
-        await r.setex(f"{REFRESH_TOKEN_PREFIX}:{jti}", ttl_seconds, "used")
+        await r.set(f"{REFRESH_TOKEN_PREFIX}:{jti}", "used", ex=ttl_seconds)
     except Exception as e:
         logger.warning(f"Redis marcar_refresh_token error [{jti}]: {e}")
 
