@@ -95,8 +95,8 @@ export default function ZomiDevAboutPage() {
                 <Image
                   src="/images/ZomiDev.png"
                   alt="ZomiDev Logo"
-                  width={80}
-                  height={80}
+                  width={300}
+                  height={300}
                   className="drop-shadow-lg"
                 />
                 <h1 className="text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
@@ -372,7 +372,7 @@ export default function ZomiDevAboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <a
-                href="mailto:hola@zomidev.com"
+                href="mailto:zomidev@zomidev.com"
                 className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
                 Get In Touch
               </a>
