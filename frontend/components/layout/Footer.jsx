@@ -26,7 +26,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/paramotors" className="text-white/60 hover:text-brand transition">Paramotors</Link></li>
               <li><Link href="/paratrike" className="text-white/60 hover:text-brand transition">Paratrike</Link></li>
-              <li><Link href="/about" className="text-white/60 hover:text-brand transition">About Us</Link></li>
+              <li><Link href="/zomidev" className="text-white/60 hover:text-brand transition">About Us</Link></li>
               <li><Link href="/contact" className="text-white/60 hover:text-brand transition">Contact</Link></li>
             </ul>
           </div>

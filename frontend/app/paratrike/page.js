@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
 const TRIKES = [
@@ -46,6 +47,8 @@ const TRIKES = [
 ]
 
 export default function ParaTrikeSelectionPage() {
+  const router = useRouter()
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -93,19 +96,18 @@ export default function ParaTrikeSelectionPage() {
                 key={trike.id}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2, duration: 0.8 }}
-                className="group">
+                transition={{ delay: i * 0.2, duration: 0.8 }}>
                 
                 {/* Card */}
-                <div className="relative rounded-2xl overflow-hidden shadow-lg border border-borderline hover:shadow-2xl hover:border-brand transition-all duration-300 h-full flex flex-col">
+                <div className="relative rounded-2xl overflow-hidden shadow-lg border border-borderline hover:shadow-2xl hover:border-brand transition-all h-full flex flex-col">
                   
                   {/* Image Section */}
-                  <div className="relative h-96 overflow-hidden bg-bg2">
+                  <div className="relative h-96 overflow-hidden bg-bg2 cursor-pointer" onClick={() => router.push(trike.href)}>
                     <Image
                       src={trike.image}
                       alt={trike.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="object-cover hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                     
@@ -117,7 +119,7 @@ export default function ParaTrikeSelectionPage() {
                     </div>
 
                     {/* Title Over Image */}
-                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <div className="absolute bottom-0 left-0 right-0 p-8 cursor-pointer" onClick={() => router.push(trike.href)}>
                       <h2 className="text-5xl font-black uppercase text-white mb-2 leading-tight">
                         {trike.name}
                       </h2>
@@ -126,7 +128,7 @@ export default function ParaTrikeSelectionPage() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="p-8 flex flex-col flex-grow">
+                  <div className="p-8 flex flex-col flex-grow cursor-pointer" onClick={() => router.push(trike.href)}>
                     <p className="text-ink leading-relaxed mb-8 flex-grow">
                       {trike.description}
                     </p>
@@ -154,12 +156,12 @@ export default function ParaTrikeSelectionPage() {
                     </div>
 
                     {/* CTA Button */}
-                    <Link
-                      href={trike.href}
-                      className="w-full flex items-center justify-center gap-3 bg-brand text-white px-8 py-4 rounded-lg font-black uppercase tracking-widest hover:bg-brand/90 transition-all group/btn">
+                    <button
+                      onClick={() => router.push(trike.href)}
+                      className="w-full flex items-center justify-center gap-3 bg-brand text-white px-8 py-4 rounded-lg font-black uppercase tracking-widest hover:bg-brand/90 transition">
                       Explore {trike.name.split(' ')[0]}
-                      <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                    </Link>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -245,12 +247,16 @@ export default function ParaTrikeSelectionPage() {
             Explore both platforms, customize your perfect configuration, and experience the freedom of flight.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link href="/paratrike/vanguard" className="inline-block bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition">
+            <button
+              onClick={() => router.push('/paratrike/vanguard')}
+              className="inline-block bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition">
               Vanguard V8.0
-            </Link>
-            <Link href="/paratrike/nomadic" className="inline-block border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand-soft transition">
+            </button>
+            <button
+              onClick={() => router.push('/paratrike/nomadic')}
+              className="inline-block border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand-soft transition">
               Nomadic Trike
-            </Link>
+            </button>
           </div>
         </div>
       </section>
