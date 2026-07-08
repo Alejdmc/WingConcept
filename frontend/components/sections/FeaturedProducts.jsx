@@ -2,37 +2,41 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { api } from '@/lib/api'
 import { ShoppingCart, Zap } from 'lucide-react'
 
 const fallbackProducts = [
   { 
-    id: 'fallback-1', 
+    id: 1,
+    name: 'Vanguard V8.0', 
+    image: '/images/1vanguard.png', 
+    price: '$5,950', 
+    desc: 'Ultimate High-Performance Trike', 
+    specs: 'Premium Aluminum | Advanced Aerodynamics',
+    badge: 'Premium',
+    href: '/paratrike/vanguard'
+  },
+  { 
+    id: 2,
+    name: 'Nomadic Trike', 
+    image: '/images/nomadic1.png', 
+    price: '$8,950', 
+    desc: 'The Ultimate Off-Grid Adventure Machine', 
+    specs: 'Stainless Steel | All-Terrain Capability',
+    badge: 'Expedition Ready',
+    href: '/paratrike/nomadic'
+  },
+  { 
+    id: 3,
     name: 'Disruptor', 
-    image: '/images/disruptor_ejemplo.png', 
-    price: '$5,000', 
-    desc: 'Ultimate power & agility', 
+    image: '/images/motor.png', 
+    price: '$4,500', 
+    desc: 'Ultimate Power & Agility', 
     specs: '28kg | 95kg thrust',
-    badge: 'Best Seller'
-  },
-  { 
-    id: 'fallback-2', 
-    name: 'I-Pro', 
-    image: '/images/ipro_ejemplo.png', 
-    price: '$5,200', 
-    desc: 'Next-gen lightweight', 
-    specs: '26kg | 90kg thrust',
-    badge: 'Premium'
-  },
-  { 
-    id: 'fallback-3', 
-    name: 'Paramotor Trike', 
-    image: '/images/paramotor_trike_ejemplo.png', 
-    price: '$1,350', 
-    desc: 'Stable ride & long-range', 
-    specs: '40kg | 110kg thrust',
-    badge: 'Value Pack'
+    badge: 'Best Seller',
+    href: '/paramotors'
   },
 ]
 
@@ -58,7 +62,7 @@ const itemVariants = {
 
 export default function FeaturedProducts() {
   const [selectedId, setSelectedId] = useState(null)
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState(fallbackProducts)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { addToCart } = useCart()
@@ -67,10 +71,12 @@ export default function FeaturedProducts() {
     const loadFeatured = async () => {
       try {
         const featured = await api.productos.destacados()
-        setProducts(featured || [])
+        if (featured && featured.length > 0) {
+          setProducts(featured)
+        }
       } catch (err) {
         console.error('Error loading featured products:', err)
-        setError('No se pudieron cargar los productos destacados.')
+        setError('Could not load featured products.')
       } finally {
         setLoading(false)
       }
@@ -81,21 +87,12 @@ export default function FeaturedProducts() {
 
   const handleAddToCart = async (product) => {
     setSelectedId(null)
-    if (!product.slug) {
-      console.warn('No slug available for this product, cannot add to backend cart.')
-      return
-    }
-
     try {
-      const detalle = await api.productos.obtener(product.slug)
-      const variant = detalle.variantes.find((v) => v.es_principal && v.activo) || detalle.variantes.find((v) => v.activo)
-
-      if (!variant) {
-        console.warn('No variant available for product', product.slug)
-        return
-      }
-
-      await addToCart({ variante_id: variant.id, ...product })
+      await addToCart({ 
+        product_id: product.id,
+        nombre: product.name,
+        precio: product.price,
+      })
     } catch (err) {
       console.error('Error adding to cart:', err)
     }
@@ -109,7 +106,7 @@ export default function FeaturedProducts() {
       className="py-32 px-6 scroll-mt-24 relative bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: 'url(/images/cloudfeatured.png)' }}>
       
-      {/* Overlay mejorado con gradiente */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
       
       <motion.div 
@@ -134,7 +131,7 @@ export default function FeaturedProducts() {
             className="h-1 bg-gradient-to-r from-transparent via-brand to-transparent max-w-md mx-auto" />
         </div>
         
-        {/* Grid con animación */}
+        {/* Grid */}
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10"
           variants={containerVariants}
@@ -169,7 +166,7 @@ export default function FeaturedProducts() {
                   </motion.span>
                 </div>
 
-                {/* Imagen con overlay */}
+                {/* Image */}
                 <div className="relative h-72 w-full bg-gradient-to-b from-neutral-800 to-neutral-900 overflow-hidden">
                   <Image 
                     src={product.image} 
@@ -177,7 +174,6 @@ export default function FeaturedProducts() {
                     fill 
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
 
@@ -198,7 +194,7 @@ export default function FeaturedProducts() {
                   </motion.div>
                 </div>
 
-                {/* Expansion animada */}
+                {/* Expansion */}
                 <AnimatePresence>
                   {selectedId === product.id && (
                     <motion.div

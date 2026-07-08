@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, MapPin, Calendar, Users } from 'lucide-react'
-import { useTranslation } from '@/hooks/useTranslation'
 
 const adventures = [
   {
@@ -14,7 +13,7 @@ const adventures = [
     difficulty: 'Advanced',
     participants: 8,
     description: 'Fly over the world\'s largest rainforest and experience biodiversity like never before. Land on remote strips and connect with indigenous communities.',
-    image: '/images/vanguard_hero.png',
+    image: '/images/leticia.jpg',
     highlights: [
       'Remote jungle airstrips',
       'Wildlife photography from the sky',
@@ -30,7 +29,7 @@ const adventures = [
     difficulty: 'Expert',
     participants: 6,
     description: 'Challenge yourself with high-altitude flying across the European Alps. Experience world-class thermal conditions and breathtaking mountain scenery.',
-    image: '/images/nomadic1.png',
+    image: '/images/suiza.jpg',
     highlights: [
       'Altitude flying (up to 4000m)',
       'Thermal ridge soaring',
@@ -46,7 +45,7 @@ const adventures = [
     difficulty: 'Intermediate',
     participants: 10,
     description: 'Explore vast deserts and witness the raw beauty of Africa from above. Land at remote spots and experience true adventure flying.',
-    image: '/images/motor.png',
+    image: '/images/african.jpg',
     highlights: [
       'Vast desert landscapes',
       'Wildlife observation flights',
@@ -62,7 +61,7 @@ const adventures = [
     difficulty: 'Beginner',
     participants: 12,
     description: 'Perfect for new pilots. Fly over rainforests, beaches, and volcanoes in a paradise setting with ideal flying conditions year-round.',
-    image: '/images/front1.jpg',
+    image: '/images/costarica.jpg',
     highlights: [
       'Scenic coastal flights',
       'Volcano observation',
@@ -73,8 +72,6 @@ const adventures = [
 ]
 
 export default function AdventurePage() {
-  const { t, language } = useTranslation()
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -82,7 +79,7 @@ export default function AdventurePage() {
         <div className="max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition">
             <ArrowLeft className="w-4 h-4" />
-            {t('common.back')}
+            Back
           </Link>
         </div>
       </div>
@@ -91,7 +88,7 @@ export default function AdventurePage() {
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/vanguard_hero.png"
+            src="/images/front1.jpg"
             alt="Adventure"
             fill
             className="object-cover"

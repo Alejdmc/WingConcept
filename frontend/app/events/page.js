@@ -13,7 +13,7 @@ const events = [
     location: 'Bogotá, Colombia',
     capacity: '20 participants',
     description: 'Comprehensive training program for aspiring paramotor pilots. Covers theory, safety, flight fundamentals, and hands-on flying experience.',
-    image: '/images/front1.jpg',
+    image: '/images/bootcamp.jpg',
     price: '$1,200',
     includes: ['Ground school', 'Flight simulator', 'Real flight training', 'Safety equipment', 'Certification']
   },
@@ -25,57 +25,33 @@ const events = [
     location: 'Medellín, Colombia',
     capacity: '12 participants',
     description: 'Master advanced acrobatic maneuvers with world-class instructors. Perfect for experienced pilots looking to expand their skills.',
-    image: '/images/vanguard_hero.png',
+    image: '/images/acrobatic.jpg',
     price: '$800',
     includes: ['Expert coaching', 'Video analysis', 'Flight log review', 'Safety briefings', 'Group flights']
   },
   {
     id: 3,
-    title: 'Women in Paramotoring Summit',
-    date: 'April 12-14, 2025',
-    time: '10:00 AM - 6:00 PM',
-    location: 'Cali, Colombia',
-    capacity: '30 participants',
-    description: 'Empower women in aviation. Network with female pilots, learn leadership skills, and celebrate achievements in paramotor sports.',
-    image: '/images/motor.png',
-    price: 'Free',
-    includes: ['Keynote speakers', 'Networking dinner', 'Group flights', 'Mentorship sessions', 'Exclusive gift bag']
-  },
-  {
-    id: 4,
     title: 'Technical Maintenance Course',
     date: 'May 5-9, 2025',
     time: '8:30 AM - 5:00 PM',
     location: 'Bogotá, Colombia',
     capacity: '15 participants',
     description: 'Learn to maintain, troubleshoot, and service your paramotor. Essential knowledge for every pilot who wants engine reliability.',
-    image: '/images/nomadic1.png',
+    image: '/images/motor.png',
     price: '$600',
     includes: ['Engine servicing', 'Parts replacement', 'Troubleshooting guide', 'Tools provided', 'Certification']
   },
   {
-    id: 5,
+    id: 4,
     title: 'Cross-Country Navigation Clinic',
     date: 'June 2-4, 2025',
     time: '7:00 AM - 5:00 PM',
     location: 'Santa Marta, Colombia',
     capacity: '18 participants',
     description: 'Master long-distance flying and navigation techniques. Learn thermal centering, wind management, and route planning.',
-    image: '/images/front1.jpg',
+    image: '/images/santamarta.jpg',
     price: '$750',
     includes: ['Navigation theory', 'Thermal training', 'Flight planning', 'GPS systems', 'Practical cross-country']
-  },
-  {
-    id: 6,
-    title: 'Instructor Certification Program',
-    date: 'June 16-28, 2025',
-    time: 'Full-time course',
-    location: 'Medellín, Colombia',
-    capacity: '8 participants',
-    description: 'Become a certified paramotor instructor. Intensive two-week program covering pedagogy, safety standards, and flight instruction.',
-    image: '/images/vanguard_hero.png',
-    price: '$2,500',
-    includes: ['Theory modules', 'Flight instruction hours', 'Exam preparation', 'Certification exam', 'Employment support']
   }
 ]
 

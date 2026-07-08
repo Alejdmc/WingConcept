@@ -11,7 +11,7 @@ const shows = [
     date: 'March 15-17, 2025',
     location: 'Dubai, UAE',
     description: 'Wing Concept presents breathtaking aerial formations and acrobatic demonstrations over the Arabian Gulf. Experience the future of personal aviation.',
-    image: '/images/nomadic1.png',
+    image: '/images/dubai.jpg',
     highlights: ['Formation flying', 'Acrobatic routines', 'Night light show', 'Product showcase']
   },
   {
@@ -20,7 +20,7 @@ const shows = [
     date: 'July 8-14, 2025',
     location: 'Alps, Switzerland',
     description: 'The pinnacle of paramotor competition featuring precision flying, cross-country racing, and technical challenges. Watch elite pilots push the boundaries.',
-    image: '/images/motor.png',
+    image: '/images/european.jpg',
     highlights: ['Speed racing', 'Precision landing', 'Cross-country navigation', 'Freestyle competition']
   },
   {
@@ -29,7 +29,7 @@ const shows = [
     date: 'September 22-24, 2025',
     location: 'Miami, USA',
     description: 'The largest paramotor gathering in North America. Wing Concept showcases latest innovations, conducts live demonstrations, and hosts workshops.',
-    image: '/images/front1.jpg',
+    image: '/images/miami.jpg',
     highlights: ['Live demonstrations', 'Product launches', 'Pilot workshops', 'Community gathering']
   },
   {
@@ -38,7 +38,7 @@ const shows = [
     date: 'December 1-3, 2025',
     location: 'Medellín, Colombia',
     description: 'A celebration of paramotor culture with hundreds of paramotors creating aerial spectacles above Colombia\'s Valley of Aburrá. A true festival of flight.',
-    image: '/images/vanguard_hero.png',
+    image: '/images/colombia.jpg',
     highlights: ['Mass formations', 'Cultural celebrations', 'Colombian heritage flight', 'Community events']
   }
 ]
@@ -60,7 +60,7 @@ export default function ShowsPage() {
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/nomadic1.png"
+            src="/images/front1.jpg"
             alt="Shows"
             fill
             className="object-cover"
