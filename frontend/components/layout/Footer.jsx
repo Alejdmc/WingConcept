@@ -26,7 +26,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/paramotors" className="text-white/60 hover:text-brand transition">Paramotors</Link></li>
               <li><Link href="/paratrike" className="text-white/60 hover:text-brand transition">Paratrike</Link></li>
-              <li><Link href="/zomidev" className="text-white/60 hover:text-brand transition">About Us</Link></li>
+              <li><Link href="/about" className="text-white/60 hover:text-brand transition">About Us</Link></li>
               <li><Link href="/contact" className="text-white/60 hover:text-brand transition">Contact</Link></li>
             </ul>
           </div>
@@ -56,9 +56,8 @@ export default function Footer() {
           {/* Left: Copyright */}
           <div className="text-white/40 text-xs">
             <p>&copy; 2026 Wing Concept. All rights reserved.</p>
-            <p className="mt-2">Designed & Developed by <span className="text-brand font-bold">ZomiDev</span></p>
+            <p className="mt-2">Designed & Developed by <Link href="/zomidev" className="text-brand font-bold hover:text-brand/80 transition">ZomiDev</Link></p>
           </div>
-
           {/* Right: Social */}
           <div className="flex items-center gap-6">
             <a href="https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0" className="text-white/60 hover:text-brand transition"><Instagram className="w-5 h-5" /></a>

@@ -389,7 +389,7 @@ export default function ZomiDevAboutPage() {
       {/* Footer Note */}
       <section className="py-12 px-6 bg-white border-t border-borderline text-center">
         <p className="text-sm text-ink2">
-          ZomiDev © 2024 — Creating digital solutions that drive business growth
+          ZomiDev © 2026 — Creating digital solutions that drive business growth
         </p>
       </section>
     </div>

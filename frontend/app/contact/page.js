@@ -17,12 +17,7 @@ const contactInfo = [
     value: '+1 (818) 749-4545',
     link: 'https://wa.me/18187494545'
   },
-  {
-    icon: MapPin,
-    label: 'Location',
-    value: 'Medellín, Colombia',
-    link: '#'
-  }
+  
 ]
 
 const socialMedia = [
@@ -61,7 +56,6 @@ export default function ContactPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Simular envío
     console.log('Form submitted:', formData)
     setSubmitted(true)
     setTimeout(() => {
@@ -101,7 +95,7 @@ export default function ContactPage() {
       {/* Contact Info Cards */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
             {contactInfo.map((info, i) => {
               const Icon = info.icon
               return (
@@ -224,23 +218,8 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="py-24 px-6 bg-bg2">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl font-black uppercase text-ink mb-12">Visit Us</h2>
-          <div className="w-full h-96 bg-white rounded-2xl shadow-lg overflow-hidden border border-borderline">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.5000000000005!2d-75.5244!3d6.2277!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e442856c5e5e5e5%3A0x5e5e5e5e5e5e5e5e!2sMedell%C3%ADn%2C%20Colombia!5e0!3m2!1sen!2sus!4v1234567890"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"></iframe>
-          </div>
-          <p className="text-ink2 mt-6">Wing Concept Headquarters - Medellín, Colombia</p>
-        </div>
-      </section>
+      
+      
     </div>
   )
 }
