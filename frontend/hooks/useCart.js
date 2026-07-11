@@ -35,10 +35,10 @@ export function useCart() {
   const addToCart = useCallback(async (product) => {
     setCargando(true)
     try {
-      const res = await api.carrito.agregar({
-        variante_id: product.variante_id || product.id,
-        cantidad: 1,
-      })
+      const payload = product.variante_id
+        ? { variante_id: product.variante_id, cantidad: 1 }
+        : { producto_id: product.producto_id || product.id, cantidad: 1 }
+      const res = await api.carrito.agregar(payload)
       setItems(res.items || [])
       setTotal(res.total || 0)
     } catch (err) {

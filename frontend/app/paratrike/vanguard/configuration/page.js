@@ -72,8 +72,6 @@ export default function ConfiguratorPage() {
     return baseChassis + enginePrice + finishPrice + upgradesPrice
   }, [selectedEngine, selectedFinish, selectedUpgrades])
 
-  const selectedEngineObj = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
-
   const goToPreviousImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
   }
@@ -91,27 +89,19 @@ export default function ConfiguratorPage() {
     setError('')
 
     try {
-      // 1. Guardar configuración
-      const configRes = await api.configurador.guardar({
+      await api.carrito.agregar({
         producto_id: VANGUARD_PRODUCTO_ID,
-        nombre: `Vanguard V8.0 - ${selectedEngineObj.name}`,
-        opciones: {
+        cantidad: 1,
+        configuracion: {
           engine: selectedEngine,
           finish: selectedFinish,
           chassisColor: selectedChassisColor,
           peripheralColor: selectedPeriphColor,
-          accessories: selectedUpgrades
+          upgrades: selectedUpgrades,
+          totalPrice,
         },
-        notas: `Total price: $${totalPrice.toLocaleString()}`
       })
 
-      // 2. Agregar al carrito con config ID como variante_id
-      await api.carrito.agregar({
-        variante_id: configRes.id,
-        cantidad: 1
-      })
-
-      // 3. Redirigir a carrito
       router.push('/cart')
     } catch (err) {
       setError(err.detail || 'Error adding to cart. Please try again.')

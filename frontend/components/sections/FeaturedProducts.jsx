@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCart } from '@/hooks/useCart'
 import { api } from '@/lib/api'
-import { ShoppingCart, Zap } from 'lucide-react'
+import { Settings, Zap } from 'lucide-react'
 
 const fallbackProducts = [
   { 
@@ -65,7 +64,6 @@ export default function FeaturedProducts() {
   const [products, setProducts] = useState(fallbackProducts)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const { addToCart } = useCart()
 
   useEffect(() => {
     const loadFeatured = async () => {
@@ -84,15 +82,6 @@ export default function FeaturedProducts() {
 
     loadFeatured()
   }, [])
-
-  const handleAddToCart = async (product) => {
-    setSelectedId(null)
-    try {
-      await addToCart(product)
-    } catch (err) {
-      console.error('Error adding to cart:', err)
-    }
-  }
 
   const items = products.length > 0 ? products : fallbackProducts
 
@@ -210,15 +199,18 @@ export default function FeaturedProducts() {
                         </div>
 
                         {/* Button */}
-                        <motion.button 
+                        <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.1 }}
-                          onClick={() => handleAddToCart(product)}
-                          className="w-full py-3 bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-black uppercase tracking-widest text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-300 group/btn hover:shadow-[0_0_20px_rgba(192,57,43,0.5)]">
-                          <ShoppingCart className="w-4 h-4" />
-                          Add to Cart
-                        </motion.button>
+                          transition={{ delay: 0.1 }}>
+                          <Link
+                            href={product.href ? `${product.href}/configuration` : '#'}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full py-3 bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-black uppercase tracking-widest text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-300 group/btn hover:shadow-[0_0_20px_rgba(192,57,43,0.5)]">
+                            <Settings className="w-4 h-4" />
+                            Configure
+                          </Link>
+                        </motion.div>
                       </div>
                     </motion.div>
                   )}

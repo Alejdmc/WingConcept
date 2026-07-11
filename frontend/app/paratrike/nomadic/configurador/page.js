@@ -56,8 +56,6 @@ export default function ConfiguratorNomadicPage() {
     return baseChassis + enginePrice + finishPrice + upgradesPrice
   }, [selectedEngine, selectedFinish, selectedUpgrades])
 
-  const selectedEngineObj = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
-
   const toggleUpgrade = (id) => {
     setSelectedUpgrades(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
   }
@@ -67,27 +65,19 @@ export default function ConfiguratorNomadicPage() {
     setError('')
 
     try {
-      // 1. Guardar configuración
-      const configRes = await api.configurador.guardar({
+      await api.carrito.agregar({
         producto_id: NOMADIC_PRODUCTO_ID,
-        nombre: `Nomadic Trike - ${selectedEngineObj.name}`,
-        opciones: {
+        cantidad: 1,
+        configuracion: {
           engine: selectedEngine,
           finish: selectedFinish,
           chassisColor: selectedChassisColor,
           accentColor: selectedAccentColor,
-          accessories: selectedUpgrades
+          upgrades: selectedUpgrades,
+          totalPrice,
         },
-        notas: `Total price: $${totalPrice.toLocaleString()}`
       })
 
-      // 2. Agregar al carrito con config ID como variante_id
-      await api.carrito.agregar({
-        variante_id: configRes.id,
-        cantidad: 1
-      })
-
-      // 3. Redirigir a carrito
       router.push('/cart')
     } catch (err) {
       setError(err.detail || 'Error adding to cart. Please try again.')
@@ -102,7 +92,7 @@ export default function ConfiguratorNomadicPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <Link href="/nomadic" className="flex items-center gap-2 text-ink hover:text-brand transition">
+          <Link href="/paratrike/nomadic" className="flex items-center gap-2 text-ink hover:text-brand transition">
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
@@ -196,7 +186,7 @@ export default function ConfiguratorNomadicPage() {
                     className={`w-full p-4 border-2 rounded-xl text-left transition-all
                       ${selectedEngine === e.id ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
                     <p className="font-bold uppercase text-ink">{e.name}</p>
-                    <p className="text-sm text-ink2 mt-1">{e.power} — +$${e.basePrice.toLocaleString()}</p>
+                    <p className="text-sm text-ink2 mt-1">{e.power} — +${e.basePrice.toLocaleString()}</p>
                   </motion.button>
                 ))}
               </div>

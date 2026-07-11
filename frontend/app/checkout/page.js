@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -13,25 +14,12 @@ const CHECKOUT_STEPS = [
   { id: 4, name: 'Confirmation', path: '/checkout/confirmation' },
 ]
 
-// Initial empty cart state
-const MOCK_CART = {
-  items: [
-    {
-      id: '1',
-      producto_nombre: 'Vanguard V7.0',
-      variante_nombre: 'Rotax 912',
-      cantidad: 1,
-      precio_unitario: 15000,
-      imagen: '/images/vanguard_hero.png'
-    },
-  ],
-  total: 15000,
-  cantidad_items: 1
-}
+const EMPTY_CART = { items: [], total: 0, cantidad_items: 0 }
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const [cart, setCart] = useState(MOCK_CART)
+  const [cart, setCart] = useState(EMPTY_CART)
+  const [cartError, setCartError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
 
   useEffect(() => {
@@ -42,6 +30,10 @@ export default function CheckoutPage() {
         if (mounted && res) setCart(res)
       } catch (err) {
         console.warn('Could not load cart for checkout:', err)
+        if (mounted) {
+          setCart(EMPTY_CART)
+          setCartError('Could not load your cart. Please try again.')
+        }
       }
     })()
     return () => { mounted = false }
@@ -116,6 +108,11 @@ export default function CheckoutPage() {
           
           {/* Main Content */}
           <div className="lg:col-span-2">
+            {cartError && (
+              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-sm font-semibold">
+                {cartError}
+              </div>
+            )}
             {currentStep === 1 && <CartStep cart={cart} updateQuantity={updateQuantity} removeItem={removeItem} setStep={setCurrentStep} />}
             {currentStep === 2 && <ShippingStep setStep={setCurrentStep} cart={cart} />}
             {currentStep === 3 && <PaymentStep setStep={setCurrentStep} />}
@@ -181,7 +178,11 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
           {cart.items.map(item => (
             <div key={item.id} className="p-6 flex gap-6">
               {/* Image */}
-              <div className="w-24 h-24 bg-bg2 rounded-lg flex-shrink-0" />
+              <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
+                {item.producto_imagen && (
+                  <Image src={item.producto_imagen} alt={item.producto_nombre || ''} fill className="object-cover" />
+                )}
+              </div>
 
               {/* Details */}
               <div className="flex-1">
@@ -359,19 +360,8 @@ function ShippingStep({ setStep, cart }) {
             </div>
           </div>
 
-          {/* Apartment & City */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Phone</label>
-              <input
-                type="tel"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
-              />
-            </div>
+          {/* City */}
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-semibold text-ink mb-2">City</label>
               <input

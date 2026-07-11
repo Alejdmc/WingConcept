@@ -56,18 +56,16 @@ export default function CartPage() {
               <div className="divide-y divide-borderline">
                 {items.map(item => (
                   <div key={item.cartId} className="p-6 flex gap-6">
-                    <div className="w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 relative overflow-hidden">
-                      {item.image ? (
-                        <Image src={item.image} alt={item.name} fill className="object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-bg2" />
+                    <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
+                      {item.producto_imagen && (
+                        <Image src={item.producto_imagen} alt={item.name || ''} fill className="object-cover" />
                       )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <h3 className="font-bold text-ink text-lg">{item.name}</h3>
                       <p className="text-sm text-ink2 mb-4">{item.price}</p>
-                      
+
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
                         <button
                           onClick={() => updateQuantity(item.cartId, Math.max(1, (item.cantidad || 1) - 1))}
