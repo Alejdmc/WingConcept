@@ -128,12 +128,16 @@ export const api = {
     ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
     actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
     contenidos: (params = {}) => request(`/admin/contenidos${buildQuery(params)}`),
+    obtenerContenido: (contenidoId) => request(`/admin/contenidos/${contenidoId}`),
     crearContenido: (data) => request('/admin/contenidos', { method: 'POST', body: JSON.stringify(data) }),
     actualizarContenido: (contenidoId, data) => request(`/admin/contenidos/${contenidoId}`, { method: 'PUT', body: JSON.stringify(data) }),
-    eliminarContenido: (contenidoId) => request(`/admin/contenidos/${contenidoId}`, { method: 'DELETE' }),
+    eliminarContenido: (contenidoId, permanente = false) =>
+      request(`/admin/contenidos/${contenidoId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure'),
+    shows: () => request('/contenidos/shows'),
+    events: () => request('/contenidos/events'),
   },
   ordenes: {
     crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),
@@ -145,8 +149,11 @@ export const api = {
     checkout: (data) => request('/pagos/checkout', { method: 'POST', body: JSON.stringify(data) }),
   },
   usuarios: {
+    perfil: () => request('/usuarios/me'),
+    actualizarPerfil: (data) => request('/usuarios/me', { method: 'PUT', body: JSON.stringify(data) }),
+    cambiarPassword: (data) => request('/usuarios/me/password', { method: 'PUT', body: JSON.stringify(data) }),
     obtener: (userId) => request(userId ? `/usuarios/${userId}` : '/usuarios/me'),
-    actualizar: (userId, data) => request(`/usuarios/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    actualizar: (userId, data) => request(userId ? `/usuarios/${userId}` : '/usuarios/me', { method: 'PUT', body: JSON.stringify(data) }),
     direcciones: (userId) => request(userId ? `/usuarios/${userId}/direcciones` : '/usuarios/me/direcciones'),
   },
 }

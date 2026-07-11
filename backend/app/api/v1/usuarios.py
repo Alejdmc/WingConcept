@@ -16,11 +16,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user
 from app.database import get_db
 from app.schemas.usuario import (
+    CambiarPasswordRequest,
     DireccionEnvioCreate,
     DireccionEnvioResponse,
     UsuarioResponse,
     UsuarioUpdate,
 )
+from app.services.auth_service import auth_service
 from app.services.direccion_service import direccion_service
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
@@ -44,6 +46,19 @@ async def actualizar_perfil(
     await db.flush()
     await db.refresh(current_user)
     return UsuarioResponse.model_validate(current_user)
+
+
+@router.put("/me/password", status_code=status.HTTP_200_OK)
+async def cambiar_password(
+    data: CambiarPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Cambia la contraseña del usuario autenticado."""
+    await auth_service.cambiar_password(
+        db, current_user, data.password_actual, data.nueva_password
+    )
+    return {"message": "Contraseña actualizada correctamente."}
 
 
 @router.get("/me/direcciones", response_model=List[DireccionEnvioResponse])

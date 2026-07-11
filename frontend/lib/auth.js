@@ -14,6 +14,7 @@ export function persistAuthSession(data) {
   const secureFlag = typeof window !== 'undefined' && window.location && window.location.protocol === 'https:' ? '; Secure' : ''
   document.cookie = `access_token=${data.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`
   document.cookie = `user=${encodeURIComponent(JSON.stringify({ nombre: data.nombre, rol: data.rol }))}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`
+  window.dispatchEvent(new Event('auth-changed'))
 }
 
 export function clearAuthSession() {
@@ -24,6 +25,7 @@ export function clearAuthSession() {
   localStorage.removeItem('user')
   document.cookie = 'access_token=; path=/; max-age=0'
   document.cookie = 'user=; path=/; max-age=0'
+  window.dispatchEvent(new Event('auth-changed'))
 }
 
 export function getStoredUser() {

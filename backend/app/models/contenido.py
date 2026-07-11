@@ -34,6 +34,10 @@ class Contenido(Base):
     dificultad: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     participantes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     highlights: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String), nullable=True)
+    fecha: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    hora: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    capacidad: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    precio: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     orden: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
 

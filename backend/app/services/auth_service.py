@@ -186,6 +186,20 @@ class AuthService:
         logger.info(f"Contraseña actualizada para: {usuario.email}")
         return True
 
+    async def cambiar_password(
+        self,
+        db: AsyncSession,
+        usuario: "Usuario",
+        password_actual: str,
+        nueva_password: str,
+    ) -> None:
+        """Cambia la contraseña del usuario autenticado."""
+        if not verify_password(password_actual, usuario.hashed_password):
+            raise CredencialesInvalidasError("La contraseña actual es incorrecta")
+        usuario.hashed_password = hash_password(nueva_password)
+        await db.flush()
+        logger.info(f"Contraseña cambiada por el usuario: {usuario.email}")
+
     def generar_token_verificacion(self, usuario: Usuario) -> str:
         """Genera JWT de verificación de email (24h)."""
         return create_email_verify_token(subject=str(usuario.id), email=usuario.email)

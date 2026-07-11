@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass } from 'lucide-react'
+import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User } from 'lucide-react'
 import { isAdminUser, clearAuthSession, getStoredUser } from '@/lib/auth'
 import { api } from '@/lib/api'
 
@@ -16,7 +16,8 @@ export default function AdminLayout({ children }) {
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { label: 'Productos', href: '/admin/products', icon: Package },
     { label: 'Pedidos', href: '/admin/orders', icon: ShoppingCart },
-    { label: 'Adventure', href: '/admin/adventure', icon: Compass },
+    { label: 'Contenido', href: '/admin/contenido', icon: Compass },
+    { label: 'Configuración', href: '/admin/settings', icon: Settings },
   ]
 
   useEffect(() => {
@@ -79,14 +80,16 @@ export default function AdminLayout({ children }) {
       <main className="flex-1 overflow-auto">
         <header className="bg-white border-b border-borderline px-8 py-6 flex items-center justify-between sticky top-0 z-40">
           <h2 className="text-2xl font-black text-ink">Panel Administrativo</h2>
-          <div className="flex items-center gap-4">
+          <Link
+            href="/admin/settings"
+            className="flex items-center gap-4 rounded-lg px-2 py-1 hover:bg-bg2 transition"
+            title="Configuración de cuenta"
+          >
             <span className="text-ink2">{user?.nombre || 'Admin'}</span>
-            <Link
-              href="/admin/dashboard"
-              className="w-10 h-10 rounded-full bg-brand block hover:ring-2 hover:ring-brand/50 transition"
-              title="Dashboard"
-            />
-          </div>
+            <span className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center hover:ring-2 hover:ring-brand/50 transition">
+              <User className="w-5 h-5" />
+            </span>
+          </Link>
         </header>
 
         <div className="p-8">

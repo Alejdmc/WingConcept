@@ -1,7 +1,8 @@
 'use client'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { getStoredUser } from '@/lib/auth'
@@ -26,22 +27,41 @@ const navItems = [
   },
 ]
 
+function resolveUserDestination() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const user = getStoredUser()
+  if (!token || !user) return '/login'
+  if (user.rol === 'admin') return '/admin/dashboard'
+  return '/cuenta'
+}
+
 export default function Navbar() {
+  const router = useRouter()
+  const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userHref, setUserHref] = useState('/login')
   const { items } = useCart()
   const itemCount = items.reduce((sum, item) => sum + (item.cantidad || 1), 0)
 
-  useEffect(() => {
-    const user = getStoredUser()
-    if (user?.rol === 'admin') {
-      setUserHref('/admin/dashboard')
-    } else if (user) {
-      setUserHref('/')
-    } else {
-      setUserHref('/login')
-    }
+  const refreshUserHref = useCallback(() => {
+    setUserHref(resolveUserDestination())
   }, [])
+
+  useEffect(() => {
+    refreshUserHref()
+    const onAuthChanged = () => refreshUserHref()
+    window.addEventListener('auth-changed', onAuthChanged)
+    window.addEventListener('storage', onAuthChanged)
+    return () => {
+      window.removeEventListener('auth-changed', onAuthChanged)
+      window.removeEventListener('storage', onAuthChanged)
+    }
+  }, [refreshUserHref, pathname])
+
+  const handleUserClick = (e) => {
+    e.preventDefault()
+    router.push(resolveUserDestination())
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
@@ -78,7 +98,10 @@ export default function Navbar() {
           {/* User Profile */}
           <Link
             href={userHref}
-            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors">
+            onClick={handleUserClick}
+            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
+            title="Mi cuenta"
+            aria-label="Mi cuenta">
             <User className="w-5 h-5" />
           </Link>
 

@@ -8,7 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows"})
-TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion"})
+TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion", "show", "evento"})
 
 
 class ContenidoCreate(BaseModel):
@@ -23,6 +23,10 @@ class ContenidoCreate(BaseModel):
     dificultad: Optional[str] = Field(None, max_length=50)
     participantes: Optional[int] = Field(None, ge=1)
     highlights: Optional[List[str]] = None
+    fecha: Optional[str] = Field(None, max_length=150)
+    hora: Optional[str] = Field(None, max_length=100)
+    capacidad: Optional[str] = Field(None, max_length=100)
+    precio: Optional[str] = Field(None, max_length=100)
     orden: int = 0
     activo: bool = True
 
@@ -54,6 +58,10 @@ class ContenidoUpdate(BaseModel):
     dificultad: Optional[str] = Field(None, max_length=50)
     participantes: Optional[int] = Field(None, ge=1)
     highlights: Optional[List[str]] = None
+    fecha: Optional[str] = Field(None, max_length=150)
+    hora: Optional[str] = Field(None, max_length=100)
+    capacidad: Optional[str] = Field(None, max_length=100)
+    precio: Optional[str] = Field(None, max_length=100)
     orden: Optional[int] = None
     activo: Optional[bool] = None
 
@@ -81,6 +89,10 @@ class ContenidoResponse(BaseModel):
     dificultad: Optional[str]
     participantes: Optional[int]
     highlights: Optional[List[str]]
+    fecha: Optional[str]
+    hora: Optional[str]
+    capacidad: Optional[str]
+    precio: Optional[str]
     orden: int
     activo: bool
     created_at: datetime
@@ -89,7 +101,36 @@ class ContenidoResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class AdventurePageResponse(BaseModel):
+class SeccionPageResponse(BaseModel):
     hero: Optional[ContenidoResponse] = None
     intro: Optional[ContenidoResponse] = None
+    items: List[ContenidoResponse] = []
+
+
+class AdventurePageResponse(SeccionPageResponse):
     expediciones: List[ContenidoResponse] = []
+
+    @classmethod
+    def from_seccion(cls, data: SeccionPageResponse) -> "AdventurePageResponse":
+        return cls(
+            hero=data.hero,
+            intro=data.intro,
+            items=data.items,
+            expediciones=data.items,
+        )
+
+
+class ShowsPageResponse(SeccionPageResponse):
+    shows: List[ContenidoResponse] = []
+
+    @classmethod
+    def from_seccion(cls, data: SeccionPageResponse) -> "ShowsPageResponse":
+        return cls(hero=data.hero, intro=data.intro, items=data.items, shows=data.items)
+
+
+class EventsPageResponse(SeccionPageResponse):
+    eventos: List[ContenidoResponse] = []
+
+    @classmethod
+    def from_seccion(cls, data: SeccionPageResponse) -> "EventsPageResponse":
+        return cls(hero=data.hero, intro=data.intro, items=data.items, eventos=data.items)

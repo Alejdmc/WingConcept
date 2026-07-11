@@ -32,6 +32,20 @@ class UsuarioUpdate(BaseModel):
     telefono: Optional[str] = Field(None, max_length=20)
 
 
+class CambiarPasswordRequest(BaseModel):
+    password_actual: str = Field(..., min_length=1)
+    nueva_password: str = Field(..., min_length=8)
+
+    @field_validator("nueva_password")
+    @classmethod
+    def validar_pwd(cls, v: str) -> str:
+        from app.utils.validators import validar_password
+        error = validar_password(v)
+        if error:
+            raise ValueError(error)
+        return v
+
+
 class UsuarioAdminUpdate(UsuarioUpdate):
     """Solo administradores pueden modificar estos campos."""
     rol: Optional[str] = None

@@ -305,6 +305,17 @@ async def listar_contenidos_admin(
     return await contenido_service.listar_admin(db, seccion, pagina, por_pagina)
 
 
+@router.get("/contenidos/{contenido_id}", response_model=ContenidoResponse)
+async def obtener_contenido_admin(
+    contenido_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Obtiene un bloque de contenido por ID."""
+    contenido = await contenido_service.obtener_por_id(db, contenido_id)
+    return ContenidoResponse.model_validate(contenido)
+
+
 @router.post("/contenidos", response_model=ContenidoResponse, status_code=status.HTTP_201_CREATED)
 async def crear_contenido_admin(
     data: ContenidoCreate,
@@ -329,9 +340,10 @@ async def actualizar_contenido_admin(
 @router.delete("/contenidos/{contenido_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_contenido_admin(
     contenido_id: uuid.UUID,
+    permanente: bool = Query(False),
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Desactiva un bloque de contenido (soft delete)."""
-    await contenido_service.eliminar(db, contenido_id)
+    """Desactiva o elimina permanentemente un bloque de contenido."""
+    await contenido_service.eliminar(db, contenido_id, permanente=permanente)
 

@@ -17,6 +17,9 @@ from app.schemas.contenido import (
     ContenidoCreate,
     ContenidoResponse,
     ContenidoUpdate,
+    EventsPageResponse,
+    SeccionPageResponse,
+    ShowsPageResponse,
 )
 
 
@@ -43,12 +46,26 @@ class ContenidoService:
         items = result.scalars().all()
         return [ContenidoResponse.model_validate(c) for c in items]
 
-    async def obtener_adventure(self, db: AsyncSession) -> AdventurePageResponse:
-        items = await self.listar_por_seccion(db, "adventure", solo_activos=True)
+    async def obtener_seccion_page(self, db: AsyncSession, seccion: str) -> SeccionPageResponse:
+        """Construye respuesta estructurada hero + intro + items de tarjetas."""
+        items = await self.listar_por_seccion(db, seccion, solo_activos=True)
         hero = next((c for c in items if c.tipo == "hero"), None)
         intro = next((c for c in items if c.tipo == "intro"), None)
-        expediciones = [c for c in items if c.tipo == "expedicion"]
-        return AdventurePageResponse(hero=hero, intro=intro, expediciones=expediciones)
+        card_tipos = {"expedicion", "show", "evento"}
+        cards = [c for c in items if c.tipo in card_tipos]
+        return SeccionPageResponse(hero=hero, intro=intro, items=cards)
+
+    async def obtener_adventure(self, db: AsyncSession) -> AdventurePageResponse:
+        data = await self.obtener_seccion_page(db, "adventure")
+        return AdventurePageResponse.from_seccion(data)
+
+    async def obtener_shows(self, db: AsyncSession) -> ShowsPageResponse:
+        data = await self.obtener_seccion_page(db, "shows")
+        return ShowsPageResponse.from_seccion(data)
+
+    async def obtener_events(self, db: AsyncSession) -> EventsPageResponse:
+        data = await self.obtener_seccion_page(db, "events")
+        return EventsPageResponse.from_seccion(data)
 
     async def listar_admin(
         self,
@@ -126,9 +143,12 @@ class ContenidoService:
         await db.flush()
         return ContenidoResponse.model_validate(contenido)
 
-    async def eliminar(self, db: AsyncSession, contenido_id: UUID) -> None:
+    async def eliminar(self, db: AsyncSession, contenido_id: UUID, permanente: bool = False) -> None:
         contenido = await self.obtener_por_id(db, contenido_id)
-        contenido.activo = False
+        if permanente:
+            await db.delete(contenido)
+        else:
+            contenido.activo = False
         await db.flush()
 
 
