@@ -95,7 +95,7 @@ jobs:
 
       - name: Prepare env for compose validation
         run: |
-          cat > backend/.env <<'EOF'
+          cat > .env <<'EOF'
           SECRET_KEY=ci_test_secret_key_minimum_32_characters_long
           DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/wingconcept_test
           REDIS_PASSWORD=ci_redis_password
