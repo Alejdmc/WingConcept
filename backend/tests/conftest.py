@@ -15,6 +15,11 @@ import pytest
 # Marcar entorno de tests antes de importar la app (NullPool en database.py)
 os.environ["TESTING"] = "1"
 
+# En local no usar DATABASE_URL del .env (evita conectar a Supabase/prod accidentalmente).
+# En CI, GitHub Actions inyecta DATABASE_URL al servicio postgres del workflow.
+if not os.environ.get("GITHUB_ACTIONS"):
+    os.environ["DATABASE_URL"] = ""
+
 # Variables mínimas requeridas por Settings antes de importar la app
 os.environ.setdefault(
     "SECRET_KEY",

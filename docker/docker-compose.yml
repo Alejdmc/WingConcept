@@ -31,7 +31,13 @@ services:
       - "8000:8000"
     volumes:
       - ../backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --proxy-headers
+      --forwarded-allow-ips=*
     depends_on:
       redis:
         condition: service_healthy
@@ -88,7 +94,8 @@ services:
       - certbot_certs:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - wingnet
 

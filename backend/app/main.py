@@ -59,7 +59,12 @@ async def lifespan(app: FastAPI):
         await redis.ping()
         logger.info("✅ Redis conectado")
     except Exception as e:
-        logger.warning(f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)")
+        if settings.is_production:
+            logger.error(f"Redis no disponible en producción: {e}")
+        else:
+            logger.warning(
+                f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)"
+            )
 
     yield
 

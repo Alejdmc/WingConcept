@@ -116,6 +116,35 @@ class Settings(BaseSettings):
     ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"
     ALLOWED_MODEL_TYPES: str = "model/gltf-binary,model/gltf+json,application/octet-stream"
 
+    @field_validator("SUPABASE_URL", mode="before")
+    @classmethod
+    def normalize_supabase_url(cls, v: str) -> str:
+        """Normaliza URL de Supabase (storage usa la raíz del proyecto, no /rest/v1)."""
+        if not v:
+            return v
+        url = str(v).strip().rstrip("/")
+        if url.startswith(("postgresql://", "postgresql+asyncpg://", "postgres://")):
+            raise ValueError(
+                "SUPABASE_URL no es la connection string de Postgres. "
+                "Usa DATABASE_URL para la BD y SUPABASE_URL=https://TU_PROJECT_ID.supabase.co"
+            )
+        for suffix in ("/rest/v1", "/auth/v1", "/storage/v1"):
+            if url.endswith(suffix):
+                return url[: -len(suffix)]
+        return url
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        if not v:
+            return v
+        url = str(v).strip()
+        if url.startswith("https://") and "supabase.co" in url:
+            raise ValueError(
+                "DATABASE_URL debe ser la connection string PostgreSQL, no la URL HTTPS de Supabase."
+            )
+        return url
+
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def parse_origins(cls, v: str) -> str:
@@ -140,8 +169,20 @@ class Settings(BaseSettings):
             )
 
         if self.ENVIRONMENT == "production":
+            if self.DEBUG:
+                raise ValueError("DEBUG debe ser False en producción.")
             if not self.DATABASE_URL:
                 raise ValueError("DATABASE_URL es requerido en producción.")
+            if not self.REDIS_PASSWORD:
+                raise ValueError("REDIS_PASSWORD es requerido en producción.")
+            if not self.RESEND_API_KEY:
+                raise ValueError("RESEND_API_KEY es requerido en producción.")
+            allowed_hosts = {h.strip() for h in self.ALLOWED_HOSTS.split(",") if h.strip()}
+            if allowed_hosts <= {"localhost", "127.0.0.1", "test"}:
+                raise ValueError(
+                    "ALLOWED_HOSTS debe incluir el dominio de producción "
+                    "(ej: wingconcept.com,www.wingconcept.com)."
+                )
             if not self.WOMPI_PRIVATE_KEY and not self.STRIPE_SECRET_KEY:
                 raise ValueError(
                     "Al menos un proveedor de pagos debe configurarse en producción: "
