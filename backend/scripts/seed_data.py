@@ -38,6 +38,25 @@ def main() -> None:
     ipro_id = str(uuid.uuid4())
     trike_id = str(uuid.uuid4())
 
+    # ── Producto Disruptor ──────────────────────────────────────────
+    cur.execute(
+        """
+        INSERT INTO productos (id, nombre, slug, descripcion, descripcion_corta, categoria, subcategoria, imagenes, activo, destacado, orden_display, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, true, 1, NOW(), NOW())
+        ON CONFLICT (slug) DO NOTHING
+        """,
+        (
+            disruptor_id,
+            "Disruptor",
+            "disruptor",
+            "Paramotor de alto rendimiento para pilotos exigentes.",
+            "High performance paramotor",
+            "paramotor",
+            "performance",
+            ["/images/disruptor_ejemplo.PNG"],
+        ),
+    )
+
     # ── Variante Disruptor ──────────────────────────────────────────
     cur.execute(
         """
@@ -50,7 +69,7 @@ def main() -> None:
             disruptor_id,
             "Disruptor Standard",
             "DISC-STD-001",
-            5000.00,
+            4500.00,
             5,
             1,
             '{"motor": "Vittorazi Moster 185", "peso_kg": 28, "empuje_kg": 95}',
@@ -72,7 +91,7 @@ def main() -> None:
             "Next-gen lightweight design",
             "paramotor",
             "lightweight",
-            '["/images/ipro_ejemplo.PNG"]',
+            ["/images/ipro_ejemplo.PNG"],
         ),
     )
 
@@ -87,7 +106,7 @@ def main() -> None:
             ipro_id,
             "I-Pro Standard",
             "IPRO-STD-001",
-            5200.00,
+            5950.00,
             3,
             1,
             '{"motor": "Vittorazi Moster 185 Plus", "peso_kg": 26, "empuje_kg": 90}',
@@ -109,7 +128,7 @@ def main() -> None:
             "Stable ride & long-range flights",
             "paratrike",
             None,
-            '["/images/paramotor_trike_ejemplo.PNG"]',
+            ["/images/paramotor_trike_ejemplo.PNG"],
         ),
     )
 
@@ -124,7 +143,7 @@ def main() -> None:
             trike_id,
             "Trike Standard",
             "TRIK-STD-001",
-            1350.00,
+            8950.00,
             8,
             1,
             '{"peso_kg": 40, "empuje_kg": 110, "asientos": 1}',

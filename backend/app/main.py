@@ -22,7 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── Límite de tamaño del body (anti-DoS) ─────────────────────────────────────
-# Los webhooks de Wompi/Stripe son JSONs pequeños (<50 KB).
+# Los webhooks de Stripe son JSONs pequeños (<50 KB).
 # Las cargas de imágenes van por Supabase Storage, no por FastAPI.
 # 2 MB es suficiente para cualquier payload legítimo de la API.
 MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MB
@@ -84,9 +84,8 @@ app = FastAPI(
 ## Autenticación
 Usar `Bearer <access_token>` en el header `Authorization`.
 
-## Pasarelas de pago
-- **Wompi** — Colombia (COP): `proveedor: "wompi"`
-- **Stripe** — Internacional (USD/EUR): `proveedor: "stripe"`
+## Pasarela de pago
+- **Stripe** — Pagos en USD: `POST /api/v1/pagos/checkout`
     """,
     docs_url="/docs" if not settings.is_production else None,
     redoc_url="/redoc" if not settings.is_production else None,
@@ -143,7 +142,7 @@ async def limit_request_body_size(request: Request, call_next):
                     f"desde {request.client.host if request.client else 'unknown'}"
                 )
                 return JSONResponse(
-                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    status_code=413,
                     content={"detail": "El cuerpo de la solicitud supera el límite permitido (2 MB)."},
                 )
         except ValueError:

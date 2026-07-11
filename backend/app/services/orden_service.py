@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError, PermisosDenegadosError
+from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
 from app.models.carrito import Carrito
 from app.models.orden import ItemOrden, Orden
 from app.models.variante import Variante
@@ -41,7 +41,7 @@ def _build_admin_orden_response(orden: Orden) -> AdminOrdenResponse:
 
     estado_display = ESTADO_DISPLAY_MAP.get(orden.estado, orden.estado.capitalize())
     precio_total = float(orden.total)
-    total_formateado = f"${precio_total:,.0f}"
+    total_formateado = f"${precio_total:,.2f}"
     fecha = orden.created_at.strftime("%Y-%m-%d") if orden.created_at else ""
 
     return AdminOrdenResponse(
@@ -85,7 +85,7 @@ class OrdenService:
     ) -> OrdenResponse:
         """
         Crea una orden a partir del carrito del usuario.
-        Valida stock antes de crear.
+        El stock lo gestiona el admin desde el panel.
         """
         # Obtener carrito con todos sus items
         carrito_result = await db.execute(
@@ -98,7 +98,7 @@ class OrdenService:
         if not carrito or not carrito.items:
             raise RecursoNoEncontradoError("Carrito vacío o inexistente")
 
-        # Validar stock de cada item
+        # Calcular subtotal desde precios del carrito
         subtotal = 0.0
         items_orden = []
 
@@ -113,10 +113,7 @@ class OrdenService:
             if not variante or not variante.activo:
                 raise RecursoNoEncontradoError(f"Variante {item.variante_id}")
 
-            if variante.stock < item.cantidad:
-                raise StockInsuficienteError(variante.nombre)
-
-            subtotal += float(variante.precio) * item.cantidad
+            subtotal += float(item.precio_unitario) * item.cantidad
 
             # Snapshot del producto para auditoría histórica
             snapshot = {
@@ -131,7 +128,7 @@ class OrdenService:
                 ItemOrden(
                     variante_id=variante.id,
                     cantidad=item.cantidad,
-                    precio_unitario=variante.precio,
+                    precio_unitario=item.precio_unitario,
                     snapshot=snapshot,
                 )
             )
@@ -154,14 +151,22 @@ class OrdenService:
         )
         db.add(orden)
         await db.flush()
+        orden_id = orden.id
 
         # Limpiar carrito tras crear la orden
         for item in carrito.items:
             await db.delete(item)
         await db.flush()
 
+        # Re-cargar orden con items (evita MissingGreenlet en model_validate)
+        orden_result = await db.execute(
+            select(Orden)
+            .options(selectinload(Orden.items))
+            .where(Orden.id == orden_id)
+        )
+        orden = orden_result.scalar_one()
+
         logger.info(f"Orden creada: {orden.numero_orden} usuario:{usuario_id}")
-        await db.refresh(orden)
         return OrdenResponse.model_validate(orden)
 
     async def obtener_por_id(

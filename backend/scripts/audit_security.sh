@@ -80,7 +80,7 @@ if [ -f ".env.example" ]; then
     echo "✅ .env.example encontrado"
 
     # Verificar variables críticas
-    CRITICAL_VARS=("SECRET_KEY" "DATABASE_URL" "REDIS_PASSWORD" "WOMPI_EVENTS_SECRET" "STRIPE_WEBHOOK_SECRET")
+    CRITICAL_VARS=("SECRET_KEY" "DATABASE_URL" "REDIS_PASSWORD" "STRIPE_WEBHOOK_SECRET")
 
     for VAR in "${CRITICAL_VARS[@]}"; do
         if grep -q "^$VAR=" .env.example; then

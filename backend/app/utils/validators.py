@@ -36,7 +36,7 @@ def sanitizar_slug(texto: str) -> str:
     return slugify(texto, allow_unicode=False, separator="-")
 
 
-def validar_monto(monto: float, moneda: str = "COP") -> Optional[str]:
+def validar_monto(monto: float, moneda: str = "USD") -> Optional[str]:
     """
     Valida que el monto sea positivo y razonable.
     Retorna mensaje de error o None si es válido.

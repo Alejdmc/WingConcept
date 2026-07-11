@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError
+from app.core.exceptions import RecursoNoEncontradoError
 from app.models.carrito import Carrito, ItemCarrito
 from app.models.variante import Variante
 from app.schemas.carrito import CarritoResponse, ItemCarritoResponse
@@ -61,6 +61,20 @@ class CarritoService:
 
     # ── Carrito autenticado (DB) ──────────────────────────────────────────────
 
+    async def _recargar_carrito(
+        self, db: AsyncSession, carrito: Carrito, *, expire_items: bool = False
+    ) -> Carrito:
+        """Re-carga el carrito con items eager (evita lazy-load y colecciones stale)."""
+        if expire_items:
+            db.expire(carrito, ["items"])
+        result = await db.execute(
+            select(Carrito)
+            .options(selectinload(Carrito.items).selectinload(ItemCarrito.variante))
+            .where(Carrito.id == carrito.id)
+            .execution_options(populate_existing=True)
+        )
+        return result.scalar_one()
+
     async def obtener_o_crear(self, db: AsyncSession, usuario_id: UUID) -> Carrito:
         """Obtiene el carrito del usuario o lo crea si no existe."""
         result = await db.execute(
@@ -73,6 +87,7 @@ class CarritoService:
             carrito = Carrito(usuario_id=usuario_id)
             db.add(carrito)
             await db.flush()
+            carrito = await self._recargar_carrito(db, carrito)
         return carrito
 
     async def agregar_item(
@@ -91,8 +106,6 @@ class CarritoService:
         variante = variante_result.scalar_one_or_none()
         if not variante:
             raise RecursoNoEncontradoError("Variante")
-        if variante.stock < cantidad:
-            raise StockInsuficienteError(variante.nombre)
 
         precio = precio_unitario or _precio_desde_configuracion(configuracion, float(variante.precio))
         carrito = await self.obtener_o_crear(db, usuario_id)
@@ -106,10 +119,7 @@ class CarritoService:
             )
 
         if item_existente:
-            nueva_cantidad = item_existente.cantidad + cantidad
-            if variante.stock < nueva_cantidad:
-                raise StockInsuficienteError(variante.nombre)
-            item_existente.cantidad = nueva_cantidad
+            item_existente.cantidad = item_existente.cantidad + cantidad
         else:
             nuevo_item = ItemCarrito(
                 carrito_id=carrito.id,
@@ -119,9 +129,9 @@ class CarritoService:
                 configuracion=configuracion,
             )
             db.add(nuevo_item)
-            carrito.items.append(nuevo_item)
 
         await db.flush()
+        carrito = await self._recargar_carrito(db, carrito, expire_items=True)
         return await self._carrito_a_response(db, carrito)
 
     async def actualizar_cantidad(
@@ -141,8 +151,6 @@ class CarritoService:
             select(Variante).where(Variante.id == item.variante_id)
         )
         variante = variante_result.scalar_one_or_none()
-        if variante and variante.stock < cantidad:
-            raise StockInsuficienteError(variante.nombre)
 
         item.cantidad = cantidad
         await db.flush()
@@ -305,7 +313,7 @@ class CarritoService:
                     select(Variante).where(Variante.id == variante_id, Variante.activo == True)
                 )
                 variante = variante_result.scalar_one_or_none()
-                if variante and variante.stock >= cantidad:
+                if variante:
                     await self.agregar_item(
                         db,
                         usuario_id,

@@ -27,6 +27,8 @@ from app.schemas.producto import (
     ProductoCreate,
     ProductoResponse,
     ProductoUpdate,
+    VarianteResponse,
+    VarianteUpdate,
 )
 from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
 from app.services.orden_service import orden_service
@@ -173,6 +175,25 @@ async def eliminar_producto_admin(
 ):
     """Desactiva un producto (soft delete). Alias para el panel admin."""
     await producto_service.eliminar(db, producto_id)
+
+
+# ── Stock de variantes (admin) ────────────────────────────────────────────────
+
+@router.patch(
+    "/variantes/{variante_id}/stock",
+    response_model=VarianteResponse,
+)
+async def actualizar_stock_variante(
+    variante_id: uuid.UUID,
+    data: VarianteUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza stock y datos de una variante desde el panel admin."""
+    if data.stock is None and data.model_dump(exclude_unset=True) == {}:
+        from app.core.exceptions import PermisosDenegadosError
+        raise PermisosDenegadosError("Se requiere al menos un campo para actualizar")
+    return await producto_service.actualizar_variante(db, variante_id, data)
 
 
 # ── Órdenes Admin ─────────────────────────────────────────────────────────────

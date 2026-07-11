@@ -42,14 +42,3 @@ except ImportError:
 def anyio_backend():
     return "asyncio"
 
-
-@pytest.fixture(scope="session", autouse=True)
-async def dispose_db_engine():
-    """Evita errores de event loop al cerrar el pool async de SQLAlchemy."""
-    yield
-    try:
-        from app.database import engine
-        if engine is not None:
-            await engine.dispose()
-    except Exception:
-        pass

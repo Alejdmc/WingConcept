@@ -35,13 +35,9 @@ bcrypt>=4.0.1,<5.0.0
 httpx==0.25.2
 requests==2.31.0
 
-# --- Pasarela de pagos: Wompi (Colombia) ---
-# Documentación: https://docs.wompi.co
-# Requiere: WOMPI_PUBLIC_KEY, WOMPI_PRIVATE_KEY, WOMPI_EVENTS_SECRET
-
-# --- Pasarela de pagos: Stripe (Global) ---
+# --- Pasarela de pagos: Stripe (USD) ---
 # Documentación: https://stripe.com/docs/api
-# Requiere: STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
+# Requiere: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 stripe==7.8.0
 
 # --- Email transaccional: Resend ---
