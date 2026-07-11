@@ -61,6 +61,20 @@ class CarritoService:
 
     # ── Carrito autenticado (DB) ──────────────────────────────────────────────
 
+    async def _recargar_carrito(
+        self, db: AsyncSession, carrito: Carrito, *, expire_items: bool = False
+    ) -> Carrito:
+        """Re-carga el carrito con items eager (evita lazy-load y colecciones stale)."""
+        if expire_items:
+            db.expire(carrito, ["items"])
+        result = await db.execute(
+            select(Carrito)
+            .options(selectinload(Carrito.items).selectinload(ItemCarrito.variante))
+            .where(Carrito.id == carrito.id)
+            .execution_options(populate_existing=True)
+        )
+        return result.scalar_one()
+
     async def obtener_o_crear(self, db: AsyncSession, usuario_id: UUID) -> Carrito:
         """Obtiene el carrito del usuario o lo crea si no existe."""
         result = await db.execute(
@@ -73,6 +87,7 @@ class CarritoService:
             carrito = Carrito(usuario_id=usuario_id)
             db.add(carrito)
             await db.flush()
+            carrito = await self._recargar_carrito(db, carrito)
         return carrito
 
     async def agregar_item(
@@ -119,9 +134,9 @@ class CarritoService:
                 configuracion=configuracion,
             )
             db.add(nuevo_item)
-            carrito.items.append(nuevo_item)
 
         await db.flush()
+        carrito = await self._recargar_carrito(db, carrito, expire_items=True)
         return await self._carrito_a_response(db, carrito)
 
     async def actualizar_cantidad(

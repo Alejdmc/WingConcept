@@ -154,14 +154,22 @@ class OrdenService:
         )
         db.add(orden)
         await db.flush()
+        orden_id = orden.id
 
         # Limpiar carrito tras crear la orden
         for item in carrito.items:
             await db.delete(item)
         await db.flush()
 
+        # Re-cargar orden con items (evita MissingGreenlet en model_validate)
+        orden_result = await db.execute(
+            select(Orden)
+            .options(selectinload(Orden.items))
+            .where(Orden.id == orden_id)
+        )
+        orden = orden_result.scalar_one()
+
         logger.info(f"Orden creada: {orden.numero_orden} usuario:{usuario_id}")
-        await db.refresh(orden)
         return OrdenResponse.model_validate(orden)
 
     async def obtener_por_id(

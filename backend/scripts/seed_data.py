@@ -38,6 +38,25 @@ def main() -> None:
     ipro_id = str(uuid.uuid4())
     trike_id = str(uuid.uuid4())
 
+    # ── Producto Disruptor ──────────────────────────────────────────
+    cur.execute(
+        """
+        INSERT INTO productos (id, nombre, slug, descripcion, descripcion_corta, categoria, subcategoria, imagenes, activo, destacado, orden_display, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, true, 1, NOW(), NOW())
+        ON CONFLICT (slug) DO NOTHING
+        """,
+        (
+            disruptor_id,
+            "Disruptor",
+            "disruptor",
+            "Paramotor de alto rendimiento para pilotos exigentes.",
+            "High performance paramotor",
+            "paramotor",
+            "performance",
+            ["/images/disruptor_ejemplo.PNG"],
+        ),
+    )
+
     # ── Variante Disruptor ──────────────────────────────────────────
     cur.execute(
         """
@@ -72,7 +91,7 @@ def main() -> None:
             "Next-gen lightweight design",
             "paramotor",
             "lightweight",
-            '["/images/ipro_ejemplo.PNG"]',
+            ["/images/ipro_ejemplo.PNG"],
         ),
     )
 
@@ -109,7 +128,7 @@ def main() -> None:
             "Stable ride & long-range flights",
             "paratrike",
             None,
-            '["/images/paramotor_trike_ejemplo.PNG"]',
+            ["/images/paramotor_trike_ejemplo.PNG"],
         ),
     )
 
