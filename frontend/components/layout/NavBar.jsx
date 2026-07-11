@@ -100,8 +100,8 @@ export default function Navbar() {
             href={userHref}
             onClick={handleUserClick}
             className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
-            title="Mi cuenta"
-            aria-label="Mi cuenta">
+            title="My account"
+            aria-label="My account">
             <User className="w-5 h-5" />
           </Link>
 

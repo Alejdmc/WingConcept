@@ -20,7 +20,7 @@ export default function OrdersPage() {
         setOrders(data.items || [])
       } catch (err) {
         console.error('Error loading admin orders:', err)
-        setError('No se pudieron cargar las órdenes.')
+        setError('Could not load orders.')
       } finally {
         setLoading(false)
       }
@@ -46,7 +46,7 @@ export default function OrdersPage() {
       setOrders(orders.map((order) => (order.id === updated.id ? { ...order, estado: updated.estado, estado_display: updated.estado_display } : order)))
     } catch (err) {
       console.error('Error updating order status:', err)
-      setError('No se pudo actualizar el estado de la orden.')
+      setError('Could not update order status.')
     }
   }
 
@@ -54,8 +54,8 @@ export default function OrdersPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black text-ink">Órdenes</h1>
-          <p className="text-ink2 mt-2">Gestiona las órdenes directamente desde el backend.</p>
+          <h1 className="text-3xl font-black text-ink">Orders</h1>
+          <p className="text-ink2 mt-2">Manage orders directly from the backend.</p>
         </div>
       </div>
 
@@ -68,22 +68,22 @@ export default function OrdersPage() {
           <thead className="bg-bg2">
             <tr className="border-b border-borderline">
               <th className="text-left py-4 px-6 font-semibold text-ink">Order ID</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Cliente</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Customer</th>
               <th className="text-left py-4 px-6 font-semibold text-ink">Items</th>
               <th className="text-left py-4 px-6 font-semibold text-ink">Total</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Estado</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Fecha</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Acciones</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Status</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Date</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-ink2">Cargando órdenes...</td>
+                <td colSpan="7" className="py-8 text-center text-ink2">Loading orders...</td>
               </tr>
             ) : orders.length === 0 ? (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-ink2">No hay órdenes.</td>
+                <td colSpan="7" className="py-8 text-center text-ink2">No orders found.</td>
               </tr>
             ) : (
               orders.map((order) => (
@@ -119,16 +119,16 @@ export default function OrdersPage() {
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <h2 className="text-2xl font-black text-ink mb-6">Detalles de {selectedOrder.numero_orden || selectedOrder.id}</h2>
+            <h2 className="text-2xl font-black text-ink mb-6">Details for {selectedOrder.numero_orden || selectedOrder.id}</h2>
             <div className="space-y-3 mb-6">
-              <p><span className="font-semibold text-ink">Cliente:</span> {selectedOrder.cliente_nombre || selectedOrder.client}</p>
+              <p><span className="font-semibold text-ink">Customer:</span> {selectedOrder.cliente_nombre || selectedOrder.client}</p>
               <p><span className="font-semibold text-ink">Email:</span> {selectedOrder.cliente_email || selectedOrder.email}</p>
               <p><span className="font-semibold text-ink">Items:</span> {selectedOrder.cantidad_items || selectedOrder.items}</p>
               <p><span className="font-semibold text-ink">Total:</span> <span className="text-brand font-bold">{selectedOrder.total_formateado || `$${selectedOrder.total}`}</span></p>
-              <p><span className="font-semibold text-ink">Fecha:</span> {selectedOrder.fecha || selectedOrder.date}</p>
-              <p><span className="font-semibold text-ink">Estado:</span> {selectedOrder.estado_display || selectedOrder.estado || selectedOrder.status}</p>
+              <p><span className="font-semibold text-ink">Date:</span> {selectedOrder.fecha || selectedOrder.date}</p>
+              <p><span className="font-semibold text-ink">Status:</span> {selectedOrder.estado_display || selectedOrder.estado || selectedOrder.status}</p>
             </div>
-            <button onClick={() => setSelectedOrder(null)} className="w-full bg-brand text-white py-2 rounded font-bold hover:bg-brand/90">Cerrar</button>
+            <button onClick={() => setSelectedOrder(null)} className="w-full bg-brand text-white py-2 rounded font-bold hover:bg-brand/90">Close</button>
           </div>
         </div>
       )}

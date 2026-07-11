@@ -9,7 +9,7 @@ const nomadic = {
   id: 2,
   name: 'Nomadic Trike',
   tagline: 'The Ultimate Off-Grid Adventure Machine',
-  description: 'El Nomadic es un trike de alta resistencia diseñado para pilotos que exigen versatilidad en condiciones extremas. Construido con acero inoxidable de alto grado, su geometría ajustable y su diseño robusto lo convierten en la plataforma perfecta para expediciones remotas y aventuras fuera de la red (off-grid).',
+  description: 'The Nomadic is a high-strength trike designed for pilots who demand versatility in extreme conditions. Built with high-grade stainless steel, its adjustable geometry and robust design make it the perfect platform for remote expeditions and off-grid adventures.',
   image: '/images/nomadic1.png',
   price: 'Contact for pricing',
   year: 2026,

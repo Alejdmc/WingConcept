@@ -10,6 +10,17 @@ import { getStoredUser } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import { api } from '@/lib/api'
 
+const COUPON_ERROR_EN = {
+  'Cupón no encontrado': 'Coupon not found',
+  'Este cupón no está asignado a tu cuenta': 'This coupon is not assigned to your account',
+  'Este cupón ya fue utilizado': 'This coupon has already been used',
+  'Este cupón ha expirado': 'This coupon has expired',
+}
+
+function couponErrorEn(message) {
+  return COUPON_ERROR_EN[message] || message || 'Invalid coupon'
+}
+
 const CHECKOUT_STEPS = [
   { id: 1, name: 'Cart', path: '/checkout' },
   { id: 2, name: 'Shipping', path: '/checkout/shipping' },
@@ -43,7 +54,7 @@ export default function CheckoutPage() {
   if (!ready) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
-        <p className="text-ink2">Verificando sesión...</p>
+        <p className="text-ink2">Verifying session...</p>
       </div>
     )
   }
@@ -54,10 +65,10 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-bg px-8 py-12">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-black mb-4">Tu carrito está vacío</h1>
-          <p className="text-ink2 mb-8">Agrega productos antes de continuar con el checkout.</p>
+          <h1 className="text-3xl font-black mb-4">Your cart is empty</h1>
+          <p className="text-ink2 mb-8">Add products before continuing to checkout.</p>
           <Link href="/" className="inline-block bg-brand text-white px-8 py-4 font-bold uppercase rounded">
-            Ir a la tienda
+            Go to store
           </Link>
         </div>
       </div>
@@ -79,7 +90,7 @@ export default function CheckoutPage() {
     try {
       const result = await api.cupones.validar(code, subtotal)
       if (!result.valido) {
-        setCouponError(result.mensaje || 'Invalid coupon')
+        setCouponError(couponErrorEn(result.mensaje))
         setAppliedCoupon(null)
         return
       }
@@ -87,7 +98,7 @@ export default function CheckoutPage() {
       setCouponCode(result.codigo)
       sessionStorage.setItem('checkout_coupon', result.codigo)
     } catch (err) {
-      setCouponError(err.detail || 'Could not validate coupon')
+      setCouponError(couponErrorEn(err.detail) || 'Could not validate coupon')
       setAppliedCoupon(null)
     } finally {
       setCouponLoading(false)
@@ -240,7 +251,7 @@ export default function CheckoutPage() {
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                           onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
-                          placeholder="WC-XXXXXXXX"
+                          placeholder="Enter your coupon here"
                           className="flex-1 px-3 py-2 border border-borderline rounded-lg text-sm uppercase focus:outline-none focus:border-brand"
                         />
                         <button

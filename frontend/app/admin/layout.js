@@ -14,11 +14,11 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
-    { label: 'Productos', href: '/admin/products', icon: Package },
-    { label: 'Pedidos', href: '/admin/orders', icon: ShoppingCart },
-    { label: 'Contenido', href: '/admin/contenido', icon: Compass },
-    { label: 'Descuentos', href: '/admin/descuentos', icon: Tag },
-    { label: 'Configuración', href: '/admin/settings', icon: Settings },
+    { label: 'Products', href: '/admin/products', icon: Package },
+    { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+    { label: 'Content', href: '/admin/contenido', icon: Compass },
+    { label: 'Discounts', href: '/admin/descuentos', icon: Tag },
+    { label: 'Settings', href: '/admin/settings', icon: Settings },
   ]
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function AdminLayout({ children }) {
   if (!ready) {
     return (
       <div className="flex h-screen items-center justify-center bg-bg text-ink">
-        <p className="text-lg font-semibold">Validando acceso de administrador...</p>
+        <p className="text-lg font-semibold">Validating admin access...</p>
       </div>
     )
   }
@@ -73,18 +73,18 @@ export default function AdminLayout({ children }) {
             className="flex items-center gap-4 px-4 py-3 w-full rounded hover:bg-white/10 transition text-red-400"
           >
             <LogOut className="w-5 h-5" />
-            {sidebarOpen && <span className="text-sm font-semibold">Cerrar sesión</span>}
+            {sidebarOpen && <span className="text-sm font-semibold">Log out</span>}
           </button>
         </div>
       </aside>
 
       <main className="flex-1 overflow-auto">
         <header className="bg-white border-b border-borderline px-8 py-6 flex items-center justify-between sticky top-0 z-40">
-          <h2 className="text-2xl font-black text-ink">Panel Administrativo</h2>
+          <h2 className="text-2xl font-black text-ink">Admin Panel</h2>
           <Link
             href="/admin/settings"
             className="flex items-center gap-4 rounded-lg px-2 py-1 hover:bg-bg2 transition"
-            title="Configuración de cuenta"
+            title="Account settings"
           >
             <span className="text-ink2">{user?.nombre || 'Admin'}</span>
             <span className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center hover:ring-2 hover:ring-brand/50 transition">

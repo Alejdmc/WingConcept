@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
         if (stored) {
           setProfile((p) => ({ ...p, nombre: stored.nombre || '', rol: stored.rol || '' }))
         }
-        setError('No se pudo cargar el perfil completo.')
+        setError('Could not load full profile.')
       } finally {
         setLoading(false)
       }
@@ -79,9 +79,9 @@ export default function AdminSettingsPage() {
           expires_in: 60 * 60 * 24 * 7,
         })
       }
-      setMessage('Perfil actualizado correctamente.')
+      setMessage('Profile updated successfully.')
     } catch (err) {
-      setError(err.detail || 'Error al guardar el perfil.')
+      setError(err.detail || 'Error saving profile.')
     } finally {
       setSavingProfile(false)
     }
@@ -93,11 +93,11 @@ export default function AdminSettingsPage() {
     setMessage('')
 
     if (passwordForm.nueva_password !== passwordForm.confirmar) {
-      setError('Las contraseñas nuevas no coinciden.')
+      setError('New passwords do not match.')
       return
     }
     if (passwordForm.nueva_password.length < 8) {
-      setError('La nueva contraseña debe tener al menos 8 caracteres.')
+      setError('New password must be at least 8 characters.')
       return
     }
 
@@ -108,36 +108,36 @@ export default function AdminSettingsPage() {
         nueva_password: passwordForm.nueva_password,
       })
       setPasswordForm({ password_actual: '', nueva_password: '', confirmar: '' })
-      setMessage('Contraseña actualizada correctamente.')
+      setMessage('Password updated successfully.')
     } catch (err) {
-      setError(err.detail || 'Error al cambiar la contraseña.')
+      setError(err.detail || 'Error changing password.')
     } finally {
       setSavingPassword(false)
     }
   }
 
   if (loading) {
-    return <p className="text-ink2">Cargando configuración...</p>
+    return <p className="text-ink2">Loading settings...</p>
   }
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-3xl font-black text-ink mb-2">Configuración</h1>
-      <p className="text-ink2 mb-8">Datos personales y seguridad de tu cuenta admin.</p>
+      <h1 className="text-3xl font-black text-ink mb-2">Settings</h1>
+      <p className="text-ink2 mb-8">Personal information and account security.</p>
 
       {message && <div className="mb-6 p-4 rounded bg-green-100 text-green-700">{message}</div>}
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
 
       <form onSubmit={saveProfile} className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
-        <h2 className="font-black text-lg text-ink">Datos personales</h2>
+        <h2 className="font-black text-lg text-ink">Personal information</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1">Nombre</label>
+            <label className="block text-sm font-semibold mb-1">First name</label>
             <input name="nombre" value={profile.nombre} onChange={handleProfileChange} required className="w-full p-3 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Apellido</label>
+            <label className="block text-sm font-semibold mb-1">Last name</label>
             <input name="apellido" value={profile.apellido} onChange={handleProfileChange} required className="w-full p-3 border rounded" />
           </div>
         </div>
@@ -145,44 +145,44 @@ export default function AdminSettingsPage() {
         <div>
           <label className="block text-sm font-semibold mb-1">Email</label>
           <input value={profile.email} disabled className="w-full p-3 border rounded bg-bg2 text-ink2" />
-          <p className="text-xs text-ink2 mt-1">El email no se puede cambiar desde aquí.</p>
+          <p className="text-xs text-ink2 mt-1">Email cannot be changed here.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Teléfono</label>
+          <label className="block text-sm font-semibold mb-1">Phone</label>
           <input name="telefono" value={profile.telefono} onChange={handleProfileChange} className="w-full p-3 border rounded" />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Rol</label>
+          <label className="block text-sm font-semibold mb-1">Role</label>
           <input value={profile.rol} disabled className="w-full p-3 border rounded bg-bg2 text-ink2 capitalize" />
         </div>
 
         <button disabled={savingProfile} className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50">
-          {savingProfile ? 'Guardando...' : 'Guardar perfil'}
+          {savingProfile ? 'Saving...' : 'Save profile'}
         </button>
       </form>
 
       <form onSubmit={savePassword} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
-        <h2 className="font-black text-lg text-ink">Cambiar contraseña</h2>
+        <h2 className="font-black text-lg text-ink">Change password</h2>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Contraseña actual</label>
+          <label className="block text-sm font-semibold mb-1">Current password</label>
           <input type="password" name="password_actual" value={passwordForm.password_actual} onChange={handlePasswordChange} required className="w-full p-3 border rounded" />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Nueva contraseña</label>
+          <label className="block text-sm font-semibold mb-1">New password</label>
           <input type="password" name="nueva_password" value={passwordForm.nueva_password} onChange={handlePasswordChange} required minLength={8} className="w-full p-3 border rounded" />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Confirmar nueva contraseña</label>
+          <label className="block text-sm font-semibold mb-1">Confirm new password</label>
           <input type="password" name="confirmar" value={passwordForm.confirmar} onChange={handlePasswordChange} required minLength={8} className="w-full p-3 border rounded" />
         </div>
 
         <button disabled={savingPassword} className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50">
-          {savingPassword ? 'Actualizando...' : 'Cambiar contraseña'}
+          {savingPassword ? 'Updating...' : 'Change password'}
         </button>
       </form>
     </div>

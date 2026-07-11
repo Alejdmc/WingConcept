@@ -70,9 +70,9 @@ export default function ShowsPage() {
           </motion.div>
 
           {loading ? (
-            <p className="text-center text-ink2">Cargando shows...</p>
+            <p className="text-center text-ink2">Loading shows...</p>
           ) : shows.length === 0 ? (
-            <p className="text-center text-ink2">Próximamente nuevos shows.</p>
+            <p className="text-center text-ink2">New shows coming soon.</p>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {shows.map((show, i) => (

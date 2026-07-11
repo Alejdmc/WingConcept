@@ -52,7 +52,7 @@ export default function CuentaPage() {
         })
         setCupones(misCupones || [])
       } catch {
-        setError('No se pudo cargar tu perfil.')
+        setError('Could not load your profile.')
       } finally {
         setLoading(false)
       }
@@ -86,9 +86,9 @@ export default function CuentaPage() {
         rol: updated.rol,
         expires_in: 60 * 60 * 24 * 7,
       })
-      setMessage('Perfil actualizado correctamente.')
+      setMessage('Profile updated successfully.')
     } catch (err) {
-      setError(err.detail || 'Error al guardar el perfil.')
+      setError(err.detail || 'Error saving profile.')
     } finally {
       setSavingProfile(false)
     }
@@ -100,11 +100,11 @@ export default function CuentaPage() {
     setMessage('')
 
     if (passwordForm.nueva_password !== passwordForm.confirmar) {
-      setError('Las contraseñas nuevas no coinciden.')
+      setError('New passwords do not match.')
       return
     }
     if (passwordForm.nueva_password.length < 8) {
-      setError('La nueva contraseña debe tener al menos 8 caracteres.')
+      setError('New password must be at least 8 characters.')
       return
     }
 
@@ -115,9 +115,9 @@ export default function CuentaPage() {
         nueva_password: passwordForm.nueva_password,
       })
       setPasswordForm({ password_actual: '', nueva_password: '', confirmar: '' })
-      setMessage('Contraseña actualizada correctamente.')
+      setMessage('Password updated successfully.')
     } catch (err) {
-      setError(err.detail || 'Error al cambiar la contraseña.')
+      setError(err.detail || 'Error changing password.')
     } finally {
       setSavingPassword(false)
     }
@@ -134,29 +134,29 @@ export default function CuentaPage() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <p className="text-ink2">Cargando cuenta...</p>
+        <p className="text-ink2">Loading account...</p>
       </div>
     )
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-black text-ink mb-2">Mi cuenta</h1>
-      <p className="text-ink2 mb-8">Administra tus datos personales y seguridad.</p>
+      <h1 className="text-3xl font-black text-ink mb-2">My Account</h1>
+      <p className="text-ink2 mb-8">Manage your personal information and security.</p>
 
       {message && <div className="mb-6 p-4 rounded bg-green-100 text-green-700">{message}</div>}
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
 
       <form onSubmit={saveProfile} className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
-        <h2 className="font-black text-lg text-ink">Datos personales</h2>
+        <h2 className="font-black text-lg text-ink">Personal information</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1">Nombre</label>
+            <label className="block text-sm font-semibold mb-1">First name</label>
             <input name="nombre" value={profile.nombre} onChange={handleProfileChange} required className="w-full p-3 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Apellido</label>
+            <label className="block text-sm font-semibold mb-1">Last name</label>
             <input name="apellido" value={profile.apellido} onChange={handleProfileChange} required className="w-full p-3 border rounded" />
           </div>
         </div>
@@ -167,51 +167,51 @@ export default function CuentaPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Teléfono</label>
+          <label className="block text-sm font-semibold mb-1">Phone</label>
           <input name="telefono" value={profile.telefono} onChange={handleProfileChange} className="w-full p-3 border rounded" />
         </div>
 
         <button disabled={savingProfile} className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50">
-          {savingProfile ? 'Guardando...' : 'Guardar perfil'}
+          {savingProfile ? 'Saving...' : 'Save profile'}
         </button>
       </form>
 
       <form onSubmit={savePassword} className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
-        <h2 className="font-black text-lg text-ink">Cambiar contraseña</h2>
+        <h2 className="font-black text-lg text-ink">Change password</h2>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Contraseña actual</label>
+          <label className="block text-sm font-semibold mb-1">Current password</label>
           <input type="password" name="password_actual" value={passwordForm.password_actual} onChange={handlePasswordChange} required className="w-full p-3 border rounded" />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Nueva contraseña</label>
+          <label className="block text-sm font-semibold mb-1">New password</label>
           <input type="password" name="nueva_password" value={passwordForm.nueva_password} onChange={handlePasswordChange} required minLength={8} className="w-full p-3 border rounded" />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Confirmar nueva contraseña</label>
+          <label className="block text-sm font-semibold mb-1">Confirm new password</label>
           <input type="password" name="confirmar" value={passwordForm.confirmar} onChange={handlePasswordChange} required minLength={8} className="w-full p-3 border rounded" />
         </div>
 
         <button disabled={savingPassword} className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50">
-          {savingPassword ? 'Actualizando...' : 'Cambiar contraseña'}
+          {savingPassword ? 'Updating...' : 'Change password'}
         </button>
       </form>
 
       {cupones.length > 0 && (
         <div className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
-          <h2 className="font-black text-lg text-ink">Mis cupones</h2>
+          <h2 className="font-black text-lg text-ink">My coupons</h2>
           <div className="space-y-3">
             {cupones.map((cupon) => (
               <div key={cupon.id} className="border border-borderline rounded p-4 flex justify-between items-center">
                 <div>
                   <p className="font-black tracking-wider">{cupon.codigo}</p>
-                  <p className="text-sm text-ink2">{formatDescuento(cupon)} de descuento</p>
+                  <p className="text-sm text-ink2">{formatDescuento(cupon)} off</p>
                   {cupon.descripcion && <p className="text-xs text-ink2 mt-1">{cupon.descripcion}</p>}
                 </div>
                 <span className={`text-xs font-bold px-2 py-1 rounded ${cupon.usado ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-700'}`}>
-                  {cupon.usado ? 'Usado' : 'Disponible'}
+                  {cupon.usado ? 'Used' : 'Available'}
                 </span>
               </div>
             ))}
@@ -221,10 +221,10 @@ export default function CuentaPage() {
 
       <div className="flex gap-4">
         <Link href="/cart" className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90">
-          Ver carrito
+          View cart
         </Link>
         <button onClick={handleLogout} className="px-6 py-3 border border-borderline rounded font-bold text-ink hover:border-brand">
-          Cerrar sesión
+          Log out
         </button>
       </div>
     </div>

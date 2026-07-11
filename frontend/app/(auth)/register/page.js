@@ -145,7 +145,7 @@ export default function RegisterPage() {
           <p className="text-center text-ink2 mb-2">Join Wing Concept today</p>
           {isCheckoutFlow && (
             <p className="text-center text-brand text-sm font-semibold mb-6">
-              Crea tu cuenta para continuar con tu compra
+              Create an account to continue your purchase
             </p>
           )}
           {!isCheckoutFlow && <div className="mb-6" />}

@@ -18,7 +18,7 @@ function StockModal({ product, onClose, onSaved }) {
         const data = await api.admin.obtenerProducto(product.id)
         setVariantes(data.variantes || [])
       } catch {
-        setError('No se pudieron cargar las variantes.')
+        setError('Could not load variants.')
       } finally {
         setLoading(false)
       }
@@ -34,7 +34,7 @@ function StockModal({ product, onClose, onSaved }) {
       setVariantes((prev) => prev.map((v) => (v.id === varianteId ? updated : v)))
       onSaved()
     } catch {
-      setError('Error al actualizar el stock.')
+      setError('Error updating stock.')
     } finally {
       setSaving(null)
     }
@@ -51,9 +51,9 @@ function StockModal({ product, onClose, onSaved }) {
         {error && <div className="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm">{error}</div>}
 
         {loading ? (
-          <p className="text-ink2">Cargando variantes...</p>
+          <p className="text-ink2">Loading variants...</p>
         ) : variantes.length === 0 ? (
-          <p className="text-ink2">Este producto no tiene variantes. Edítalo para agregar una.</p>
+          <p className="text-ink2">This product has no variants. Edit it to add one.</p>
         ) : (
           <div className="space-y-4">
             {variantes.map((v) => (
@@ -72,7 +72,7 @@ function StockModal({ product, onClose, onSaved }) {
                   }}
                   className="w-24 px-3 py-2 border border-borderline rounded text-center"
                 />
-                {saving === v.id && <span className="text-xs text-ink2">Guardando...</span>}
+                {saving === v.id && <span className="text-xs text-ink2">Saving...</span>}
               </div>
             ))}
           </div>
@@ -97,7 +97,7 @@ export default function ProductsPage() {
       setProducts(data.items || [])
     } catch (err) {
       console.error('Error loading admin products:', err)
-      setError('No se pudieron cargar los productos.')
+      setError('Could not load products.')
     } finally {
       setLoading(false)
     }
@@ -115,15 +115,15 @@ export default function ProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black text-ink">Productos</h1>
-          <p className="text-ink2 mt-2">Gestiona productos y stock desde el panel admin.</p>
+          <h1 className="text-3xl font-black text-ink">Products</h1>
+          <p className="text-ink2 mt-2">Manage products and stock from the admin panel.</p>
         </div>
         <Link
           href="/admin/products/new"
           className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded font-semibold hover:bg-brand/90 transition"
         >
           <Plus className="w-4 h-4" />
-          Nuevo producto
+          New product
         </Link>
       </div>
 
@@ -135,7 +135,7 @@ export default function ProductsPage() {
         <Search className="absolute left-3 top-3 w-5 h-5 text-ink2" />
         <input
           type="text"
-          placeholder="Buscar producto..."
+          placeholder="Search product..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2 border border-borderline rounded bg-bg2 text-ink focus:outline-none focus:border-brand"
@@ -146,23 +146,23 @@ export default function ProductsPage() {
         <table className="w-full text-sm">
           <thead className="bg-bg2">
             <tr className="border-b border-borderline">
-              <th className="text-left py-4 px-6 font-semibold text-ink">Producto</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Categoría</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Tipo</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Precio</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Product</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Category</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Type</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Price</th>
               <th className="text-left py-4 px-6 font-semibold text-ink">Stock</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Ventas</th>
-              <th className="text-left py-4 px-6 font-semibold text-ink">Acciones</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Sales</th>
+              <th className="text-left py-4 px-6 font-semibold text-ink">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-ink2">Cargando productos...</td>
+                <td colSpan="7" className="py-8 text-center text-ink2">Loading products...</td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-ink2">No se encontraron productos.</td>
+                <td colSpan="7" className="py-8 text-center text-ink2">No products found.</td>
               </tr>
             ) : (
               filtered.map((product) => (
@@ -177,7 +177,7 @@ export default function ProductsPage() {
                       product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {product.stock} unidades
+                      {product.stock} units
                     </span>
                   </td>
                   <td className="py-4 px-6 text-ink2">{product.sales}</td>
@@ -195,7 +195,7 @@ export default function ProductsPage() {
                         className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold border border-borderline rounded hover:border-brand hover:text-brand transition"
                       >
                         <Pencil className="w-3 h-3" />
-                        Editar
+                        Edit
                       </Link>
                     </div>
                   </td>

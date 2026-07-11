@@ -29,7 +29,7 @@ export function LanguageProvider({ children }) {
 export function useLanguage() {
   const context = useContext(LanguageContext)
   if (!context) {
-    throw new Error('useLanguage debe ser usado dentro de LanguageProvider')
+    throw new Error('useLanguage must be used within LanguageProvider')
   }
   return context
 }

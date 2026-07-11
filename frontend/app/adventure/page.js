@@ -101,9 +101,9 @@ export default function AdventurePage() {
           </motion.div>
 
           {loading ? (
-            <p className="text-center text-ink2">Cargando expediciones...</p>
+            <p className="text-center text-ink2">Loading expeditions...</p>
           ) : expediciones.length === 0 ? (
-            <p className="text-center text-ink2">Próximamente nuevas expediciones.</p>
+            <p className="text-center text-ink2">New expeditions coming soon.</p>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {expediciones.map((adventure, i) => (

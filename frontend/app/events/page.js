@@ -70,9 +70,9 @@ export default function EventsPage() {
           </motion.div>
 
           {loading ? (
-            <p className="text-center text-ink2">Cargando eventos...</p>
+            <p className="text-center text-ink2">Loading events...</p>
           ) : eventos.length === 0 ? (
-            <p className="text-center text-ink2">Próximamente nuevos eventos.</p>
+            <p className="text-center text-ink2">New events coming soon.</p>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {eventos.map((event, i) => (

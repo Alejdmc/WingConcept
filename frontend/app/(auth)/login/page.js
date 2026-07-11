@@ -79,7 +79,7 @@ export default function LoginPage() {
             <p className="text-ink2 font-semibold tracking-widest text-sm">SIGN IN</p>
             {isCheckoutFlow && (
               <p className="text-sm text-brand font-semibold mt-3">
-                Inicia sesión para continuar con tu compra
+                Sign in to continue your purchase
               </p>
             )}
             <div className="w-12 h-1 bg-brand mx-auto mt-4" />

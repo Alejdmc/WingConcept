@@ -26,7 +26,7 @@ export default function CartPage() {
   if (cargando && items.length === 0) {
     return (
       <div className="min-h-screen bg-bg px-8 py-12 flex items-center justify-center">
-        <p className="text-ink2 text-lg">Cargando carrito...</p>
+        <p className="text-ink2 text-lg">Loading cart...</p>
       </div>
     )
   }
@@ -157,11 +157,11 @@ export default function CartPage() {
                 Proceed to Checkout
               </button>
               <p className="text-xs text-ink2 text-center mt-3">
-                Necesitas iniciar sesión o{' '}
+                You need to sign in or{' '}
                 <Link href="/register?next=/checkout" className="text-brand font-semibold hover:underline">
-                  registrarte
+                  register
                 </Link>
-                {' '}para completar la compra.
+                {' '}to complete your purchase.
               </p>
             </div>
           </motion.div>

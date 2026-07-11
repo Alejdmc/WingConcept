@@ -36,7 +36,7 @@ export function CartProvider({ children }) {
       console.error('Error fetching cart:', err)
       setItems([])
       setTotal(0)
-      setError(err?.detail || 'No se pudo cargar el carrito.')
+      setError(err?.detail || 'Could not load cart.')
       return null
     }
   }, [applyCartResponse])
@@ -56,7 +56,7 @@ export function CartProvider({ children }) {
       const res = await api.carrito.agregar(payload)
       return applyCartResponse(res)
     } catch (err) {
-      const msg = err?.detail || 'Error al agregar al carrito.'
+      const msg = err?.detail || 'Error adding to cart.'
       setError(msg)
       throw err
     } finally {
@@ -86,7 +86,7 @@ export function CartProvider({ children }) {
       })
       return applyCartResponse(res)
     } catch (err) {
-      const msg = err?.detail || 'Error al agregar al carrito.'
+      const msg = err?.detail || 'Error adding to cart.'
       setError(msg)
       throw err
     } finally {
@@ -100,7 +100,7 @@ export function CartProvider({ children }) {
       const res = await api.carrito.eliminar(itemId)
       return applyCartResponse(res)
     } catch (err) {
-      const msg = err?.detail || 'Error al eliminar del carrito.'
+      const msg = err?.detail || 'Error removing from cart.'
       setError(msg)
       throw err
     }
@@ -112,7 +112,7 @@ export function CartProvider({ children }) {
       const res = await api.carrito.actualizar(itemId, cantidad)
       return applyCartResponse(res)
     } catch (err) {
-      const msg = err?.detail || 'Error al actualizar cantidad.'
+      const msg = err?.detail || 'Error updating quantity.'
       setError(msg)
       throw err
     }
@@ -125,7 +125,7 @@ export function CartProvider({ children }) {
       setTotal(0)
       setError('')
     } catch (err) {
-      setError(err?.detail || 'Error al vaciar el carrito.')
+      setError(err?.detail || 'Error clearing cart.')
     }
   }, [])
 
@@ -151,7 +151,7 @@ export function CartProvider({ children }) {
 export function useCart() {
   const ctx = useContext(CartContext)
   if (!ctx) {
-    throw new Error('useCart debe usarse dentro de CartProvider')
+    throw new Error('useCart must be used within CartProvider')
   }
   return ctx
 }

@@ -17,7 +17,7 @@ export default function DashboardPage() {
         setStats(data)
       } catch (err) {
         console.error('Error loading admin stats:', err)
-        setError('No se pudieron cargar las estadísticas del dashboard.')
+        setError('Could not load dashboard statistics.')
       } finally {
         setLoading(false)
       }
@@ -28,25 +28,25 @@ export default function DashboardPage() {
 
   const cards = [
     {
-      label: 'Ingresos',
+      label: 'Revenue',
       value: loading ? '...' : `$${Number(stats?.ingresos_totales || 0).toLocaleString()}`,
       icon: TrendingUp,
       color: 'bg-green-500',
     },
     {
-      label: 'Productos',
+      label: 'Products',
       value: loading ? '...' : stats?.total_productos_activos || 0,
       icon: Package,
       color: 'bg-blue-500',
     },
     {
-      label: 'Pedidos',
+      label: 'Orders',
       value: loading ? '...' : stats?.total_ordenes || 0,
       icon: ShoppingCart,
       color: 'bg-purple-500',
     },
     {
-      label: 'Kg vendidos',
+      label: 'Kg sold',
       value: loading ? '...' : `${Number(stats?.kg_vendidos || 0).toLocaleString()} Kg`,
       icon: BarChart3,
       color: 'bg-orange-500',
@@ -58,7 +58,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-black text-ink">Dashboard</h1>
-          <p className="text-ink2 mt-2">Panel administrativo conectado al backend.</p>
+          <p className="text-ink2 mt-2">Admin panel connected to the backend.</p>
         </div>
       </div>
 
@@ -83,8 +83,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-white border border-borderline rounded-lg p-6">
-        <h3 className="text-xl font-black text-ink mb-6">Pedidos recientes</h3>
-        <p className="text-ink2 text-sm">Usa la sección de Pedidos para ver datos actualizados y gestionar órdenes.</p>
+        <h3 className="text-xl font-black text-ink mb-6">Recent orders</h3>
+        <p className="text-ink2 text-sm">Use the Orders section to view updated data and manage orders.</p>
       </div>
     </div>
   )
