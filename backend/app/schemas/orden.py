@@ -46,7 +46,7 @@ class ItemOrdenResponse(BaseModel):
 class OrdenCreate(BaseModel):
     direccion_envio_id: Optional[uuid.UUID] = None
     notas_cliente: Optional[str] = Field(None, max_length=1000)
-    moneda: str = Field("COP", max_length=3)
+    moneda: str = Field("USD", max_length=3)
 
 
 class OrdenUpdate(BaseModel):
@@ -108,7 +108,7 @@ class AdminOrdenResponse(BaseModel):
     estado_display: str          # "Pending" | "Shipped" | "Delivered" …
     fecha: str                   # "2025-06-01"
     cantidad_items: int = 0      # count de ítems en la orden
-    moneda: str = "COP"
+    moneda: str = "USD"
 
     model_config = {"from_attributes": False}
 

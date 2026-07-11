@@ -60,26 +60,13 @@ class Settings(BaseSettings):
     # Si True, bloquea crear órdenes sin email_verificado=True
     REQUIRE_EMAIL_VERIFIED: bool = False
 
-    # ── Wompi — Pagos Colombia ───────────────────────────────
-    # Panel: https://comercios.wompi.co
-    # Docs:  https://docs.wompi.co
-    # Sandbox: https://sandbox.wompi.co/v1
-    # Producción: https://production.wompi.co/v1
-    WOMPI_BASE_URL: str = "https://sandbox.wompi.co/v1"
-    WOMPI_PUBLIC_KEY: str = ""         # pub_test_xxx o pub_prod_xxx
-    WOMPI_PRIVATE_KEY: str = ""        # prv_test_xxx o prv_prod_xxx
-    WOMPI_EVENTS_SECRET: str = ""      # Para validar HMAC de webhooks
-    WOMPI_REDIRECT_URL: str = ""       # URL de retorno tras pago
-
-    # ── Stripe — Pagos Global ────────────────────────────────
+    # ── Stripe — Pagos (USD) ─────────────────────────────────
     # Panel: https://dashboard.stripe.com
     # Docs:  https://stripe.com/docs/api
-    # Test:  sk_test_xxx | pk_test_xxx
-    # Live:  sk_live_xxx | pk_live_xxx
-    STRIPE_SECRET_KEY: str = ""        # sk_test_xxx o sk_live_xxx
-    STRIPE_PUBLISHABLE_KEY: str = ""   # pk_test_xxx o pk_live_xxx
-    STRIPE_WEBHOOK_SECRET: str = ""    # whsec_xxx — desde Stripe Dashboard > Webhooks
-    STRIPE_CURRENCY: str = "usd"       # Moneda por defecto
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_CURRENCY: str = "usd"
     STRIPE_SUCCESS_URL: str = ""
     STRIPE_CANCEL_URL: str = ""
 
@@ -183,20 +170,18 @@ class Settings(BaseSettings):
                     "ALLOWED_HOSTS debe incluir el dominio de producción "
                     "(ej: wingconcept.com,www.wingconcept.com)."
                 )
-            if not self.WOMPI_PRIVATE_KEY and not self.STRIPE_SECRET_KEY:
+            if not self.STRIPE_SECRET_KEY:
                 raise ValueError(
-                    "Al menos un proveedor de pagos debe configurarse en producción: "
-                    "WOMPI_PRIVATE_KEY o STRIPE_SECRET_KEY."
+                    "STRIPE_SECRET_KEY es requerido en producción."
                 )
-            if self.WOMPI_PRIVATE_KEY and not self.WOMPI_EVENTS_SECRET:
+            if not self.STRIPE_WEBHOOK_SECRET:
                 raise ValueError(
-                    "WOMPI_EVENTS_SECRET es requerido cuando WOMPI_PRIVATE_KEY está "
-                    "configurado — sin él los webhooks de Wompi no pueden validarse."
+                    "STRIPE_WEBHOOK_SECRET es requerido en producción — "
+                    "sin él los webhooks de Stripe no pueden validarse."
                 )
-            if self.STRIPE_SECRET_KEY and not self.STRIPE_WEBHOOK_SECRET:
+            if not self.STRIPE_SUCCESS_URL or not self.STRIPE_CANCEL_URL:
                 raise ValueError(
-                    "STRIPE_WEBHOOK_SECRET es requerido cuando STRIPE_SECRET_KEY está "
-                    "configurado — sin él los webhooks de Stripe no pueden validarse."
+                    "STRIPE_SUCCESS_URL y STRIPE_CANCEL_URL son requeridos en producción."
                 )
         return self
 

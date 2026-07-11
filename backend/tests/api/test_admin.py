@@ -84,7 +84,7 @@ def test_admin_orden_response_campos_frontend():
         estado_display="Pending",
         fecha="2026-06-26",
         cantidad_items=2,
-        moneda="COP",
+        moneda="USD",
     )
     dumped = item.model_dump()
     assert dumped["estado_display"] == "Pending"

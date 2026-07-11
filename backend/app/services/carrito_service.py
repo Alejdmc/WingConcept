@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError
+from app.core.exceptions import RecursoNoEncontradoError
 from app.models.carrito import Carrito, ItemCarrito
 from app.models.variante import Variante
 from app.schemas.carrito import CarritoResponse, ItemCarritoResponse
@@ -106,8 +106,6 @@ class CarritoService:
         variante = variante_result.scalar_one_or_none()
         if not variante:
             raise RecursoNoEncontradoError("Variante")
-        if variante.stock < cantidad:
-            raise StockInsuficienteError(variante.nombre)
 
         precio = precio_unitario or _precio_desde_configuracion(configuracion, float(variante.precio))
         carrito = await self.obtener_o_crear(db, usuario_id)
@@ -121,10 +119,7 @@ class CarritoService:
             )
 
         if item_existente:
-            nueva_cantidad = item_existente.cantidad + cantidad
-            if variante.stock < nueva_cantidad:
-                raise StockInsuficienteError(variante.nombre)
-            item_existente.cantidad = nueva_cantidad
+            item_existente.cantidad = item_existente.cantidad + cantidad
         else:
             nuevo_item = ItemCarrito(
                 carrito_id=carrito.id,
@@ -156,8 +151,6 @@ class CarritoService:
             select(Variante).where(Variante.id == item.variante_id)
         )
         variante = variante_result.scalar_one_or_none()
-        if variante and variante.stock < cantidad:
-            raise StockInsuficienteError(variante.nombre)
 
         item.cantidad = cantidad
         await db.flush()
@@ -320,7 +313,7 @@ class CarritoService:
                     select(Variante).where(Variante.id == variante_id, Variante.activo == True)
                 )
                 variante = variante_result.scalar_one_or_none()
-                if variante and variante.stock >= cantidad:
+                if variante:
                     await self.agregar_item(
                         db,
                         usuario_id,

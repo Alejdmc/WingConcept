@@ -33,7 +33,7 @@ class Variante(Base):
     nombre: Mapped[str] = mapped_column(String(255), nullable=False)
     sku: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True, index=True)
 
-    # Precio en la moneda del cliente (COP por defecto para Colombia)
+    # Precio en USD
     # Para Stripe internacional se convierte en el servicio de pagos
     precio: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     precio_anterior: Mapped[Optional[float]] = mapped_column(Numeric(12, 2), nullable=True)
