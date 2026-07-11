@@ -66,6 +66,7 @@ export default function RegisterPage() {
 
       setSuccess('Account created! Check your email to verify your address.')
       
+      const userEmail = formData.email
       // Limpiar formulario
       setFormData({
         nombre: '',
@@ -83,7 +84,7 @@ export default function RegisterPage() {
 
       // Redirigir a página de verificación después de 2 segundos
       setTimeout(() => {
-        router.push(`/verify-email-pending?email=${encodeURIComponent(formData.email)}`)
+        router.push(`/verify-email-pending?email=${encodeURIComponent(userEmail)}`)
       }, 2000)
     } catch (err) {
       setError(err.detail || 'Error creating account. Please try again.')

@@ -51,9 +51,11 @@ export function useCart() {
   const addConfiguredProduct = useCallback(async (config) => {
     setCargando(true)
     try {
+      const productoId = config.producto_id || config.productoId
+      if (!productoId) throw new Error('Missing producto_id for configured product')
       const res = await api.carrito.agregar({
-        producto_id: 1, // Vanguard V7.0
-        cantidad: 1,
+        producto_id: productoId,
+        cantidad: config.cantidad || 1,
         configuracion: {
           engine: config.engine,
           finish: config.finish,

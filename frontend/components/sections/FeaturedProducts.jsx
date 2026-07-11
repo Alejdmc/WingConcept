@@ -88,11 +88,7 @@ export default function FeaturedProducts() {
   const handleAddToCart = async (product) => {
     setSelectedId(null)
     try {
-      await addToCart({ 
-        product_id: product.id,
-        nombre: product.name,
-        precio: product.price,
-      })
+      await addToCart(product)
     } catch (err) {
       console.error('Error adding to cart:', err)
     }

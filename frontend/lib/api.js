@@ -36,6 +36,44 @@ async function request(path, options = {}) {
     ...options,
   })
 
+  if (res.status === 401 && typeof window !== 'undefined') {
+    // Try refresh token once
+    const refreshToken = localStorage.getItem('refresh_token')
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        })
+        if (refreshRes.ok) {
+          const r = await refreshRes.json()
+          if (r.access_token) {
+            localStorage.setItem('access_token', r.access_token)
+            // retry original request with new token
+            const retry = await fetch(`${API}${path}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${r.access_token}`,
+                ...(sessionId && { 'X-Session-ID': sessionId }),
+                ...options.headers,
+              },
+              ...options,
+            })
+            if (!retry.ok) {
+              const err = await retry.json().catch(() => ({}))
+              throw { status: retry.status, detail: err.detail || 'Unknown error' }
+            }
+            return retry.status === 204 ? null : retry.json()
+          }
+        }
+      } catch (e) {
+        // fallthrough to error handling
+        console.warn('Refresh token failed', e)
+      }
+    }
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw { status: res.status, detail: err.detail || 'Unknown error' }
@@ -50,7 +88,10 @@ export const api = {
     refresh: (data) => request('/auth/refresh', { method: 'POST', body: JSON.stringify(data) }),
     me: () => request('/auth/me'),
     verifyEmail: (token) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
-    resendVerificationEmail: (email) => request('/auth/resend-verification-email', { method: 'POST', body: JSON.stringify({ email }) }),
+    resendVerificationEmail: (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
+    logout: () => request('/auth/logout', { method: 'POST' }),
+    forgotPassword: (email) => request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }) }),
+    resetPassword: (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
   },
 
   carrito: {
@@ -82,5 +123,19 @@ export const api = {
     eliminarProducto: (productoId) => request(`/admin/productos/${productoId}`, { method: 'DELETE' }),
     ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
     actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  },
+  ordenes: {
+    crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),
+    listar: (params = {}) => request(`/ordenes${buildQuery(params)}`),
+    detalle: (ordenId) => request(`/ordenes/${ordenId}`),
+    actualizar: (ordenId, data) => request(`/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  },
+  pagos: {
+    checkout: (data) => request('/pagos/checkout', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  usuarios: {
+    obtener: (userId) => request(userId ? `/usuarios/${userId}` : '/usuarios/me'),
+    actualizar: (userId, data) => request(`/usuarios/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    direcciones: (userId) => request(userId ? `/usuarios/${userId}/direcciones` : '/usuarios/me/direcciones'),
   },
 }

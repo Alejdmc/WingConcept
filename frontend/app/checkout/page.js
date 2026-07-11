@@ -1,9 +1,10 @@
-'use client'
+ 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
+import { api } from '@/lib/api'
 
 const CHECKOUT_STEPS = [
   { id: 1, name: 'Cart', path: '/checkout' },
@@ -12,7 +13,7 @@ const CHECKOUT_STEPS = [
   { id: 4, name: 'Confirmation', path: '/checkout/confirmation' },
 ]
 
-// Mock carrito data - reemplazar con API después
+// Initial empty cart state
 const MOCK_CART = {
   items: [
     {
@@ -34,9 +35,16 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1)
 
   useEffect(() => {
-    // Obtener carrito real del API después
-    // const res = await api.carrito.obtener()
-    // setCart(res)
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await api.carrito.obtener()
+        if (mounted && res) setCart(res)
+      } catch (err) {
+        console.warn('Could not load cart for checkout:', err)
+      }
+    })()
+    return () => { mounted = false }
   }, [])
 
   const subtotal = cart.total
@@ -109,7 +117,7 @@ export default function CheckoutPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {currentStep === 1 && <CartStep cart={cart} updateQuantity={updateQuantity} removeItem={removeItem} setStep={setCurrentStep} />}
-            {currentStep === 2 && <ShippingStep setStep={setCurrentStep} />}
+            {currentStep === 2 && <ShippingStep setStep={setCurrentStep} cart={cart} />}
             {currentStep === 3 && <PaymentStep setStep={setCurrentStep} />}
             {currentStep === 4 && <ConfirmationStep />}
           </div>
@@ -229,14 +237,13 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
   )
 }
 
-function ShippingStep({ setStep }) {
+function ShippingStep({ setStep, cart }) {
   const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
+    nombre_destinatario: '',
     telefono: '',
-    calle: '',
-    numero: '',
-    apartamento: '',
+    linea1: '',
+    linea2: '',
+    departamento_estado: '',
     ciudad: '',
     pais: '',
     codigo_postal: '',
@@ -247,11 +254,37 @@ function ShippingStep({ setStep }) {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Guardar dirección en sessionStorage o state
     sessionStorage.setItem('shipping_address', JSON.stringify(formData))
-    setStep(3)
+    try {
+      // Crear orden en backend
+      const payload = {
+        direccion_envio: {
+          nombre_destinatario: formData.nombre_destinatario,
+          linea1: formData.linea1,
+          linea2: formData.linea2,
+          departamento_estado: formData.departamento_estado,
+          ciudad: formData.ciudad,
+          pais: formData.pais,
+          codigo_postal: formData.codigo_postal,
+          telefono: formData.telefono,
+          notas: formData.notas,
+        },
+        items: (cart.items || []).map(i => ({
+          variante_id: i.variante_id || i.id || i.cartId,
+          cantidad: i.cantidad || i.quantity || 1,
+        })),
+        total: cart.total || 0,
+      }
+      const res = await api.ordenes.crear(payload)
+      // store current order id for payment step
+      sessionStorage.setItem('current_order_id', res.id || res.order_id || '')
+      setStep(3)
+    } catch (err) {
+      console.error('Error creating order:', err)
+      alert('Error creating order. Please try again.')
+    }
   }
 
   return (
@@ -263,24 +296,13 @@ function ShippingStep({ setStep }) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-ink mb-2">First Name</label>
+              <label className="block text-sm font-semibold text-ink mb-2">Recipient Name</label>
               <input
                 type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Last Name</label>
-              <input
-                type="text"
-                name="apellido"
-                value={formData.apellido}
+                name="nombre_destinatario"
+                value={formData.nombre_destinatario}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
@@ -302,24 +324,34 @@ function ShippingStep({ setStep }) {
           </div>
 
           {/* Street */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-semibold text-ink mb-2">Street</label>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-ink mb-2">Address Line 1</label>
               <input
                 type="text"
-                name="calle"
-                value={formData.calle}
+                name="linea1"
+                value={formData.linea1}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Number</label>
+              <label className="block text-sm font-semibold text-ink mb-2">Address Line 2 (Optional)</label>
               <input
                 type="text"
-                name="numero"
-                value={formData.numero}
+                name="linea2"
+                value={formData.linea2}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-ink mb-2">Department / State</label>
+              <input
+                type="text"
+                name="departamento_estado"
+                value={formData.departamento_estado}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
@@ -330,12 +362,13 @@ function ShippingStep({ setStep }) {
           {/* Apartment & City */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-ink mb-2">Apartment (Optional)</label>
+              <label className="block text-sm font-semibold text-ink mb-2">Phone</label>
               <input
-                type="text"
-                name="apartamento"
-                value={formData.apartamento}
+                type="tel"
+                name="telefono"
+                value={formData.telefono}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
               />
             </div>
@@ -417,12 +450,35 @@ function PaymentStep({ setStep }) {
 
   const handlePayment = async () => {
     setLoading(true)
-    // Aquí iría la integración con Wompi
-    // const res = await api.pagos.procesar({ ... })
-    setTimeout(() => {
-      setStep(4)
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+      if (!token) {
+        // require login
+        window.location.href = '/login'
+        return
+      }
+      const ordenId = sessionStorage.getItem('current_order_id')
+      if (!ordenId) throw new Error('Orden ID missing')
+
+      const res = await api.pagos.checkout({ orden_id: ordenId, proveedor: paymentMethod })
+      // If the payment provider returned a redirect URL, go there
+      if (res && res.payment_url) {
+        window.location.href = res.payment_url
+        return
+      }
+      // If immediate success
+      if (res && (res.status === 'paid' || res.status === 'success')) {
+        window.location.href = '/checkout/exito'
+        return
+      }
+      // fallback to result page
+      window.location.href = '/checkout/resultado'
+    } catch (err) {
+      console.error('Payment error:', err)
+      alert('Payment failed. Please try again.')
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
   return (

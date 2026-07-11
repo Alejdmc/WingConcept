@@ -1,6 +1,7 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -55,7 +56,13 @@ export default function CartPage() {
               <div className="divide-y divide-borderline">
                 {items.map(item => (
                   <div key={item.cartId} className="p-6 flex gap-6">
-                    <div className="w-24 h-24 bg-bg2 rounded-lg flex-shrink-0" />
+                    <div className="w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 relative overflow-hidden">
+                      {item.image ? (
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-bg2" />
+                      )}
+                    </div>
                     
                     <div className="flex-1">
                       <h3 className="font-bold text-ink text-lg">{item.name}</h3>
@@ -63,13 +70,13 @@ export default function CartPage() {
                       
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
                         <button
-                          onClick={() => updateQuantity(item.cartId, Math.max(1, (item.quantity || 1) - 1))}
+                          onClick={() => updateQuantity(item.cartId, Math.max(1, (item.cantidad || 1) - 1))}
                           className="p-1 hover:bg-white rounded transition">
                           <Minus className="w-4 h-4 text-ink2" />
                         </button>
-                        <span className="w-8 text-center font-bold text-ink">{item.quantity || 1}</span>
+                        <span className="w-8 text-center font-bold text-ink">{item.cantidad || 1}</span>
                         <button
-                          onClick={() => updateQuantity(item.cartId, (item.quantity || 1) + 1)}
+                          onClick={() => updateQuantity(item.cartId, (item.cantidad || 1) + 1)}
                           className="p-1 hover:bg-white rounded transition">
                           <Plus className="w-4 h-4 text-ink2" />
                         </button>
@@ -78,7 +85,7 @@ export default function CartPage() {
 
                     <div className="text-right">
                       <p className="text-2xl font-black text-brand mb-4">
-                        ${(parseInt(item.price.replace('$', '').replace(',', '')) * (item.quantity || 1)).toLocaleString()}
+                        ${(parseInt(item.price.replace('$', '').replace(',', '')) * (item.cantidad || 1)).toLocaleString()}
                       </p>
                       <button
                         onClick={() => removeFromCart(item.cartId)}
