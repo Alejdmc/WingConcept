@@ -188,5 +188,41 @@ class EmailService:
             """,
         }, "orden_enviada", email)
 
+    async def enviar_cupon_descuento(
+        self,
+        email: str,
+        nombre: str,
+        codigo: str,
+        descuento_texto: str,
+        descripcion: Optional[str] = None,
+        expira_en=None,
+    ) -> bool:
+        """Envía un cupón de descuento personalizado al cliente."""
+        expira_html = ""
+        if expira_en:
+            expira_html = f"<p><small>Válido hasta: {expira_en.strftime('%d/%m/%Y')}</small></p>"
+
+        descripcion_html = ""
+        if descripcion:
+            descripcion_html = f"<p>{descripcion}</p>"
+
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": "Tienes un cupón de descuento — WingConcept",
+            "html": f"""
+            <h2>Hola {nombre},</h2>
+            <p>Te hemos asignado un cupón exclusivo para tu próxima compra:</p>
+            <p style="font-size:24px;font-weight:bold;letter-spacing:2px;">{codigo}</p>
+            <p><strong>{descuento_texto}</strong></p>
+            {descripcion_html}
+            <p>Este cupón es de <strong>un solo uso</strong> y está vinculado a tu cuenta.</p>
+            {expira_html}
+            <p>Ingresa el código al finalizar tu compra en WingConcept.</p>
+            <br>
+            <p>El equipo WingConcept</p>
+            """,
+        }, "cupon_descuento", email)
+
 
 email_service = EmailService()

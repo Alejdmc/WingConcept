@@ -1,13 +1,14 @@
- 'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ChevronRight, ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
+import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { getStoredUser } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
+import { api } from '@/lib/api'
 
 const CHECKOUT_STEPS = [
   { id: 1, name: 'Cart', path: '/checkout' },
@@ -22,6 +23,10 @@ export default function CheckoutPage() {
   const [cartError, setCartError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
   const [ready, setReady] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
@@ -60,8 +65,41 @@ export default function CheckoutPage() {
   }
 
   const subtotal = cartTotal
-  const tax = Math.round(subtotal * 0.19)
-  const orderTotal = subtotal + tax
+  const discount = appliedCoupon?.descuento_estimado || 0
+  const taxable = Math.max(subtotal - discount, 0)
+  const tax = Math.round(taxable * 0.19)
+  const orderTotal = taxable + tax
+
+  const applyCoupon = async () => {
+    const code = couponCode.trim()
+    if (!code) return
+
+    setCouponLoading(true)
+    setCouponError('')
+    try {
+      const result = await api.cupones.validar(code, subtotal)
+      if (!result.valido) {
+        setCouponError(result.mensaje || 'Invalid coupon')
+        setAppliedCoupon(null)
+        return
+      }
+      setAppliedCoupon(result)
+      setCouponCode(result.codigo)
+      sessionStorage.setItem('checkout_coupon', result.codigo)
+    } catch (err) {
+      setCouponError(err.detail || 'Could not validate coupon')
+      setAppliedCoupon(null)
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+    sessionStorage.removeItem('checkout_coupon')
+  }
 
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) return
@@ -122,7 +160,13 @@ export default function CheckoutPage() {
               </div>
             )}
             {currentStep === 1 && <CartStep cart={cart} updateQuantity={updateQuantity} removeItem={removeItem} setStep={setCurrentStep} />}
-            {currentStep === 2 && <ShippingStep setStep={setCurrentStep} cart={cart} />}
+            {currentStep === 2 && (
+              <ShippingStep
+                setStep={setCurrentStep}
+                appliedCoupon={appliedCoupon}
+                setCartError={setCartError}
+              />
+            )}
             {currentStep === 3 && <PaymentStep setStep={setCurrentStep} />}
             {currentStep === 4 && <ConfirmationStep />}
           </div>
@@ -154,6 +198,12 @@ export default function CheckoutPage() {
                   <span className="text-ink2">Subtotal</span>
                   <span className="text-ink font-semibold">${subtotal.toLocaleString()}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Discount ({appliedCoupon?.codigo})</span>
+                    <span className="font-semibold">-${discount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-ink2">Tax (19%)</span>
                   <span className="text-ink font-semibold">${tax.toLocaleString()}</span>
@@ -161,6 +211,52 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-lg font-black border-t border-borderline pt-3">
                   <span className="text-ink">Total</span>
                   <span className="text-brand">${orderTotal.toLocaleString()}</span>
+                </div>
+
+                {/* Coupon */}
+                <div className="border-t border-borderline pt-4 mt-4">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-ink2 mb-2">
+                    Coupon code
+                  </label>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2 text-sm text-green-800">
+                        <Tag className="w-4 h-4" />
+                        <span className="font-bold tracking-wider">{appliedCoupon.codigo}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeCoupon}
+                        className="p-1 text-green-700 hover:text-green-900"
+                        title="Remove coupon"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), applyCoupon())}
+                          placeholder="WC-XXXXXXXX"
+                          className="flex-1 px-3 py-2 border border-borderline rounded-lg text-sm uppercase focus:outline-none focus:border-brand"
+                        />
+                        <button
+                          type="button"
+                          onClick={applyCoupon}
+                          disabled={couponLoading || !couponCode.trim()}
+                          className="px-4 py-2 bg-ink text-white rounded-lg text-sm font-bold hover:bg-ink/90 disabled:opacity-50"
+                        >
+                          {couponLoading ? '...' : 'Apply'}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-xs text-red-600 font-semibold">{couponError}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -246,7 +342,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
   )
 }
 
-function ShippingStep({ setStep, cart }) {
+function ShippingStep({ setStep, appliedCoupon, setCartError }) {
   const [formData, setFormData] = useState({
     nombre_destinatario: '',
     telefono: '',
@@ -265,34 +361,33 @@ function ShippingStep({ setStep, cart }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setCartError('')
     sessionStorage.setItem('shipping_address', JSON.stringify(formData))
     try {
-      // Crear orden en backend
-      const payload = {
-        direccion_envio: {
-          nombre_destinatario: formData.nombre_destinatario,
-          linea1: formData.linea1,
-          linea2: formData.linea2,
-          departamento_estado: formData.departamento_estado,
-          ciudad: formData.ciudad,
-          pais: formData.pais,
-          codigo_postal: formData.codigo_postal,
-          telefono: formData.telefono,
-          notas: formData.notas,
-        },
-        items: (cart.items || []).map(i => ({
-          variante_id: i.variante_id || i.id || i.cartId,
-          cantidad: i.cantidad || i.quantity || 1,
-        })),
-        total: cart.total || 0,
-      }
-      const res = await api.ordenes.crear(payload)
-      // store current order id for payment step
-      sessionStorage.setItem('current_order_id', res.id || res.order_id || '')
+      const direccion = await api.usuarios.crearDireccion({
+        nombre_destinatario: formData.nombre_destinatario,
+        telefono: formData.telefono || null,
+        linea1: formData.linea1,
+        linea2: formData.linea2 || null,
+        ciudad: formData.ciudad,
+        departamento_estado: formData.departamento_estado,
+        codigo_postal: formData.codigo_postal || null,
+        pais: formData.pais || 'US',
+        es_principal: false,
+      })
+
+      const res = await api.ordenes.crear({
+        direccion_envio_id: direccion.id,
+        notas_cliente: formData.notas || null,
+        moneda: 'USD',
+        codigo_cupon: appliedCoupon?.codigo || null,
+      })
+
+      sessionStorage.setItem('current_order_id', res.id)
       setStep(3)
     } catch (err) {
       console.error('Error creating order:', err)
-      alert('Error creating order. Please try again.')
+      setCartError(err.detail || 'Error creating order. Please try again.')
     }
   }
 

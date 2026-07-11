@@ -33,9 +33,11 @@ from app.schemas.producto import (
 )
 from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
 from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
+from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
 from app.services.contenido_service import contenido_service
+from app.services.cupon_service import cupon_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -87,6 +89,7 @@ async def listar_usuarios(
     pagina: int = Query(1, ge=1),
     por_pagina: int = Query(20, ge=1, le=100),
     buscar: Optional[str] = Query(None),
+    rol: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
@@ -95,12 +98,17 @@ async def listar_usuarios(
     query = select(Usuario)
     if buscar:
         from sqlalchemy import or_
+        term = f"%{buscar.strip()}%"
         query = query.where(
             or_(
-                Usuario.email.ilike(f"%{buscar}%"),
-                Usuario.nombre.ilike(f"%{buscar}%"),
+                Usuario.email.ilike(term),
+                Usuario.nombre.ilike(term),
+                Usuario.apellido.ilike(term),
+                func.concat(Usuario.nombre, " ", Usuario.apellido).ilike(term),
             )
         )
+    if rol:
+        query = query.where(Usuario.rol == rol)
     total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar() or 0
     query = query.order_by(Usuario.created_at.desc()).offset((pagina - 1) * por_pagina).limit(por_pagina)
     result = await db.execute(query)
@@ -346,4 +354,28 @@ async def eliminar_contenido_admin(
 ):
     """Desactiva o elimina permanentemente un bloque de contenido."""
     await contenido_service.eliminar(db, contenido_id, permanente=permanente)
+
+
+# ── Cupones / Descuentos (admin) ──────────────────────────────────────────────
+
+@router.get("/cupones", response_model=PaginatedCupones)
+async def listar_cupones_admin(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+    buscar: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """Lista cupones emitidos por el admin."""
+    return await cupon_service.listar_admin(db, pagina, por_pagina, buscar)
+
+
+@router.post("/cupones", response_model=CuponResponse, status_code=status.HTTP_201_CREATED)
+async def crear_cupon_admin(
+    data: CuponCreateAdmin,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """Crea un cupón para un cliente y envía el código por email."""
+    return await cupon_service.crear_y_enviar(db, data, admin.id)
 

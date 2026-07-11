@@ -133,6 +133,9 @@ export const api = {
     actualizarContenido: (contenidoId, data) => request(`/admin/contenidos/${contenidoId}`, { method: 'PUT', body: JSON.stringify(data) }),
     eliminarContenido: (contenidoId, permanente = false) =>
       request(`/admin/contenidos/${contenidoId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
+    usuarios: (params = {}) => request(`/admin/usuarios${buildQuery(params)}`),
+    cupones: (params = {}) => request(`/admin/cupones${buildQuery(params)}`),
+    crearCupon: (data) => request('/admin/cupones', { method: 'POST', body: JSON.stringify(data) }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure'),
@@ -145,6 +148,13 @@ export const api = {
     detalle: (ordenId) => request(`/ordenes/${ordenId}`),
     actualizar: (ordenId, data) => request(`/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
+  cupones: {
+    validar: (codigo, subtotal) =>
+      request(`/cupones/validar${buildQuery({ subtotal })}`, {
+        method: 'POST',
+        body: JSON.stringify({ codigo }),
+      }),
+  },
   pagos: {
     checkout: (data) => request('/pagos/checkout', { method: 'POST', body: JSON.stringify(data) }),
   },
@@ -152,8 +162,10 @@ export const api = {
     perfil: () => request('/usuarios/me'),
     actualizarPerfil: (data) => request('/usuarios/me', { method: 'PUT', body: JSON.stringify(data) }),
     cambiarPassword: (data) => request('/usuarios/me/password', { method: 'PUT', body: JSON.stringify(data) }),
+    cupones: () => request('/usuarios/me/cupones'),
     obtener: (userId) => request(userId ? `/usuarios/${userId}` : '/usuarios/me'),
     actualizar: (userId, data) => request(userId ? `/usuarios/${userId}` : '/usuarios/me', { method: 'PUT', body: JSON.stringify(data) }),
     direcciones: (userId) => request(userId ? `/usuarios/${userId}/direcciones` : '/usuarios/me/direcciones'),
+    crearDireccion: (data) => request('/usuarios/me/direcciones', { method: 'POST', body: JSON.stringify(data) }),
   },
 }

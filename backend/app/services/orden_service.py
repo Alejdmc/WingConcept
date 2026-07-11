@@ -134,14 +134,16 @@ class OrdenService:
             )
 
         # Crear orden
-        total = subtotal  # + costo_envio + impuestos (a calcular según reglas de negocio)
+        descuento = 0.0
+        total = subtotal
+
         orden = Orden(
             numero_orden=_generar_numero_orden(),
             usuario_id=usuario_id,
             direccion_envio_id=data.direccion_envio_id,
             estado="pendiente",
             subtotal=subtotal,
-            descuento=0,
+            descuento=descuento,
             costo_envio=0,
             impuestos=0,
             total=total,
@@ -152,6 +154,15 @@ class OrdenService:
         db.add(orden)
         await db.flush()
         orden_id = orden.id
+
+        if data.codigo_cupon:
+            from app.services.cupon_service import cupon_service
+            descuento = await cupon_service.aplicar_en_orden(
+                db, usuario_id, data.codigo_cupon, subtotal, orden_id
+            )
+            orden.descuento = descuento
+            orden.total = max(subtotal - descuento, 0)
+            await db.flush()
 
         # Limpiar carrito tras crear la orden
         for item in carrito.items:

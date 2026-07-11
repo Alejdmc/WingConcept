@@ -22,8 +22,10 @@ from app.schemas.usuario import (
     UsuarioResponse,
     UsuarioUpdate,
 )
+from app.schemas.cupon import CuponResponse
 from app.services.auth_service import auth_service
 from app.services.direccion_service import direccion_service
+from app.services.cupon_service import cupon_service
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
@@ -59,6 +61,15 @@ async def cambiar_password(
         db, current_user, data.password_actual, data.nueva_password
     )
     return {"message": "Contraseña actualizada correctamente."}
+
+
+@router.get("/me/cupones", response_model=List[CuponResponse])
+async def listar_mis_cupones(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Lista los cupones asignados al usuario autenticado."""
+    return await cupon_service.listar_usuario(db, current_user.id)
 
 
 @router.get("/me/direcciones", response_model=List[DireccionEnvioResponse])

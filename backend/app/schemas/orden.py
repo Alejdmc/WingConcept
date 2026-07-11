@@ -47,6 +47,7 @@ class OrdenCreate(BaseModel):
     direccion_envio_id: Optional[uuid.UUID] = None
     notas_cliente: Optional[str] = Field(None, max_length=1000)
     moneda: str = Field("USD", max_length=3)
+    codigo_cupon: Optional[str] = Field(None, max_length=30)
 
 
 class OrdenUpdate(BaseModel):
