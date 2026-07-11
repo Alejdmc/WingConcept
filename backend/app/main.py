@@ -142,7 +142,7 @@ async def limit_request_body_size(request: Request, call_next):
                     f"desde {request.client.host if request.client else 'unknown'}"
                 )
                 return JSONResponse(
-                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    status_code=413,
                     content={"detail": "El cuerpo de la solicitud supera el límite permitido (2 MB)."},
                 )
         except ValueError:
