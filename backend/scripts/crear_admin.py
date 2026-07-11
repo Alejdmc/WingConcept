@@ -21,7 +21,7 @@ from sqlalchemy import select
 async def crear_admin():
     # CONFIGURAR estos valores antes de ejecutar
     EMAIL = os.getenv("ADMIN_EMAIL", "admin@wingconcept.com")
-    PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+    PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin1234!")
     NOMBRE = os.getenv("ADMIN_NOMBRE", "Admin")
     APELLIDO = os.getenv("ADMIN_APELLIDO", "WingConcept")
 
@@ -35,8 +35,16 @@ async def crear_admin():
 
     async with AsyncSessionLocal() as db:
         existe = await db.execute(select(Usuario).where(Usuario.email == EMAIL))
-        if existe.scalar_one_or_none():
-            print(f"  Ya existe un usuario con el email: {EMAIL}")
+        usuario = existe.scalar_one_or_none()
+        if usuario:
+            if usuario.rol == "admin":
+                print(f"  Ya existe un admin con el email: {EMAIL}")
+            else:
+                usuario.rol = "admin"
+                usuario.activo = True
+                usuario.email_verificado = True
+                await db.commit()
+                print(f"  Usuario promovido a admin: {EMAIL}")
             return
 
         admin = Usuario(

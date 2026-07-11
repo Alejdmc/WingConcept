@@ -27,12 +27,15 @@ from app.schemas.producto import (
     ProductoCreate,
     ProductoResponse,
     ProductoUpdate,
+    VarianteCreate,
     VarianteResponse,
     VarianteUpdate,
 )
 from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
+from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
+from app.services.contenido_service import contenido_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -146,6 +149,16 @@ async def listar_productos_admin(
     return await producto_service.listar_admin(db, pagina, por_pagina, buscar)
 
 
+@router.get("/productos/{producto_id}", response_model=ProductoResponse)
+async def obtener_producto_admin(
+    producto_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Obtiene un producto completo con variantes para edición en el panel."""
+    return await producto_service.obtener_admin(db, producto_id)
+
+
 @router.post("/productos", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
 async def crear_producto_admin(
     data: ProductoCreate,
@@ -175,6 +188,21 @@ async def eliminar_producto_admin(
 ):
     """Desactiva un producto (soft delete). Alias para el panel admin."""
     await producto_service.eliminar(db, producto_id)
+
+
+@router.post(
+    "/productos/{producto_id}/variantes",
+    response_model=VarianteResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def crear_variante_admin(
+    producto_id: uuid.UUID,
+    data: VarianteCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Agrega una variante a un producto desde el panel admin."""
+    return await producto_service.crear_variante(db, producto_id, data)
 
 
 # ── Stock de variantes (admin) ────────────────────────────────────────────────
@@ -263,6 +291,47 @@ async def actualizar_orden(
     return orden_response
 
 
+# ── Contenidos CMS (admin) ────────────────────────────────────────────────────
+
+@router.get("/contenidos")
+async def listar_contenidos_admin(
+    seccion: Optional[str] = Query(None),
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista contenidos editables del CMS."""
+    return await contenido_service.listar_admin(db, seccion, pagina, por_pagina)
 
 
+@router.post("/contenidos", response_model=ContenidoResponse, status_code=status.HTTP_201_CREATED)
+async def crear_contenido_admin(
+    data: ContenidoCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Crea un bloque de contenido (hero, intro, expedición, etc.)."""
+    return await contenido_service.crear(db, data)
+
+
+@router.put("/contenidos/{contenido_id}", response_model=ContenidoResponse)
+async def actualizar_contenido_admin(
+    contenido_id: uuid.UUID,
+    data: ContenidoUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza un bloque de contenido."""
+    return await contenido_service.actualizar(db, contenido_id, data)
+
+
+@router.delete("/contenidos/{contenido_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_contenido_admin(
+    contenido_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Desactiva un bloque de contenido (soft delete)."""
+    await contenido_service.eliminar(db, contenido_id)
 

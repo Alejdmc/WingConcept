@@ -92,25 +92,35 @@ async def agregar_item(
 async def actualizar_item(
     item_id: uuid.UUID,
     data: ActualizarCantidadRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
-    """Actualiza la cantidad de un item. Requiere usuario autenticado."""
-    if not current_user:
-        raise CredencialesInvalidasError("Autenticación requerida para modificar el carrito")
-    return await carrito_service.actualizar_cantidad(db, current_user.id, item_id, data.cantidad)
+    """Actualiza la cantidad de un item."""
+    if current_user:
+        return await carrito_service.actualizar_cantidad(
+            db, current_user.id, item_id, data.cantidad
+        )
+
+    session_id = get_session_id(request)
+    return await carrito_service.actualizar_cantidad_anonimo(
+        session_id, str(item_id), data.cantidad
+    )
 
 
 @router.delete("/items/{item_id}", response_model=CarritoResponse)
 async def eliminar_item(
     item_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
     """Elimina un item del carrito."""
-    if not current_user:
-        raise CredencialesInvalidasError("Autenticación requerida")
-    return await carrito_service.eliminar_item(db, current_user.id, item_id)
+    if current_user:
+        return await carrito_service.eliminar_item(db, current_user.id, item_id)
+
+    session_id = get_session_id(request)
+    return await carrito_service.eliminar_item_anonimo(session_id, str(item_id))
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)

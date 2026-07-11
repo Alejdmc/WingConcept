@@ -290,6 +290,44 @@ class CarritoService:
         """Elimina el carrito anónimo de Redis (tras login o checkout)."""
         await carrito_delete(session_id)
 
+    async def actualizar_cantidad_anonimo(
+        self, session_id: str, item_id: str, cantidad: int
+    ) -> CarritoResponse:
+        """Actualiza cantidad de un item en carrito anónimo."""
+        data = await carrito_get(session_id)
+        items = data.get("items", []) if data else []
+        item = next((i for i in items if str(i.get("id")) == str(item_id)), None)
+        if not item:
+            raise RecursoNoEncontradoError("Item del carrito")
+
+        item["cantidad"] = cantidad
+        item["subtotal"] = item["precio_unitario"] * cantidad
+        total = sum(i["subtotal"] for i in items)
+        carrito_data = {
+            "items": items,
+            "total": total,
+            "cantidad_items": sum(i["cantidad"] for i in items),
+        }
+        await carrito_set(session_id, carrito_data)
+        return CarritoResponse(**carrito_data)
+
+    async def eliminar_item_anonimo(self, session_id: str, item_id: str) -> CarritoResponse:
+        """Elimina un item del carrito anónimo."""
+        data = await carrito_get(session_id)
+        items = data.get("items", []) if data else []
+        items = [i for i in items if str(i.get("id")) != str(item_id)]
+        if len(items) == len(data.get("items", []) if data else []):
+            raise RecursoNoEncontradoError("Item del carrito")
+
+        total = sum(i["subtotal"] for i in items)
+        carrito_data = {
+            "items": items,
+            "total": total,
+            "cantidad_items": sum(i["cantidad"] for i in items),
+        }
+        await carrito_set(session_id, carrito_data)
+        return CarritoResponse(**carrito_data)
+
     async def fusionar_anonimo_con_usuario(
         self, db: AsyncSession, usuario_id: UUID, session_id: str
     ) -> CarritoResponse:

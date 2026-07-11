@@ -6,7 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check } from 'lucide-react'
-import { api } from '@/lib/api'
+import { PRODUCT_IDS } from '@/lib/products'
+import { useCart } from '@/hooks/useCart'
 
 const CONFIG_OPTIONS = {
   engines: [
@@ -38,7 +39,7 @@ const CONFIG_OPTIONS = {
   ]
 }
 
-const VANGUARD_PRODUCTO_ID = 'c1a2b3d4-e5f6-7890-1234-567890abcdef' // Reemplazar con UUID real
+const VANGUARD_PRODUCTO_ID = PRODUCT_IDS.vanguard
 
 const PRODUCT_IMAGES = [
   { src: '/images/1vanguard.png', alt: 'Vanguard 1' },
@@ -55,6 +56,7 @@ const PRODUCT_IMAGES = [
 
 export default function ConfiguratorPage() {
   const router = useRouter()
+  const { addConfiguredProduct } = useCart()
   const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
   const [selectedFinish, setSelectedFinish] = useState(CONFIG_OPTIONS.chassisFinishes[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
@@ -89,22 +91,19 @@ export default function ConfiguratorPage() {
     setError('')
 
     try {
-      await api.carrito.agregar({
+      await addConfiguredProduct({
         producto_id: VANGUARD_PRODUCTO_ID,
         cantidad: 1,
-        configuracion: {
-          engine: selectedEngine,
-          finish: selectedFinish,
-          chassisColor: selectedChassisColor,
-          peripheralColor: selectedPeriphColor,
-          upgrades: selectedUpgrades,
-          totalPrice,
-        },
+        engine: selectedEngine,
+        finish: selectedFinish,
+        chassisColor: selectedChassisColor,
+        peripheralColor: selectedPeriphColor,
+        upgrades: selectedUpgrades,
+        totalPrice,
       })
-
       router.push('/cart')
     } catch (err) {
-      setError(err.detail || 'Error adding to cart. Please try again.')
+      setError(err.detail || err.message || 'Error adding to cart. Please try again.')
       console.error('Error:', err)
     } finally {
       setLoading(false)

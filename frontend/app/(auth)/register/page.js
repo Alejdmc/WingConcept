@@ -1,18 +1,31 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Globe, MapPin, AlertCircle, CheckCircle, Phone } from 'lucide-react'
 import { api } from '@/lib/api'
+import { persistAuthSession } from '@/lib/auth'
+import { useCart } from '@/hooks/useCart'
+import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { refetch } = useCart()
+  const nextUrl = getAuthNext(searchParams.get('next'), '/')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    saveAuthNext(nextUrl)
+  }, [nextUrl])
+
+  const loginHref = buildAuthUrl('/login', nextUrl)
+  const isCheckoutFlow = nextUrl === '/checkout'
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -64,10 +77,32 @@ export default function RegisterPage() {
         password: formData.password,
       })
 
+      // Auto-login para continuar la compra con el carrito anónimo fusionado
+      try {
+        const loginRes = await api.auth.login({
+          email: formData.email,
+          password: formData.password,
+        })
+        persistAuthSession({ ...loginRes, expires_in: loginRes.expires_in || 60 * 60 * 24 * 7 })
+
+        try {
+          await api.carrito.merge()
+          await refetch()
+        } catch (mergeErr) {
+          console.warn('Cart merge after register failed:', mergeErr)
+        }
+
+        clearAuthNext()
+        const destination = loginRes.rol === 'admin' ? '/admin/dashboard' : nextUrl
+        router.push(destination.startsWith('/') ? destination : '/')
+        return
+      } catch (loginErr) {
+        console.warn('Auto-login after register failed:', loginErr)
+      }
+
       setSuccess('Account created! Check your email to verify your address.')
-      
+
       const userEmail = formData.email
-      // Limpiar formulario
       setFormData({
         nombre: '',
         apellido: '',
@@ -82,9 +117,9 @@ export default function RegisterPage() {
         zipCode: ''
       })
 
-      // Redirigir a página de verificación después de 2 segundos
       setTimeout(() => {
-        router.push(`/verify-email-pending?email=${encodeURIComponent(userEmail)}`)
+        const pendingUrl = `/verify-email-pending?email=${encodeURIComponent(userEmail)}&next=${encodeURIComponent(nextUrl)}`
+        router.push(pendingUrl)
       }, 2000)
     } catch (err) {
       setError(err.detail || 'Error creating account. Please try again.')
@@ -107,7 +142,13 @@ export default function RegisterPage() {
         
         <div className="bg-white border border-borderline rounded-lg shadow-xl p-8">
           <h1 className="text-3xl font-black uppercase text-center mb-2">Create Account</h1>
-          <p className="text-center text-ink2 mb-8">Join Wing Concept today</p>
+          <p className="text-center text-ink2 mb-2">Join Wing Concept today</p>
+          {isCheckoutFlow && (
+            <p className="text-center text-brand text-sm font-semibold mb-6">
+              Crea tu cuenta para continuar con tu compra
+            </p>
+          )}
+          {!isCheckoutFlow && <div className="mb-6" />}
 
           {/* Error Alert */}
           {error && (
@@ -311,14 +352,14 @@ export default function RegisterPage() {
             <button 
               disabled={loading} 
               className="w-full py-4 bg-brand text-white font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 disabled:opacity-50 transition mt-6">
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Creating Account...' : isCheckoutFlow ? 'Create Account & Continue' : 'Create Account'}
             </button>
           </form>
 
           {/* Login Link */}
           <p className="text-center text-ink2 text-sm mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-brand font-bold hover:underline">
+            <Link href={loginHref} className="text-brand font-bold hover:underline">
               Sign in here
             </Link>
           </p>

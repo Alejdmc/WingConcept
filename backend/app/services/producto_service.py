@@ -187,20 +187,32 @@ class ProductoService:
         return producto
 
     async def crear(self, db: AsyncSession, data: ProductoCreate) -> ProductoResponse:
-        """Crea un nuevo producto."""
+        """Crea un nuevo producto con variantes opcionales."""
         slug = slugify(data.nombre, allow_unicode=False)
         # Verificar slug único
         existe = await db.execute(select(Producto).where(Producto.slug == slug))
         if existe.scalar_one_or_none():
             slug = f"{slug}-{str(uuid_module.uuid4())[:8]}"
 
-        producto = Producto(slug=slug, **data.model_dump())
+        payload = data.model_dump(exclude={"variantes"})
+        producto = Producto(slug=slug, **payload)
         db.add(producto)
         await db.flush()
-        await db.refresh(producto)
 
+        if data.variantes:
+            for variante_data in data.variantes:
+                variante = Variante(producto_id=producto.id, **variante_data.model_dump())
+                db.add(variante)
+            await db.flush()
+
+        await db.refresh(producto)
         await cache_delete_pattern(f"{CACHE_PREFIX}:list:*")
         logger.info(f"Producto creado: {producto.nombre}")
+        return ProductoResponse.model_validate(producto)
+
+    async def obtener_admin(self, db: AsyncSession, producto_id: UUID) -> ProductoResponse:
+        """Obtiene un producto completo por ID para el panel admin."""
+        producto = await self.obtener_por_id(db, producto_id)
         return ProductoResponse.model_validate(producto)
 
     async def actualizar(
@@ -344,6 +356,7 @@ class ProductoService:
                 sales=ventas,
                 activo=p.activo,
                 categoria=p.categoria,
+                subcategoria=p.subcategoria,
             ))
 
         return PaginatedAdminProductos(

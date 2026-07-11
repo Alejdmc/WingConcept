@@ -5,11 +5,14 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import { api } from '@/lib/api'
+import { getAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token')
+  const nextUrl = getAuthNext(searchParams.get('next'), '/')
+  const loginHref = buildAuthUrl('/login', nextUrl)
 
   const [status, setStatus] = useState('verifying') // verifying | success | error
   const [message, setMessage] = useState('')
@@ -37,7 +40,7 @@ export default function VerifyEmailPage() {
       
       // Redirigir a login después de 3 segundos
       setTimeout(() => {
-        router.push('/login?verified=true')
+        router.push(loginHref)
       }, 3000)
     } catch (err) {
       setStatus('error')
@@ -96,7 +99,7 @@ export default function VerifyEmailPage() {
             </p>
 
             <div className="space-y-4">
-              <Link href="/login" className="block w-full bg-brand text-white px-6 py-3 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition text-center">
+              <Link href={loginHref} className="block w-full bg-brand text-white px-6 py-3 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition text-center">
                 Go to Login
               </Link>
             </div>
@@ -154,7 +157,7 @@ export default function VerifyEmailPage() {
 
             <p className="text-center text-sm text-ink2 mt-6">
               Remember your password?{' '}
-              <Link href="/login" className="text-brand font-bold hover:underline">
+              <Link href={loginHref} className="text-brand font-bold hover:underline">
                 Sign in here
               </Link>
             </p>

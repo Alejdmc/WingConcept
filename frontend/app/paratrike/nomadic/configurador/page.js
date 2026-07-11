@@ -6,7 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ShoppingCart, ArrowLeft, Check } from 'lucide-react'
-import { api } from '@/lib/api'
+import { PRODUCT_IDS } from '@/lib/products'
+import { useCart } from '@/hooks/useCart'
 
 const CONFIG_OPTIONS = {
   engines: [
@@ -36,10 +37,11 @@ const CONFIG_OPTIONS = {
   ]
 }
 
-const NOMADIC_PRODUCTO_ID = 'd1e2f3g4-h5i6-7890-1234-567890defghi' // Reemplazar con UUID real
+const NOMADIC_PRODUCTO_ID = PRODUCT_IDS.nomadic
 
 export default function ConfiguratorNomadicPage() {
   const router = useRouter()
+  const { addConfiguredProduct } = useCart()
   const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
   const [selectedFinish, setSelectedFinish] = useState(CONFIG_OPTIONS.chassisFinishes[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
@@ -65,22 +67,19 @@ export default function ConfiguratorNomadicPage() {
     setError('')
 
     try {
-      await api.carrito.agregar({
+      await addConfiguredProduct({
         producto_id: NOMADIC_PRODUCTO_ID,
         cantidad: 1,
-        configuracion: {
-          engine: selectedEngine,
-          finish: selectedFinish,
-          chassisColor: selectedChassisColor,
-          accentColor: selectedAccentColor,
-          upgrades: selectedUpgrades,
-          totalPrice,
-        },
+        engine: selectedEngine,
+        finish: selectedFinish,
+        chassisColor: selectedChassisColor,
+        accentColor: selectedAccentColor,
+        upgrades: selectedUpgrades,
+        totalPrice,
       })
-
       router.push('/cart')
     } catch (err) {
-      setError(err.detail || 'Error adding to cart. Please try again.')
+      setError(err.detail || err.message || 'Error adding to cart. Please try again.')
       console.error('Error:', err)
     } finally {
       setLoading(false)

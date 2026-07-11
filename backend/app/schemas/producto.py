@@ -70,6 +70,7 @@ class ProductoCreate(BaseModel):
     activo: bool = True
     destacado: bool = False
     orden_display: int = 0
+    variantes: Optional[List[VarianteCreate]] = None
 
     @field_validator("categoria")
     @classmethod
@@ -196,6 +197,7 @@ class AdminProductoResponse(BaseModel):
     sales: int = 0          # unidades vendidas (suma ItemOrden.cantidad)
     activo: bool
     categoria: str
+    subcategoria: Optional[str] = None
 
     model_config = {"from_attributes": False}
 

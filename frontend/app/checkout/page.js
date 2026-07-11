@@ -5,7 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
-import { api } from '@/lib/api'
+import { useCart } from '@/hooks/useCart'
+import { getStoredUser } from '@/lib/auth'
+import { saveAuthNext } from '@/lib/authFlow'
 
 const CHECKOUT_STEPS = [
   { id: 1, name: 'Cart', path: '/checkout' },
@@ -14,54 +16,60 @@ const CHECKOUT_STEPS = [
   { id: 4, name: 'Confirmation', path: '/checkout/confirmation' },
 ]
 
-const EMPTY_CART = { items: [], total: 0, cantidad_items: 0 }
-
 export default function CheckoutPage() {
   const router = useRouter()
-  const [cart, setCart] = useState(EMPTY_CART)
+  const { items, total: cartTotal, updateQuantity: updateCartQty, removeFromCart, refetch } = useCart()
   const [cartError, setCartError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const res = await api.carrito.obtener()
-        if (mounted && res) setCart(res)
-      } catch (err) {
-        console.warn('Could not load cart for checkout:', err)
-        if (mounted) {
-          setCart(EMPTY_CART)
-          setCartError('Could not load your cart. Please try again.')
-        }
-      }
-    })()
-    return () => { mounted = false }
-  }, [])
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    const user = getStoredUser()
+    if (!token || !user) {
+      saveAuthNext('/checkout')
+      router.replace('/login?next=/checkout')
+      return
+    }
+    setReady(true)
+    refetch()
+  }, [router, refetch])
 
-  const subtotal = cart.total
-  const tax = Math.round(subtotal * 0.19) // 19% IVA
-  const total = subtotal + tax
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <p className="text-ink2">Verificando sesión...</p>
+      </div>
+    )
+  }
+
+  const cart = { items, total: cartTotal, cantidad_items: items.reduce((s, i) => s + (i.cantidad || 1), 0) }
+
+  if (cart.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-bg px-8 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl font-black mb-4">Tu carrito está vacío</h1>
+          <p className="text-ink2 mb-8">Agrega productos antes de continuar con el checkout.</p>
+          <Link href="/" className="inline-block bg-brand text-white px-8 py-4 font-bold uppercase rounded">
+            Ir a la tienda
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const subtotal = cartTotal
+  const tax = Math.round(subtotal * 0.19)
+  const orderTotal = subtotal + tax
 
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity < 1) return
-    setCart({
-      ...cart,
-      items: cart.items.map(item =>
-        item.id === itemId
-          ? { ...item, cantidad: newQuantity, subtotal: item.precio_unitario * newQuantity }
-          : item
-      ),
-      total: cart.total
-    })
+    updateCartQty(itemId, newQuantity)
   }
 
   const removeItem = (itemId) => {
-    setCart({
-      ...cart,
-      items: cart.items.filter(item => item.id !== itemId),
-      cantidad_items: cart.cantidad_items - 1
-    })
+    removeFromCart(itemId)
   }
 
   return (
@@ -152,7 +160,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-lg font-black border-t border-borderline pt-3">
                   <span className="text-ink">Total</span>
-                  <span className="text-brand">${total.toLocaleString()}</span>
+                  <span className="text-brand">${orderTotal.toLocaleString()}</span>
                 </div>
               </div>
             </div>

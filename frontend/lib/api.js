@@ -8,6 +8,7 @@ function getSessionId() {
     sessionId = crypto.randomUUID()
     localStorage.setItem('session_id', sessionId)
   }
+  document.cookie = `session_id=${sessionId}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
   return sessionId
 }
 
@@ -118,11 +119,21 @@ export const api = {
   admin: {
     stats: () => request('/admin/stats'),
     productos: (params = {}) => request(`/admin/productos${buildQuery(params)}`),
+    obtenerProducto: (productoId) => request(`/admin/productos/${productoId}`),
     crearProducto: (data) => request('/admin/productos', { method: 'POST', body: JSON.stringify(data) }),
     actualizarProducto: (productoId, data) => request(`/admin/productos/${productoId}`, { method: 'PUT', body: JSON.stringify(data) }),
     eliminarProducto: (productoId) => request(`/admin/productos/${productoId}`, { method: 'DELETE' }),
+    crearVariante: (productoId, data) => request(`/admin/productos/${productoId}/variantes`, { method: 'POST', body: JSON.stringify(data) }),
+    actualizarStock: (varianteId, data) => request(`/admin/variantes/${varianteId}/stock`, { method: 'PATCH', body: JSON.stringify(data) }),
     ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
     actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    contenidos: (params = {}) => request(`/admin/contenidos${buildQuery(params)}`),
+    crearContenido: (data) => request('/admin/contenidos', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarContenido: (contenidoId, data) => request(`/admin/contenidos/${contenidoId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarContenido: (contenidoId) => request(`/admin/contenidos/${contenidoId}`, { method: 'DELETE' }),
+  },
+  contenidos: {
+    adventure: () => request('/contenidos/adventure'),
   },
   ordenes: {
     crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),

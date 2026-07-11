@@ -1,12 +1,35 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
+import { getStoredUser } from '@/lib/auth'
+import { saveAuthNext } from '@/lib/authFlow'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, total } = useCart()
+  const router = useRouter()
+  const { items, removeFromCart, updateQuantity, total, error, refetch, cargando } = useCart()
+
+  const handleCheckout = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    const user = getStoredUser()
+    if (!token || !user) {
+      saveAuthNext('/checkout')
+      router.push('/login?next=/checkout')
+      return
+    }
+    router.push('/checkout')
+  }
+
+  if (cargando && items.length === 0) {
+    return (
+      <div className="min-h-screen bg-bg px-8 py-12 flex items-center justify-center">
+        <p className="text-ink2 text-lg">Cargando carrito...</p>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (
@@ -17,7 +40,13 @@ export default function CartPage() {
             Back
           </Link>
           <h1 className="text-5xl font-black uppercase mb-8">Shopping Cart</h1>
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm">{error}</div>
+          )}
           <p className="text-ink2 text-lg mb-8">Your cart is empty</p>
+          <button onClick={() => refetch()} className="mr-4 text-brand font-semibold hover:underline mb-4 block">
+            Refresh cart
+          </button>
           <Link href="/" className="inline-block bg-brand text-white px-8 py-4 font-bold uppercase rounded hover:bg-brand/90">
             Continue Shopping
           </Link>
@@ -55,7 +84,7 @@ export default function CartPage() {
               {/* Items */}
               <div className="divide-y divide-borderline">
                 {items.map(item => (
-                  <div key={item.cartId} className="p-6 flex gap-6">
+                  <div key={item.cartId || item.id} className="p-6 flex gap-6">
                     <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
                       {item.producto_imagen && (
                         <Image src={item.producto_imagen} alt={item.name || ''} fill className="object-cover" />
@@ -68,13 +97,13 @@ export default function CartPage() {
 
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
                         <button
-                          onClick={() => updateQuantity(item.cartId, Math.max(1, (item.cantidad || 1) - 1))}
+                          onClick={() => updateQuantity(item.cartId || item.id, Math.max(1, (item.cantidad || 1) - 1))}
                           className="p-1 hover:bg-white rounded transition">
                           <Minus className="w-4 h-4 text-ink2" />
                         </button>
                         <span className="w-8 text-center font-bold text-ink">{item.cantidad || 1}</span>
                         <button
-                          onClick={() => updateQuantity(item.cartId, (item.cantidad || 1) + 1)}
+                          onClick={() => updateQuantity(item.cartId || item.id, (item.cantidad || 1) + 1)}
                           className="p-1 hover:bg-white rounded transition">
                           <Plus className="w-4 h-4 text-ink2" />
                         </button>
@@ -86,7 +115,7 @@ export default function CartPage() {
                         ${(parseInt(item.price.replace('$', '').replace(',', '')) * (item.cantidad || 1)).toLocaleString()}
                       </p>
                       <button
-                        onClick={() => removeFromCart(item.cartId)}
+                        onClick={() => removeFromCart(item.cartId || item.id)}
                         className="text-red-600 hover:text-red-700 transition flex items-center gap-1 text-sm font-semibold">
                         <Trash2 className="w-4 h-4" />
                         Remove
@@ -121,9 +150,19 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="w-full block text-center bg-brand text-white px-8 py-4 font-bold uppercase rounded-lg hover:bg-brand/90 transition">
+              <button
+                onClick={handleCheckout}
+                className="w-full block text-center bg-brand text-white px-8 py-4 font-bold uppercase rounded-lg hover:bg-brand/90 transition"
+              >
                 Proceed to Checkout
-              </Link>
+              </button>
+              <p className="text-xs text-ink2 text-center mt-3">
+                Necesitas iniciar sesión o{' '}
+                <Link href="/register?next=/checkout" className="text-brand font-semibold hover:underline">
+                  registrarte
+                </Link>
+                {' '}para completar la compra.
+              </p>
             </div>
           </motion.div>
         </div>

@@ -1,8 +1,7 @@
 import './globals.css'
-import TopBar from '@/components/layout/TopBar'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import AppShell from '@/components/layout/AppShell'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { CartProvider } from '@/context/CartContext'
 
 export const metadata = { title: 'Wing Concept' }
 
@@ -11,10 +10,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <LanguageProvider>
-          <TopBar />
-          <Navbar />
-          {children}
-          <Footer />
+          <CartProvider>
+            <AppShell>{children}</AppShell>
+          </CartProvider>
         </LanguageProvider>
       </body>
     </html>

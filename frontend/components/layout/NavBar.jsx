@@ -1,9 +1,10 @@
 'use client'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronDown, User, ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
+import { getStoredUser } from '@/lib/auth'
 
 const navItems = [
   { label: 'Paramotors', href: '/paramotors' },
@@ -27,7 +28,20 @@ const navItems = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userHref, setUserHref] = useState('/login')
   const { items } = useCart()
+  const itemCount = items.reduce((sum, item) => sum + (item.cantidad || 1), 0)
+
+  useEffect(() => {
+    const user = getStoredUser()
+    if (user?.rol === 'admin') {
+      setUserHref('/admin/dashboard')
+    } else if (user) {
+      setUserHref('/')
+    } else {
+      setUserHref('/login')
+    }
+  }, [])
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
@@ -63,7 +77,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1.5">
           {/* User Profile */}
           <Link
-            href="/login"
+            href={userHref}
             className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors">
             <User className="w-5 h-5" />
           </Link>
@@ -73,9 +87,9 @@ export default function Navbar() {
             href="/cart"
             className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors">
             <ShoppingCart className="w-5 h-5" />
-            {items.length > 0 && (
+            {itemCount > 0 && (
               <span className="absolute top-1 right-1 bg-brand text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                {items.length}
+                {itemCount}
               </span>
             )}
           </Link>

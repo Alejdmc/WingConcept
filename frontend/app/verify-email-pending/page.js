@@ -5,12 +5,19 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, RotateCcw } from 'lucide-react'
 import { api } from '@/lib/api'
+import { saveAuthNext, getAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function VerifyEmailPendingPage() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
+  const nextUrl = getAuthNext(searchParams.get('next'), '/')
+  const loginHref = buildAuthUrl('/login', nextUrl)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendMessage, setResendMessage] = useState('')
+
+  useEffect(() => {
+    saveAuthNext(nextUrl)
+  }, [nextUrl])
 
   const handleResendEmail = async () => {
     if (!email) return
@@ -109,7 +116,7 @@ export default function VerifyEmailPendingPage() {
           </div>
 
           {/* Back to Login */}
-          <Link href="/login" className="inline-block text-brand font-bold hover:underline">
+          <Link href={loginHref} className="inline-block text-brand font-bold hover:underline">
             Back to Sign In
           </Link>
         </div>

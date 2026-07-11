@@ -1,54 +1,220 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import { api } from '@/lib/api'
+
+const CATEGORIAS = ['paramotor', 'vela', 'motor', 'accesorios', 'repuestos', 'paratrike']
 
 export default function EditProductPage({ params }) {
   const { id } = params
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', price: '', description: '' })
-  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({
+    nombre: '',
+    descripcion: '',
+    descripcion_corta: '',
+    categoria: 'paramotor',
+    activo: true,
+    destacado: false,
+  })
+  const [variantes, setVariantes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [newVariante, setNewVariante] = useState({ nombre: '', precio: '', stock: 0 })
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
+    const load = async () => {
+      setLoading(true)
       try {
-        const res = await api.admin.productos({ productoId: id })
-        if (mounted && res && res.items && res.items[0]) {
-          const p = res.items[0]
-          setForm({ name: p.name || '', price: p.price || '', description: p.description || '' })
-        }
-      } catch (err) {
-        console.warn(err)
+        const data = await api.admin.obtenerProducto(id)
+        setForm({
+          nombre: data.nombre || '',
+          descripcion: data.descripcion || '',
+          descripcion_corta: data.descripcion_corta || '',
+          categoria: data.categoria || 'paramotor',
+          activo: data.activo ?? true,
+          destacado: data.destacado ?? false,
+        })
+        setVariantes(data.variantes || [])
+      } catch {
+        setError('No se pudo cargar el producto.')
+      } finally {
+        setLoading(false)
       }
-    })()
-    return () => { mounted = false }
+    }
+    load()
   }, [id])
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setSaving(true)
+    setError('')
     try {
-      await api.admin.actualizarProducto(id, { name: form.name, price: form.price, description: form.description })
+      await api.admin.actualizarProducto(id, form)
       router.push('/admin/products')
     } catch (err) {
-      alert('Error updating product')
+      setError(err.detail || 'Error al guardar.')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
+  }
+
+  const updateVarianteStock = async (varianteId, stock) => {
+    try {
+      const updated = await api.admin.actualizarStock(varianteId, { stock: Number(stock) })
+      setVariantes((prev) => prev.map((v) => (v.id === varianteId ? updated : v)))
+    } catch {
+      setError('Error al actualizar stock.')
+    }
+  }
+
+  const addVariante = async () => {
+    if (!newVariante.nombre || !newVariante.precio) {
+      setError('Nombre y precio son requeridos para la nueva variante.')
+      return
+    }
+    try {
+      const created = await api.admin.crearVariante(id, {
+        nombre: newVariante.nombre,
+        precio: Number(newVariante.precio),
+        stock: Number(newVariante.stock) || 0,
+        activo: true,
+      })
+      setVariantes((prev) => [...prev, created])
+      setNewVariante({ nombre: '', precio: '', stock: 0 })
+      setError('')
+    } catch (err) {
+      setError(err.detail || 'Error al crear variante.')
+    }
+  }
+
+  const deactivateProduct = async () => {
+    if (!confirm('¿Desactivar este producto?')) return
+    try {
+      await api.admin.eliminarProducto(id)
+      router.push('/admin/products')
+    } catch {
+      setError('Error al desactivar el producto.')
+    }
+  }
+
+  if (loading) {
+    return <p className="text-ink2">Cargando producto...</p>
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-black mb-4">Edit Product</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Name" className="w-full p-3 border rounded" />
-        <input name="price" value={form.price} onChange={handleChange} placeholder="Price" className="w-full p-3 border rounded" />
-        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full p-3 border rounded" />
-        <button disabled={loading} className="px-6 py-3 bg-brand text-white rounded">
-          {loading ? 'Saving...' : 'Save'}
+      <Link href="/admin/products" className="flex items-center gap-2 text-ink2 hover:text-brand mb-6 transition">
+        <ArrowLeft className="w-4 h-4" />
+        Volver a productos
+      </Link>
+
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-ink">Editar producto</h1>
+          <p className="text-ink2 mt-2">Actualiza datos y gestiona variantes/stock.</p>
+        </div>
+        <button onClick={deactivateProduct} className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50 transition">
+          <Trash2 className="w-4 h-4" />
+          Desactivar
+        </button>
+      </div>
+
+      {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
+
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+        <div className="bg-white border border-borderline rounded-lg p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-ink mb-1">Nombre</label>
+            <input name="nombre" value={form.nombre} onChange={handleChange} required className="w-full p-3 border border-borderline rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-ink mb-1">Categoría</label>
+            <select name="categoria" value={form.categoria} onChange={handleChange} className="w-full p-3 border border-borderline rounded">
+              {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-ink mb-1">Descripción corta</label>
+            <input name="descripcion_corta" value={form.descripcion_corta} onChange={handleChange} className="w-full p-3 border border-borderline rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-ink mb-1">Descripción</label>
+            <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={4} className="w-full p-3 border border-borderline rounded" />
+          </div>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} />
+              Activo
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="destacado" checked={form.destacado} onChange={handleChange} />
+              Destacado
+            </label>
+          </div>
+        </div>
+
+        <div className="bg-white border border-borderline rounded-lg p-6 space-y-4">
+          <h2 className="font-black text-ink">Variantes y stock</h2>
+          {variantes.map((v) => (
+            <div key={v.id} className="flex items-center gap-4 p-4 border border-borderline rounded">
+              <div className="flex-1">
+                <p className="font-semibold">{v.nombre}</p>
+                <p className="text-sm text-ink2">${v.precio?.toLocaleString()} USD</p>
+              </div>
+              <input
+                type="number"
+                min="0"
+                defaultValue={v.stock}
+                onBlur={(e) => {
+                  const val = Number(e.target.value)
+                  if (val !== v.stock) updateVarianteStock(v.id, val)
+                }}
+                className="w-24 px-3 py-2 border border-borderline rounded text-center"
+              />
+            </div>
+          ))}
+
+          <div className="pt-4 border-t border-borderline space-y-3">
+            <p className="text-sm font-semibold text-ink">Agregar variante</p>
+            <div className="grid grid-cols-3 gap-3">
+              <input
+                placeholder="Nombre"
+                value={newVariante.nombre}
+                onChange={(e) => setNewVariante({ ...newVariante, nombre: e.target.value })}
+                className="p-2 border border-borderline rounded"
+              />
+              <input
+                placeholder="Precio USD"
+                type="number"
+                value={newVariante.precio}
+                onChange={(e) => setNewVariante({ ...newVariante, precio: e.target.value })}
+                className="p-2 border border-borderline rounded"
+              />
+              <input
+                placeholder="Stock"
+                type="number"
+                value={newVariante.stock}
+                onChange={(e) => setNewVariante({ ...newVariante, stock: e.target.value })}
+                className="p-2 border border-borderline rounded"
+              />
+            </div>
+            <button type="button" onClick={addVariante} className="flex items-center gap-2 px-4 py-2 border border-borderline rounded hover:border-brand transition">
+              <Plus className="w-4 h-4" />
+              Agregar variante
+            </button>
+          </div>
+        </div>
+
+        <button disabled={saving} className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50">
+          {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
     </div>
