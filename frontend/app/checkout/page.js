@@ -564,14 +564,14 @@ function PaymentStep({ setStep }) {
       const ordenId = sessionStorage.getItem('current_order_id')
       if (!ordenId) throw new Error('Orden ID missing')
 
-      const res = await api.pagos.checkout({ orden_id: ordenId, proveedor: paymentMethod })
-      // If the payment provider returned a redirect URL, go there
-      if (res && res.payment_url) {
-        window.location.href = res.payment_url
+      const res = await api.pagos.checkout({ orden_id: ordenId })
+      // If Stripe returned a checkout redirect URL, go there
+      if (res && res.checkout_url) {
+        window.location.href = res.checkout_url
         return
       }
       // If immediate success
-      if (res && (res.status === 'paid' || res.status === 'success')) {
+      if (res && res.estado === 'approved') {
         window.location.href = '/checkout/exito'
         return
       }
