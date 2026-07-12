@@ -69,8 +69,12 @@ export default function ContactPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+            </span>
             Back
           </Link>
         </div>

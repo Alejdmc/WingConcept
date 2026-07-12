@@ -29,13 +29,20 @@ const CONFIG_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'front-guard', name: 'Front Guard', price: 150 },
-    { id: 'sun-shade', name: 'Sun Shade', price: 90 },
-    { id: 'cruise-control', name: 'Cruise Control', price: 250 },
-    { id: 'ballistic-parachute', name: 'Ballistic Parachute', price: 1200 },
-    { id: 'lights', name: 'Lights', price: 200 },
-    { id: 'phone-holder', name: 'Phone Holder', price: 45 },
-    { id: 'cover', name: 'Cover', price: 120 },
+    { id: 'cruise-control', name: 'Cruise Control', price: 20 },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25 },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30 },
+    { id: 'parachute-container', name: 'Parachute Container', price: 55 },
+    { id: 'front-axle', name: 'Front Axle', price: 75 },
+    { id: 'front-bar-protection', name: 'Protection with Front Bar Handle', price: 80 },
+    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90 },
+    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105 },
+    { id: 'pilot-harness', name: 'Pilot Harness', price: 190 },
+    { id: 'passenger-harness', name: 'Passenger Harness', price: 220 },
+    { id: 'front-fork', name: 'Front Fork', price: 280 },
+    { id: 'pilot-dynamic-cage', name: 'Pilot Dynamic Cage', price: 300 },
+    { id: 'pilot-hunter-cage', name: 'Pilot Hunter Cage', price: 300 },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440 },
   ]
 }
 
@@ -115,8 +122,12 @@ export default function ConfiguratorPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <Link href="/paratrike" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link
+            href="/paratrike"
+            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+            </span>
             Back
           </Link>
         </div>
@@ -279,21 +290,37 @@ export default function ConfiguratorPage() {
             </ConfigSection>
 
             {/* Accessories */}
-            <ConfigSection title="Accessories. Enhance your flight">
-              <div className="space-y-3">
-                {CONFIG_OPTIONS.accessories.map(a => (
-                  <motion.button
-                    key={a.id}
-                    onClick={() => toggleUpgrade(a.id)}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 border-2 rounded-xl flex justify-between items-center transition-all
-                      ${selectedUpgrades.includes(a.id) ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
-                    <p className="font-bold uppercase text-ink">{a.name}</p>
-                    <p className="font-semibold text-ink2">+${a.price}</p>
-                  </motion.button>
-                ))}
-              </div>
-            </ConfigSection>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}>
+              <details className="group border-2 border-borderline rounded-xl p-4 hover:border-brand/50 transition">
+                <summary className="flex justify-between items-center cursor-pointer list-none">
+                  <span className="text-2xl font-black uppercase text-ink tracking-tight">
+                    Accessories. Enhance your flight
+                    {selectedUpgrades.length > 0 && (
+                      <span className="ml-3 text-sm font-bold text-brand align-middle">
+                        {selectedUpgrades.length} selected
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className="w-6 h-6 text-ink shrink-0 group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="mt-6 space-y-3">
+                  {CONFIG_OPTIONS.accessories.map(a => (
+                    <motion.button
+                      key={a.id}
+                      onClick={() => toggleUpgrade(a.id)}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full p-4 border-2 rounded-xl flex justify-between items-center transition-all
+                        ${selectedUpgrades.includes(a.id) ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
+                      <p className="font-bold uppercase text-ink">{a.name}</p>
+                      <p className="font-semibold text-ink2">+${a.price}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              </details>
+            </motion.div>
 
             {/* Error Message */}
             {error && (

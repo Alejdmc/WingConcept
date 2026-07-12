@@ -42,17 +42,7 @@ const nomadic = {
   engines: [
     { name: 'Polini Thor 303', power: '38 HP' },
     { name: 'Polini Thor 260', power: '24 HP' },
-    { name: 'Vittorazi Cosmos 300', power: '36 HP' },
-    { name: 'Hirth 3503', power: '70 HP' },
-  ],
-
-  accessories: [
-    { id: 'prop-guard', name: 'Propeller Guard', price: 280 },
-    { id: 'cage-hoop-clear', name: 'Clear Cage Hoop', price: 150 },
-    { id: 'lateral-bag', name: 'Expedition Side Bag', price: 220 },
-    { id: 'passenger-pad', name: 'Passenger Pads', price: 95 },
-    { id: 'nomadic-cover', name: 'Nomadic Protective Cover', price: 180 },
-    { id: 'front-handle', name: 'Front Handling Grip', price: 60 },
+    { name: 'Vittorazi Cosmos 300 MY25', power: '36 HP' },
   ],
 
   specs: {
@@ -72,8 +62,12 @@ export default function NomadicPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <Link href="/paratrike" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link
+            href="/paratrike"
+            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+            </span>
             Back to Selection
           </Link>
         </div>
@@ -110,7 +104,7 @@ export default function NomadicPage() {
                 <p className="text-3xl font-black text-brand">{nomadic.philosophy}</p>
               </div>
 
-              <Link href="/nomadic/configurador" className="inline-flex items-center gap-3 bg-brand text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition">
+              <Link href="/paratrike/nomadic/configurador" className="inline-flex items-center gap-3 bg-brand text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition">
                 Customize Now
                 <ChevronDown className="w-4 h-4 rotate-180" />
               </Link>
@@ -220,40 +214,6 @@ export default function NomadicPage() {
         </div>
       </section>
 
-      {/* Accessories Accordion */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink">Available Accessories</h2>
-          </motion.div>
-
-          <div className="space-y-4">
-            {nomadic.accessories.map((accessory, i) => (
-              <motion.details
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="group border-2 border-borderline rounded-xl overflow-hidden hover:border-brand transition-all">
-                <summary className="flex justify-between items-center cursor-pointer p-6 bg-bg2 font-bold uppercase tracking-widest text-ink hover:bg-brand-soft transition">
-                  {accessory.name}
-                  <div className="flex items-center gap-4">
-                    <span className="text-brand font-black text-lg">${accessory.price}</span>
-                    <ChevronDown className="group-open:rotate-180 transition-transform" />
-                  </div>
-                </summary>
-                <div className="p-6 bg-white border-t border-borderline text-ink2">
-                  Optional accessory to enhance your Nomadic Trike configuration and adventure capabilities.
-                </div>
-              </motion.details>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
@@ -270,7 +230,7 @@ export default function NomadicPage() {
             className="text-xl text-white/90 mb-12">
             Configure your Nomadic Trike and start planning your next expedition.
           </motion.p>
-          <Link href="/nomadic/configurador" className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition text-lg">
+          <Link href="/paratrike/nomadic/configurador" className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition text-lg">
             Build Your Nomadic
           </Link>
         </div>

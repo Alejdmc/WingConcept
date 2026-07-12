@@ -73,8 +73,12 @@ export default function ZomiDevAboutPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+            </span>
             Back
           </Link>
           <p className="text-sm text-ink2 font-semibold">Designed & Developed by ZomiDev</p>
@@ -376,11 +380,11 @@ export default function ZomiDevAboutPage() {
                 className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
                 Get In Touch
               </a>
-              <Link
-                href="/contact"
+              <a
+                href="tel:+573238125686"
                 className="inline-block border-2 border-white text-white px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
                 Contact Us
-              </Link>
+              </a>
             </div>
           </motion.div>
         </div>

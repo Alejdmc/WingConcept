@@ -11,10 +11,9 @@ import { useCart } from '@/hooks/useCart'
 
 const CONFIG_OPTIONS = {
   engines: [
-    { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 8000 },
-    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 6500 },
-    { id: 'vittorazi-300', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 7500 },
-    { id: 'hirth-3503', name: 'Hirth 3503', power: '70 HP', basePrice: 9000 },
+    { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950 },
+    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200 },
+    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300 MY25', power: '36 HP', basePrice: 4560 },
   ],
   chassisFinishes: [
     { id: 'stainless-brushed', name: 'Stainless Steel Brushed', price: 0 },
@@ -28,12 +27,21 @@ const CONFIG_OPTIONS = {
     { name: 'Arctic White', hex: '#ecf0f1' }
   ],
   accessories: [
-    { id: 'prop-guard', name: 'Propeller Guard', price: 280 },
-    { id: 'cage-hoop', name: 'Clear Cage Hoop', price: 150 },
-    { id: 'lateral-bag', name: 'Expedition Side Bag', price: 220 },
-    { id: 'passenger-pad', name: 'Passenger Pads', price: 95 },
-    { id: 'nomadic-cover', name: 'Protective Cover', price: 180 },
-    { id: 'front-handle', name: 'Front Handling Grip', price: 60 },
+    { id: 'cruise-control', name: 'Cruise Control', price: 20 },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25 },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30 },
+    { id: 'parachute-container', name: 'Parachute Container', price: 55 },
+    { id: 'front-axle', name: 'Front Axle', price: 75 },
+    { id: 'front-bar-protection', name: 'Protection with Front Bar Handle', price: 80 },
+    { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85 },
+    { id: 'rock-guard', name: 'Nomadic Rock Guard', price: 95 },
+    { id: 'back-axle', name: 'Back Axle No Suspension', price: 95 },
+    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105 },
+    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 124.80 },
+    { id: 'pilot-harness', name: 'Pilot Harness', price: 190 },
+    { id: 'passenger-harness', name: 'Passenger Harness', price: 220 },
+    { id: 'front-fork', name: 'Front Fork', price: 280 },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350 },
   ]
 }
 
@@ -91,8 +99,12 @@ export default function ConfiguratorNomadicPage() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <Link href="/paratrike/nomadic" className="flex items-center gap-2 text-ink hover:text-brand transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link
+            href="/paratrike/nomadic"
+            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+            </span>
             Back
           </Link>
         </div>
@@ -213,21 +225,39 @@ export default function ConfiguratorNomadicPage() {
             </ConfigSection>
 
             {/* Accessories */}
-            <ConfigSection title="Accessories. Enhance Adventure">
-              <div className="space-y-3">
-                {CONFIG_OPTIONS.accessories.map(a => (
-                  <motion.button
-                    key={a.id}
-                    onClick={() => toggleUpgrade(a.id)}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 border-2 rounded-xl flex justify-between items-center transition-all
-                      ${selectedUpgrades.includes(a.id) ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
-                    <p className="font-bold uppercase text-ink">{a.name}</p>
-                    <p className="font-semibold text-ink2">+${a.price}</p>
-                  </motion.button>
-                ))}
-              </div>
-            </ConfigSection>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}>
+              <details className="group border-2 border-borderline rounded-xl p-4 hover:border-brand/50 transition">
+                <summary className="flex justify-between items-center cursor-pointer list-none">
+                  <span className="text-2xl font-black uppercase text-ink tracking-tight">
+                    Accessories. Enhance Adventure
+                    {selectedUpgrades.length > 0 && (
+                      <span className="ml-3 text-sm font-bold text-brand align-middle">
+                        {selectedUpgrades.length} selected
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown className="w-6 h-6 text-ink shrink-0 group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="mt-6 space-y-3">
+                  {CONFIG_OPTIONS.accessories.map(a => (
+                    <motion.button
+                      key={a.id}
+                      onClick={() => toggleUpgrade(a.id)}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full p-4 border-2 rounded-xl flex justify-between items-center transition-all
+                        ${selectedUpgrades.includes(a.id) ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
+                      <p className="font-bold uppercase text-ink">{a.name}</p>
+                      <p className="font-semibold text-ink2">
+                        +${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}
+                      </p>
+                    </motion.button>
+                  ))}
+                </div>
+              </details>
+            </motion.div>
 
             {/* Error Message */}
             {error && (
