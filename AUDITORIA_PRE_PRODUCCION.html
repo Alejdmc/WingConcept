@@ -1,0 +1,2325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WingConcept - Auditoría Pre-Producción Completa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --critical: #dc2626;
+            --high: #ea580c;
+            --medium: #eab308;
+            --low: #3b82f6;
+            --success: #16a34a;
+            --info: #0891b2;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        header .metadata {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        header .metadata span {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .toc {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            border: 1px solid var(--border);
+        }
+
+        .toc h2 {
+            margin-bottom: 1rem;
+            color: #818cf8;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc ul li {
+            padding: 0.5rem 0;
+        }
+
+        .toc ul li a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc ul li a:hover {
+            color: #818cf8;
+        }
+
+        .section {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            color: #818cf8;
+        }
+
+        .section h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #a78bfa;
+        }
+
+        .section h4 {
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #c4b5fd;
+        }
+
+        .alert {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+
+        .alert-critical {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: var(--critical);
+        }
+
+        .alert-high {
+            background: rgba(234, 88, 12, 0.1);
+            border-color: var(--high);
+        }
+
+        .alert-medium {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: var(--medium);
+        }
+
+        .alert-low {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--low);
+        }
+
+        .alert-success {
+            background: rgba(22, 163, 74, 0.1);
+            border-color: var(--success);
+        }
+
+        .alert-info {
+            background: rgba(8, 145, 178, 0.1);
+            border-color: var(--info);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-critical { background: var(--critical); }
+        .badge-high { background: var(--high); }
+        .badge-medium { background: var(--medium); }
+        .badge-low { background: var(--low); }
+        .badge-success { background: var(--success); }
+
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: rgba(0,0,0,0.4);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+
+        .checklist li::before {
+            content: "☐ ";
+            color: var(--medium);
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: rgba(0,0,0,0.3);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        .file-path {
+            color: var(--info);
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        table th,
+        table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table th {
+            background: rgba(0,0,0,0.3);
+            color: #a78bfa;
+            font-weight: 600;
+        }
+
+        table tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .progress-bar {
+            background: rgba(0,0,0,0.3);
+            border-radius: 9999px;
+            height: 2rem;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.4rem;
+            top: 0.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: #818cf8;
+            border: 3px solid var(--bg-card);
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .section {
+                background: white;
+                border: 1px solid #ccc;
+            }
+            header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        .solution-box {
+            background: rgba(22, 163, 74, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .solution-box h5 {
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .impact-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .impact-item {
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .impact-item strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a78bfa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 WingConcept</h1>
+            <div class="subtitle">Auditoría Completa Pre-Producción</div>
+            <div class="metadata">
+                <span>📅 Fecha: 13 de Julio, 2026</span>
+                <span>👤 Equipo: ZomiDev</span>
+                <span>🎯 Estado: Pre-Producción</span>
+                <span>🔐 Versión: 1.0.0</span>
+            </div>
+        </header>
+
+        <!-- RESUMEN EJECUTIVO -->
+        <div class="section">
+            <h2>📊 Resumen Ejecutivo</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" style="color: var(--critical)">11</div>
+                    <div class="label">Problemas Críticos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--high)">8</div>
+                    <div class="label">Prioridad Alta</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--medium)">12</div>
+                    <div class="label">Prioridad Media</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--success)">14</div>
+                    <div class="label">Implementaciones Correctas</div>
+                </div>
+            </div>
+
+            <div class="alert alert-critical">
+                <strong>⚠️ ADVERTENCIA CRÍTICA:</strong> El proyecto NO está listo para producción. Se han identificado 11 vulnerabilidades críticas y 8 de alta prioridad que deben resolverse antes del despliegue.
+            </div>
+
+            <h3>🎯 Estado General del Proyecto</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 65%">65% Listo para Producción</div>
+            </div>
+
+            <div class="impact-box">
+                <div class="impact-item">
+                    <strong>Frontend:</strong>
+                    <span style="color: var(--high)">⚠️ 14 problemas graves</span>
+                </div>
+                <div class="impact-item">
+                    <strong>Backend:</strong>
+                    <span style="color: var(--medium)">⚠️ 6 vulnerabilidades</span>
+                </div>
+                <div class="impact-item">
+                    <strong>Infraestructura:</strong>
+                    <span style="color: var(--low)">ℹ️ 4 mejoras necesarias</span>
+                </div>
+                <div class="impact-item">
+                    <strong>Base de Datos:</strong>
+                    <span style="color: var(--medium)">⚠️ No configurada</span>
+                </div>
+            </div>
+
+            <h3>⏱️ Tiempo Estimado de Corrección</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <strong>Sprint 1 (3-5 días):</strong> Corrección de problemas críticos en frontend
+                </div>
+                <div class="timeline-item">
+                    <strong>Sprint 2 (2-3 días):</strong> Corrección de vulnerabilidades backend
+                </div>
+                <div class="timeline-item">
+                    <strong>Sprint 3 (1-2 días):</strong> Configuración de infraestructura y base de datos
+                </div>
+                <div class="timeline-item">
+                    <strong>Sprint 4 (2 días):</strong> Testing completo y validación final
+                </div>
+            </div>
+            <p><strong>Total estimado: 8-12 días de trabajo</strong></p>
+        </div>
+
+        <!-- ÍNDICE -->
+        <div class="toc">
+            <h2>📑 Índice de Contenidos</h2>
+            <ul>
+                <li><a href="#frontend">1. Problemas de Frontend (14 críticos)</a></li>
+                <li><a href="#backend">2. Vulnerabilidades Backend (6 importantes)</a></li>
+                <li><a href="#infraestructura">3. Infraestructura y Despliegue (4 pendientes)</a></li>
+                <li><a href="#base-datos">4. Base de Datos (Configuración pendiente)</a></li>
+                <li><a href="#seguridad">5. Análisis de Seguridad (8 hallazgos)</a></li>
+                <li><a href="#mejoras">6. Mejoras Implementadas (14 correctas)</a></li>
+                <li><a href="#checklist">7. Checklist Pre-Producción</a></li>
+                <li><a href="#recomendaciones">8. Recomendaciones Finales</a></li>
+            </ul>
+        </div>
+
+        <!-- 1. PROBLEMAS DE FRONTEND -->
+        <div class="section" id="frontend">
+            <h2>1. 🎨 Problemas de Frontend</h2>
+
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Se encontraron 14 problemas graves en el frontend que impiden el funcionamiento correcto del checkout, registro y carrito.</strong>
+            </div>
+
+            <h3>🛒 1.1 Checkout - Generación de ID Falso</h3>
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Problema:</strong> El número de orden se genera con <code>Math.random()</code> en el cliente en lugar de usar el ID del servidor.
+            </div>
+            <p class="file-path">📁 /frontend/app/checkout/page.js:652</p>
+            <pre><code>// ❌ PROBLEMA: Generación local de número de orden
+const numeroOrden = `WC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+sessionStorage.setItem('lastOrderNumber', numeroOrden);</code></pre>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>// ✅ CORRECTO: Usar el ID real del backend
+if (checkoutData?.orden_id) {
+    const ordenResponse = await api.getOrden(checkoutData.orden_id);
+    sessionStorage.setItem('lastOrderNumber', ordenResponse.numero_orden);
+} else {
+    console.error('No se recibió orden_id del backend');
+}</code></pre>
+            </div>
+
+            <div class="impact-box">
+                <div class="impact-item">
+                    <strong>Impacto:</strong> Los clientes no pueden rastrear sus órdenes, las órdenes no existen en la base de datos
+                </div>
+                <div class="impact-item">
+                    <strong>Probabilidad:</strong> 100% - Afecta a todos los checkouts
+                </div>
+                <div class="impact-item">
+                    <strong>Tiempo de Fix:</strong> 2 horas
+                </div>
+            </div>
+
+            <h3>🔐 1.2 Checkout - Validación de Dirección Incompleta</h3>
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Problema:</strong> No se valida email, código postal ni formato de teléfono. Solo validación HTML5 sin verificación backend.
+            </div>
+            <p class="file-path">📁 /frontend/app/checkout/page.js:356-549</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>// Agregar validaciones antes de enviar
+const validateShippingData = (data) => {
+    const errors = {};
+
+    // Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+        errors.email = 'Email inválido';
+    }
+
+    // Teléfono (formato internacional)
+    const phoneRegex = /^\+?[\d\s\-()]{10,20}$/;
+    if (!phoneRegex.test(data.telefono)) {
+        errors.telefono = 'Teléfono inválido';
+    }
+
+    // Código postal
+    if (data.codigo_postal && !/^\d{4,10}$/.test(data.codigo_postal)) {
+        errors.codigo_postal = 'Código postal inválido';
+    }
+
+    return Object.keys(errors).length > 0 ? errors : null;
+};</code></pre>
+            </div>
+
+            <h3>👤 1.3 Registro - Datos de Dirección Descartados</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problema:</strong> Los campos de dirección se recopilan en el formulario pero NUNCA se envían al servidor.
+            </div>
+            <p class="file-path">📁 /frontend/app/(auth)/register/page.js:30-42, 72-78</p>
+            <pre><code>// ❌ PROBLEMA: Campos recopilados pero no enviados
+const [formData, setFormData] = useState({
+    nombre: '',
+    apellido: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    telefono: '',
+    address: '',      // ❌ NUNCA SE ENVÍA
+    city: '',         // ❌ NUNCA SE ENVÍA
+    state: '',        // ❌ NUNCA SE ENVÍA
+    country: '',      // ❌ NUNCA SE ENVÍA
+    zipCode: '',      // ❌ NUNCA SE ENVÍA
+})
+
+// ...
+
+const response = await api.auth.register({
+    email: formData.email,
+    password: formData.password,
+    nombre: formData.nombre,
+    apellido: formData.apellido,
+    telefono: formData.telefono,
+    // ❌ FALTA: address, city, state, country, zipCode
+})</code></pre>
+
+            <div class="solution-box">
+                <h5>✅ Solución Opción 1 - Remover campos no usados:</h5>
+                <pre><code>// Si no se necesitan en el registro, eliminar del formulario
+// Pedir dirección solo en el checkout</code></pre>
+
+                <h5>✅ Solución Opción 2 - Crear dirección después del registro:</h5>
+                <pre><code>const response = await api.auth.register({...});
+if (response.success) {
+    // Crear dirección de envío
+    await api.direcciones.create({
+        nombre_destinatario: `${formData.nombre} ${formData.apellido}`,
+        linea1: formData.address,
+        ciudad: formData.city,
+        departamento_estado: formData.state,
+        pais: formData.country,
+        codigo_postal: formData.zipCode,
+        es_principal: true
+    });
+}</code></pre>
+            </div>
+
+            <h3>📧 1.4 Registro - Validación de Email Débil</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> Solo HTML5 email validation, sin verificación de dominio o formato estricto.
+            </div>
+            <p class="file-path">📁 /frontend/app/(auth)/register/page.js:209-222</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>const validateEmail = (email) => {
+    // RFC 5322 compliant
+    const regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!regex.test(email)) return false;
+
+    // Verificar dominio común
+    const disposableDomains = ['tempmail.com', 'guerrillamail.com'];
+    const domain = email.split('@')[1];
+    if (disposableDomains.includes(domain)) {
+        return { valid: false, reason: 'No se permiten emails temporales' };
+    }
+
+    return { valid: true };
+};</code></pre>
+            </div>
+
+            <h3>🔑 1.5 Forgot Password - Error Handler Deficiente</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> Usa <code>alert()</code> nativo en lugar de UI moderna. Sin manejo específico de errores.
+            </div>
+            <p class="file-path">📁 /frontend/app/(auth)/forgot-password/page.js:13-24</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>const [error, setError] = useState(null);
+const [success, setSuccess] = useState(false);
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+        await api.auth.forgotPassword(email);
+        setSuccess(true);
+    } catch (err) {
+        setError(err.response?.data?.message || 'Error al enviar email');
+    } finally {
+        setLoading(false);
+    }
+};
+
+// En el JSX:
+{error && <div className="alert alert-error">{error}</div>}
+{success && <div className="alert alert-success">Email enviado. Revisa tu bandeja.</div>}</code></pre>
+            </div>
+
+            <h3>📊 1.6 Admin Dashboard - Datos Sin Skeleton</h3>
+            <div class="alert alert-low">
+                <span class="badge badge-low">BAJO</span>
+                <strong>Problema:</strong> Mientras carga stats, muestra "..." sin placeholder visual coherente.
+            </div>
+            <p class="file-path">📁 /frontend/app/admin/dashboard/page.js:32-50</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Skeleton Loading:</h5>
+                <pre><code>const SkeletonCard = () => (
+    &lt;div className="animate-pulse"&gt;
+        &lt;div className="h-20 bg-gray-700 rounded"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+);
+
+// En el render:
+{loading ? (
+    &lt;&gt;
+        &lt;SkeletonCard /&gt;
+        &lt;SkeletonCard /&gt;
+        &lt;SkeletonCard /&gt;
+        &lt;SkeletonCard /&gt;
+    &lt;/&gt;
+) : (
+    // Mostrar stats reales
+)}</code></pre>
+            </div>
+
+            <h3>💰 1.7 Admin Products - Precio Sin Formato</h3>
+            <div class="alert alert-low">
+                <span class="badge badge-low">BAJO</span>
+                <strong>Problema:</strong> Precio mostrado raw sin formato de moneda.
+            </div>
+            <p class="file-path">📁 /frontend/app/admin/products/page.js:173</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>const formatPrice = (price, currency = 'COP') => {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: currency
+    }).format(price);
+};
+
+// Uso:
+&lt;td&gt;{formatPrice(product.precio, product.moneda)}&lt;/td&gt;</code></pre>
+            </div>
+
+            <h3>📦 1.8 Admin Orders - Estado de Error Persistente</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> El error no se resetea al cambiar estado, permanece visible indefinidamente.
+            </div>
+            <p class="file-path">📁 /frontend/app/admin/orders/page.js:43-50</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>const handleStatusChange = async (orderId, newStatus) => {
+    setError(null); // ✅ Resetear error
+    try {
+        await api.admin.updateOrderStatus(orderId, newStatus);
+        fetchOrders(); // Recargar
+    } catch (err) {
+        setError(`Error al actualizar orden ${orderId}: ${err.message}`);
+    }
+};</code></pre>
+            </div>
+
+            <h3>🛍️ 1.9 Cart - Parsing de Precio Frágil</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problema:</strong> <code>parseInt(item.price.replace('$', '').replace(',', ''))</code> falla si el formato cambia.
+            </div>
+            <p class="file-path">📁 /frontend/app/cart/page.js:115</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Usar precio numérico del backend:</h5>
+                <pre><code>// Backend debe retornar precio como número
+// Frontend solo formatea para display
+const total = cartItems.reduce((sum, item) => {
+    return sum + (parseFloat(item.precio_unitario) * item.cantidad);
+}, 0);
+
+// Para display:
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP'
+    }).format(value);
+};</code></pre>
+            </div>
+
+            <h3>⚙️ 1.10 Configurador Vanguard - Precio No Validado</h3>
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Problema:</strong> El precio total se calcula localmente sin validación contra backend. Vulnerable a manipulación.
+            </div>
+            <p class="file-path">📁 /frontend/app/paratrike/vanguard/configuration/page.js:76-82</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Validación en Backend:</h5>
+                <pre><code>// Frontend: Enviar configuración completa
+const configuration = {
+    producto_id: 'vanguard-v8',
+    opciones: {
+        engine: selectedEngine,
+        finish: selectedFinish,
+        color: selectedColor,
+        accessories: selectedAccessories
+    }
+};
+
+// Backend calcula precio autoritativo
+const response = await api.configurador.validateConfiguration(configuration);
+const { precio_total, desglose } = response;
+
+// Frontend usa el precio del backend
+setTotalPrice(precio_total);</code></pre>
+
+                <h5>Backend Endpoint Necesario:</h5>
+                <pre><code># backend/app/api/v1/configurador.py
+@router.post("/validar-precio")
+async def validar_precio(config: ConfiguracionCreate):
+    # Calcular precio autoritativo
+    precio_base = get_precio_base(config.producto_id)
+    precio_opciones = calculate_opciones_price(config.opciones)
+    total = precio_base + precio_opciones
+
+    return {
+        "precio_total": total,
+        "desglose": {
+            "base": precio_base,
+            "opciones": precio_opciones
+        }
+    }</code></pre>
+            </div>
+
+            <h3>🔄 1.11 Cart Context - Campos Inconsistentes</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> Configuración mezcla <code>accentColor</code> y <code>peripheralColor</code>, causando inconsistencias.
+            </div>
+            <p class="file-path">📁 /frontend/context/CartContext.jsx:77-85</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Normalizar estructura:</h5>
+                <pre><code>// Definir schema claro para configuraciones
+const ConfigurationSchema = {
+    vanguard: {
+        engine: String,
+        finish: String,
+        primaryColor: String,   // ✅ Consistente
+        secondaryColor: String, // ✅ Consistente
+        accessories: Array
+    },
+    paratrike: {
+        engine: String,
+        finish: String,
+        color: String,
+        accessories: Array
+    }
+};
+
+// Validar antes de agregar al carrito
+const validateConfiguration = (productType, config) => {
+    const schema = ConfigurationSchema[productType];
+    // Validar que config coincida con schema
+};</code></pre>
+            </div>
+
+            <h3>🔌 1.12 API - Refresh Token Falla Silenciosamente</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problema:</strong> El catch no re-lanza el error, solo <code>console.warn</code>, causando peticiones fallidas sin feedback.
+            </div>
+            <p class="file-path">📁 /frontend/lib/api.js:40-76</p>
+            <pre><code>// ❌ PROBLEMA
+} catch (err) {
+    console.warn('Token refresh failed:', err);
+    // ❌ No se re-lanza el error
+}
+return instance(originalRequest); // ❌ Se reintenta sin token válido</code></pre>
+
+            <div class="solution-box">
+                <h5>✅ Solución:</h5>
+                <pre><code>} catch (refreshError) {
+    console.warn('Token refresh failed:', refreshError);
+
+    // Limpiar cookies y redirigir
+    document.cookie = 'access_token=; Max-Age=0';
+    document.cookie = 'refresh_token=; Max-Age=0';
+
+    // Redirigir a login
+    window.location.href = '/login?session_expired=true';
+
+    // Re-lanzar error
+    return Promise.reject(refreshError);
+}</code></pre>
+            </div>
+
+            <h3>🚫 1.13 Validaciones Globales Faltantes</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problemas múltiples:</strong>
+            </div>
+
+            <ul style="margin: 1rem 0; padding-left: 2rem;">
+                <li>❌ Sin validación de stock antes de checkout</li>
+                <li>❌ Sin validación de cantidad mínima/máxima en carrito</li>
+                <li>❌ Sin validación de formato de teléfono</li>
+                <li>❌ Sin validación de código postal</li>
+                <li>❌ Sin validación de cantidad negativa (solo en frontend)</li>
+                <li>❌ Sin CSRF tokens en formularios</li>
+                <li>❌ Sin rate limiting en requests de API</li>
+            </ul>
+
+            <div class="solution-box">
+                <h5>✅ Solución Integral - Librería de Validación:</h5>
+                <pre><code>// Instalar: npm install yup
+import * as yup from 'yup';
+
+// Schema de validación para checkout
+const checkoutSchema = yup.object({
+    email: yup.string()
+        .email('Email inválido')
+        .required('Email requerido'),
+    telefono: yup.string()
+        .matches(/^\+?[\d\s\-()]{10,20}$/, 'Teléfono inválido')
+        .required('Teléfono requerido'),
+    nombre: yup.string()
+        .min(2, 'Mínimo 2 caracteres')
+        .required('Nombre requerido'),
+    linea1: yup.string()
+        .min(5, 'Dirección muy corta')
+        .required('Dirección requerida'),
+    ciudad: yup.string()
+        .required('Ciudad requerida'),
+    codigo_postal: yup.string()
+        .matches(/^\d{4,10}$/, 'Código postal inválido')
+});
+
+// Validación de cantidad en carrito
+const cantidadSchema = yup.number()
+    .min(1, 'Cantidad mínima: 1')
+    .max(10, 'Cantidad máxima: 10')
+    .integer('Debe ser un número entero')
+    .required();
+
+// Uso:
+try {
+    await checkoutSchema.validate(formData, { abortEarly: false });
+    // Proceder con checkout
+} catch (validationErrors) {
+    setErrors(validationErrors.inner);
+}</code></pre>
+
+                <h5>✅ CSRF Protection:</h5>
+                <pre><code>// Backend: Generar token CSRF en session
+// Frontend: Incluir en headers
+const api = axios.create({
+    headers: {
+        'X-CSRF-Token': getCsrfToken()
+    }
+});</code></pre>
+
+                <h5>✅ Rate Limiting Frontend:</h5>
+                <pre><code>import { debounce } from 'lodash';
+
+// Limitar búsquedas
+const searchProducts = debounce(async (query) => {
+    await api.productos.search(query);
+}, 500); // Esperar 500ms después del último keystroke
+
+// Prevenir double-submit en formularios
+const [submitting, setSubmitting] = useState(false);
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting) return; // ✅ Prevenir double-submit
+
+    setSubmitting(true);
+    try {
+        await submitForm();
+    } finally {
+        setSubmitting(false);
+    }
+};</code></pre>
+            </div>
+
+            <h3>🎯 1.14 Middleware - Sin Manejo de Token Expirado</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> El middleware valida token contra <code>/api/v1/auth/me</code> en cada request a rutas admin, sin cache.
+            </div>
+            <p class="file-path">📁 /frontend/middleware.js:14-22</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Cache de validación:</h5>
+                <pre><code>// Usar Next.js Edge Runtime con cache
+export const config = {
+    matcher: ['/admin/:path*'],
+    runtime: 'edge'
+};
+
+// Cache de validación (5 minutos)
+const tokenCache = new Map();
+
+export async function middleware(request) {
+    const token = request.cookies.get('access_token')?.value;
+
+    // Verificar cache
+    const cached = tokenCache.get(token);
+    if (cached && Date.now() < cached.expires) {
+        if (!cached.isAdmin) {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+        return NextResponse.next();
+    }
+
+    // Validar con backend
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            // Cache en edge
+            next: { revalidate: 300 } // 5 minutos
+        });
+
+        if (!res.ok) throw new Error('Unauthorized');
+
+        const user = await res.json();
+
+        // Guardar en cache
+        tokenCache.set(token, {
+            isAdmin: user.rol === 'admin',
+            expires: Date.now() + 300000 // 5 min
+        });
+
+        if (user.rol !== 'admin') {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+    } catch (err) {
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    return NextResponse.next();
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- 2. VULNERABILIDADES BACKEND -->
+        <div class="section" id="backend">
+            <h2>2. 🔒 Vulnerabilidades Backend</h2>
+
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Se identificaron 6 vulnerabilidades de seguridad en el backend que pueden ser explotadas.</strong>
+            </div>
+
+            <h3>🎭 2.1 IDOR en Endpoints de Órdenes</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problema:</strong> Aunque hay verificación de autorización, el patrón podría ser bypasseado con rol admin.
+            </div>
+            <p class="file-path">📁 /backend/app/api/v1/ordenes.py</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Verificación explícita de ownership:</h5>
+                <pre><code># En orden_service.py
+async def verificar_ownership(orden_id: UUID, usuario_id: UUID):
+    orden = await get_orden(orden_id)
+    if not orden:
+        raise OrdenNoEncontradaError()
+
+    # Solo el dueño o admin puede acceder
+    if orden.usuario_id != usuario_id:
+        if usuario.rol != 'admin':
+            raise PermisoDenegadoError("No puedes acceder a esta orden")
+
+    return orden
+
+# En endpoint:
+@router.get("/{orden_id}")
+async def obtener_orden(
+    orden_id: UUID,
+    usuario: Usuario = Depends(get_current_user)
+):
+    orden = await verificar_ownership(orden_id, usuario.id)
+    return orden</code></pre>
+            </div>
+
+            <h3>⚡ 2.2 Webhook sin Atomicidad Transaccional</h3>
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Problema:</strong> Si la DB falla después de validar la firma HMAC del webhook, no se reintenta y se pierde el evento.
+            </div>
+            <p class="file-path">📁 /backend/app/api/v1/webhooks.py:24-62</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Tabla de eventos de webhook:</h5>
+                <pre><code># Nuevo modelo: webhook_events
+class WebhookEvent(Base):
+    __tablename__ = "webhook_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    proveedor = Column(String(20), nullable=False)  # stripe, wompi
+    event_id = Column(String(200), unique=True, nullable=False)
+    event_type = Column(String(100), nullable=False)
+    payload = Column(JSONB, nullable=False)
+    procesado = Column(Boolean, default=False)
+    intentos = Column(Integer, default=0)
+    ultimo_error = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    procesado_at = Column(DateTime(timezone=True), nullable=True)
+
+# En webhook endpoint:
+@router.post("/stripe")
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+
+    try:
+        # Validar firma
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        raise HTTPException(400, "Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(401, "Invalid signature")
+
+    # Guardar evento en DB primero (idempotencia)
+    webhook_event = WebhookEvent(
+        proveedor="stripe",
+        event_id=event['id'],
+        event_type=event['type'],
+        payload=event
+    )
+
+    try:
+        db.add(webhook_event)
+        await db.commit()
+    except IntegrityError:
+        # Evento ya procesado (duplicate event_id)
+        await db.rollback()
+        return {"status": "duplicate"}
+
+    # Procesar en background task
+    background_tasks.add_task(procesar_webhook_event, webhook_event.id)
+
+    return {"status": "received"}
+
+# Background task con reintentos:
+async def procesar_webhook_event(event_id: UUID, max_intentos: int = 3):
+    async with get_db() as db:
+        event = await db.get(WebhookEvent, event_id)
+
+        if event.procesado:
+            return
+
+        try:
+            # Procesar según tipo
+            if event.event_type == 'checkout.session.completed':
+                await procesar_pago_completado(event.payload, db)
+
+            # Marcar como procesado
+            event.procesado = True
+            event.procesado_at = datetime.now(timezone.utc)
+            await db.commit()
+
+        except Exception as e:
+            event.intentos += 1
+            event.ultimo_error = str(e)
+            await db.commit()
+
+            # Reintentar si no se alcanzó el máximo
+            if event.intentos < max_intentos:
+                await asyncio.sleep(60 * event.intentos)  # Backoff exponencial
+                await procesar_webhook_event(event_id, max_intentos)
+            else:
+                logger.error(f"Webhook {event_id} falló después de {max_intentos} intentos")
+                # Enviar alerta a Sentry/email
+</code></pre>
+            </div>
+
+            <h3>📝 2.3 Mass Assignment en Admin Update</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Problema:</strong> Uso de <code>setattr</code> con <code>model_dump(exclude_unset=True)</code> permite escalamiento de privilegios si la validación de schema se bypassea.
+            </div>
+            <p class="file-path">📁 /backend/app/api/v1/admin.py:125-143</p>
+            <p class="file-path">📁 /backend/app/services/orden_service.py:275-293</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Whitelist explícita de campos actualizables:</h5>
+                <pre><code># En schemas/usuario.py
+class UsuarioUpdate(BaseModel):
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    telefono: Optional[str] = None
+    # ❌ NO incluir: rol, activo, email_verificado
+
+class UsuarioAdminUpdate(BaseModel):
+    # Admin puede modificar más campos
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    telefono: Optional[str] = None
+    activo: Optional[bool] = None
+    # ⚠️ rol se maneja con endpoint separado por seguridad
+
+# En admin.py
+UPDATABLE_USER_FIELDS = ['nombre', 'apellido', 'telefono', 'activo']
+
+@router.patch("/usuarios/{usuario_id}")
+async def actualizar_usuario(
+    usuario_id: UUID,
+    data: UsuarioAdminUpdate,
+    db: AsyncSession = Depends(get_db),
+    admin: Usuario = Depends(get_current_admin)
+):
+    usuario = await db.get(Usuario, usuario_id)
+    if not usuario:
+        raise HTTPException(404, "Usuario no encontrado")
+
+    # Solo actualizar campos permitidos
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if field in UPDATABLE_USER_FIELDS:
+            setattr(usuario, field, value)
+        else:
+            logger.warning(f"Admin {admin.id} intentó modificar campo no permitido: {field}")
+
+    await db.commit()
+    return usuario
+
+# Endpoint separado para cambiar rol (con log de auditoría)
+@router.patch("/usuarios/{usuario_id}/rol")
+async def cambiar_rol_usuario(
+    usuario_id: UUID,
+    nuevo_rol: str = Body(..., regex="^(client|admin)$"),
+    db: AsyncSession = Depends(get_db),
+    admin: Usuario = Depends(get_current_admin)
+):
+    usuario = await db.get(Usuario, usuario_id)
+    if not usuario:
+        raise HTTPException(404, "Usuario no encontrado")
+
+    # Log de auditoría
+    logger.info(
+        f"Admin {admin.id} cambió rol de usuario {usuario_id} "
+        f"de '{usuario.rol}' a '{nuevo_rol}'"
+    )
+
+    # Enviar notificación por email al usuario
+    await enviar_email(
+        usuario.email,
+        "Cambio de permisos en tu cuenta",
+        f"Tu rol ha sido cambiado a: {nuevo_rol}"
+    )
+
+    usuario.rol = nuevo_rol
+    await db.commit()
+    return usuario</code></pre>
+            </div>
+
+            <h3>🍪 2.4 Session ID con Fallback a IP Débil</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> <code>get_session_id()</code> usa IP como fallback, débil para tracking de sesión (NAT, proxies, VPN).
+            </div>
+            <p class="file-path">📁 /backend/app/core/dependencies.py:109-122</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Generar session_id en backend:</h5>
+                <pre><code># En dependencies.py
+def get_or_create_session_id(
+    request: Request,
+    response: Response,
+    session_id: Optional[str] = Cookie(None)
+) -> str:
+    if session_id:
+        # Validar que es UUID válido
+        try:
+            UUID(session_id)
+            return session_id
+        except ValueError:
+            pass
+
+    # Generar nuevo session_id
+    new_session_id = str(uuid4())
+
+    # Setear en cookie (httpOnly, secure en prod)
+    response.set_cookie(
+        key="session_id",
+        value=new_session_id,
+        max_age=86400,  # 24 horas
+        httponly=True,
+        secure=settings.ENVIRONMENT == "production",
+        samesite="lax"
+    )
+
+    return new_session_id
+
+# En endpoints de carrito:
+@router.get("")
+async def obtener_carrito(
+    response: Response,
+    session_id: str = Depends(get_or_create_session_id),
+    usuario: Optional[Usuario] = Depends(get_current_user_optional)
+):
+    if usuario:
+        # Usuario autenticado: usar carrito de DB
+        carrito = await carrito_service.obtener_carrito_usuario(usuario.id)
+    else:
+        # Usuario anónimo: usar carrito de Redis con session_id
+        carrito = await carrito_service.obtener_carrito_anonimo(session_id)
+
+    return carrito</code></pre>
+            </div>
+
+            <h3>📧 2.5 Email Enumeration en Password Recovery</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> El endpoint revela si un email existe en la base de datos.
+            </div>
+            <p class="file-path">📁 /backend/app/api/v1/auth.py:120-135</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Respuesta genérica:</h5>
+                <pre><code>@router.post("/recuperar-password")
+@limiter.limit("3/hour")
+async def recuperar_password(
+    request: Request,
+    data: RecuperarPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    # Siempre devolver el mismo mensaje (timing attack resistant)
+    mensaje = (
+        "Si el email existe en nuestra base de datos, "
+        "recibirás un link de recuperación."
+    )
+
+    # Buscar usuario
+    result = await db.execute(
+        select(Usuario).where(Usuario.email == data.email)
+    )
+    usuario = result.scalar_one_or_none()
+
+    if usuario:
+        # Generar token
+        token = secrets.token_urlsafe(32)
+        expires = datetime.now(timezone.utc) + timedelta(hours=24)
+
+        usuario.reset_token = token
+        usuario.reset_token_expires = expires
+        await db.commit()
+
+        # Enviar email (en background para no revelar timing)
+        background_tasks.add_task(
+            enviar_email_recuperacion,
+            usuario.email,
+            token
+        )
+    else:
+        # ⚠️ IMPORTANTE: Agregar delay artificial
+        # para que tome el mismo tiempo que enviar email
+        await asyncio.sleep(0.5)
+
+    # Siempre devolver 200 OK con mismo mensaje
+    return {"message": mensaje}</code></pre>
+            </div>
+
+            <h3>🔐 2.6 Email Verification Opcional</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Problema:</strong> <code>REQUIRE_EMAIL_VERIFIED=false</code> en desarrollo. Debe ser <code>true</code> en producción.
+            </div>
+            <p class="file-path">📁 /backend/.env.example:72</p>
+
+            <div class="solution-box">
+                <h5>✅ Solución - Forzar en producción:</h5>
+                <pre><code># En config.py
+@validator('REQUIRE_EMAIL_VERIFIED', pre=True)
+def force_email_verification_in_prod(cls, v, values):
+    environment = values.get('ENVIRONMENT')
+    if environment == 'production' and not v:
+        logger.warning(
+            "⚠️  REQUIRE_EMAIL_VERIFIED forzado a True en producción"
+        )
+        return True
+    return v
+
+# En orden_service.py (antes de crear orden):
+if settings.REQUIRE_EMAIL_VERIFIED and not usuario.email_verificado:
+    raise HTTPException(
+        403,
+        detail=(
+            "Debes verificar tu email antes de realizar una compra. "
+            "Revisa tu bandeja de entrada o solicita un nuevo email de verificación."
+        )
+    )</code></pre>
+            </div>
+        </div>
+
+        <!-- 3. INFRAESTRUCTURA Y DESPLIEGUE -->
+        <div class="section" id="infraestructura">
+            <h2>3. 🏗️ Infraestructura y Despliegue</h2>
+
+            <h3>3.1 Docker - Configuración de Producción</h3>
+            <div class="alert alert-info">
+                <span class="badge badge-low">INFO</span>
+                <strong>Estado actual:</strong> Docker configurado correctamente con separación dev/prod.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Componente</th>
+                        <th>Estado</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Backend</td>
+                        <td><span class="badge badge-success">✅</span></td>
+                        <td>4 workers en prod, healthcheck OK</td>
+                    </tr>
+                    <tr>
+                        <td>Redis</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Password requerido en prod, maxmemory 256MB OK</td>
+                    </tr>
+                    <tr>
+                        <td>Nginx</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Docs bloqueados, falta configurar SSL</td>
+                    </tr>
+                    <tr>
+                        <td>Certbot</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Configurado pero no ejecutado</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>🔧 Pendiente: Configuración SSL/HTTPS</h4>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Acción requerida:</strong> Obtener certificados SSL con Let's Encrypt antes de producción.
+            </div>
+
+            <div class="solution-box">
+                <h5>✅ Pasos para configurar SSL:</h5>
+                <pre><code># 1. Asegurarse que el dominio apunta al servidor
+dig wingconcept.com  # Debe resolver a la IP del servidor
+
+# 2. Iniciar servicios sin SSL primero
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# 3. Obtener certificado (ejecutar una sola vez)
+docker-compose run --rm certbot certonly --webroot \
+    -w /var/www/certbot \
+    -d wingconcept.com \
+    -d www.wingconcept.com \
+    --email admin@wingconcept.com \
+    --agree-tos \
+    --non-interactive
+
+# 4. Actualizar nginx.conf para usar SSL
+# Descomentar bloque server { listen 443 ssl; ... }
+
+# 5. Reiniciar nginx
+docker-compose restart nginx
+
+# 6. Verificar
+curl -I https://wingconcept.com
+
+# 7. Configurar renovación automática (crontab)
+0 0 */60 * * cd /path/to/project && docker-compose run --rm certbot renew && docker-compose restart nginx</code></pre>
+            </div>
+
+            <h4>📋 Archivo nginx.conf para SSL</h4>
+            <pre><code># Agregar a docker/nginx/nginx.conf
+
+# HTTP → HTTPS redirect
+server {
+    listen 80;
+    server_name wingconcept.com www.wingconcept.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+
+# HTTPS
+server {
+    listen 443 ssl http2;
+    server_name wingconcept.com www.wingconcept.com;
+
+    ssl_certificate /etc/letsencrypt/live/wingconcept.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wingconcept.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    location /api/ {
+        proxy_pass http://backend:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+
+            <h3>3.2 Variables de Entorno - Producción</h3>
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Pendiente:</strong> Configurar variables de entorno de producción.
+            </div>
+
+            <h4>📝 Checklist de Variables de Entorno:</h4>
+            <ul class="checklist">
+                <li><strong>SECRET_KEY</strong> - Generar con <code>openssl rand -hex 32</code></li>
+                <li><strong>REDIS_PASSWORD</strong> - Generar con <code>openssl rand -hex 16</code></li>
+                <li><strong>DATABASE_URL</strong> - URL de Supabase o servidor propio</li>
+                <li><strong>STRIPE_SECRET_KEY</strong> - Key de producción (no test)</li>
+                <li><strong>STRIPE_WEBHOOK_SECRET</strong> - Secret de webhook de producción</li>
+                <li><strong>RESEND_API_KEY</strong> - Key de Resend con dominio verificado</li>
+                <li><strong>ALLOWED_ORIGINS</strong> - Actualizar con dominio real</li>
+                <li><strong>ALLOWED_HOSTS</strong> - Actualizar con dominio real</li>
+                <li><strong>REQUIRE_EMAIL_VERIFIED</strong> - Setear a <code>true</code></li>
+                <li><strong>ENVIRONMENT</strong> - Setear a <code>production</code></li>
+                <li><strong>DEBUG</strong> - Setear a <code>False</code></li>
+                <li><strong>LOG_LEVEL</strong> - Setear a <code>WARNING</code></li>
+            </ul>
+
+            <h3>3.3 Frontend - Build y Deployment</h3>
+            <div class="alert alert-medium">
+                <span class="badge badge-medium">MEDIO</span>
+                <strong>Pendiente:</strong> Configurar despliegue del frontend (Next.js).
+            </div>
+
+            <div class="solution-box">
+                <h5>✅ Opciones de Deployment:</h5>
+
+                <h6>Opción 1: Vercel (Recomendado para Next.js)</h6>
+                <pre><code># 1. Instalar Vercel CLI
+npm i -g vercel
+
+# 2. Login
+vercel login
+
+# 3. Configurar variables de entorno en Vercel dashboard
+NEXT_PUBLIC_API_URL=https://wingconcept.com/api/v1
+
+# 4. Deploy
+cd frontend
+vercel --prod
+
+# 5. Configurar dominio custom
+# En Vercel dashboard: Settings → Domains → Add wingconcept.com</code></pre>
+
+                <h6>Opción 2: Docker + Nginx (self-hosted)</h6>
+                <pre><code># Crear Dockerfile en frontend/
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV production
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+EXPOSE 3000
+CMD ["npm", "start"]
+
+# Agregar a docker-compose.yml:
+frontend:
+  build: ../frontend
+  container_name: wingconcept_frontend
+  environment:
+    - NEXT_PUBLIC_API_URL=https://wingconcept.com/api/v1
+  restart: unless-stopped
+  networks:
+    - wingnet
+
+# Actualizar nginx.conf:
+location / {
+    proxy_pass http://frontend:3000;
+}</code></pre>
+            </div>
+
+            <h3>3.4 Monitoring y Logs</h3>
+            <div class="alert alert-info">
+                <span class="badge badge-low">INFO</span>
+                <strong>Recomendado:</strong> Implementar monitoreo en producción.
+            </div>
+
+            <div class="solution-box">
+                <h5>✅ Herramientas Recomendadas:</h5>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Herramienta</th>
+                            <th>Propósito</th>
+                            <th>Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Sentry</strong></td>
+                            <td>Error tracking, performance monitoring</td>
+                            <td>$26/mes (10K events)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Uptime Robot</strong></td>
+                            <td>Monitoreo de uptime, alertas</td>
+                            <td>Gratis (50 monitors)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grafana + Prometheus</strong></td>
+                            <td>Métricas, dashboards</td>
+                            <td>Gratis (self-hosted)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Papertrail</strong></td>
+                            <td>Agregación de logs</td>
+                            <td>Gratis (50MB/mes)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h6>Configuración de Sentry (Ya preparado):</h6>
+                <pre><code># En .env
+SENTRY_DSN=https://...@sentry.io/...
+SENTRY_ENVIRONMENT=production
+SENTRY_TRACES_SAMPLE_RATE=0.1
+
+# Sentry se auto-inicializa en app/main.py</code></pre>
+
+                <h6>Configuración de Uptime Robot:</h6>
+                <pre><code>1. Crear cuenta en uptimerobot.com
+2. Agregar monitors:
+   - https://wingconcept.com/health (cada 5 min)
+   - https://wingconcept.com (cada 5 min)
+3. Configurar alertas por email/SMS/Slack</code></pre>
+            </div>
+        </div>
+
+        <!-- 4. BASE DE DATOS -->
+        <div class="section" id="base-datos">
+            <h2>4. 🗄️ Base de Datos</h2>
+
+            <div class="alert alert-critical">
+                <span class="badge badge-critical">CRÍTICO</span>
+                <strong>Estado:</strong> Base de datos NO configurada. Decisión pendiente entre Supabase y servidor propio.
+            </div>
+
+            <h3>4.1 Opciones de Base de Datos</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Aspecto</th>
+                        <th>Supabase (Managed)</th>
+                        <th>Servidor Propio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Setup Time</strong></td>
+                        <td>✅ 15 minutos</td>
+                        <td>⚠️ 2-3 horas</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Costo Mensual</strong></td>
+                        <td>$25-50</td>
+                        <td>$10-20 + mantenimiento</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Backups</strong></td>
+                        <td>✅ Automáticos (PITR)</td>
+                        <td>⚠️ Manual (pg_dump cron)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Escalabilidad</strong></td>
+                        <td>✅ Automática</td>
+                        <td>⚠️ Manual</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Storage</strong></td>
+                        <td>✅ Incluido (S3-compatible)</td>
+                        <td>⚠️ Adicional (MinIO o S3)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mantenimiento</strong></td>
+                        <td>✅ Incluido</td>
+                        <td>⚠️ 4 horas/mes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Performance</strong></td>
+                        <td>✅ Optimizado</td>
+                        <td>✅ Control total</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Control</strong></td>
+                        <td>⚠️ Limitado</td>
+                        <td>✅ Completo</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.2 Recomendación: Supabase para MVP</h3>
+            <div class="alert alert-success">
+                <span class="badge badge-success">RECOMENDADO</span>
+                <strong>Para lanzar rápido y con bajo mantenimiento, usar Supabase.</strong> Migrar a servidor propio solo si el negocio crece y los costos lo justifican.
+            </div>
+
+            <h4>📋 Setup de Supabase (15 minutos):</h4>
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li>Crear cuenta en <a href="https://app.supabase.com" target="_blank">app.supabase.com</a></li>
+                <li>Crear proyecto: WingConcept (región: us-east-1 o más cercana)</li>
+                <li>Obtener credenciales:
+                    <ul style="padding-left: 2rem;">
+                        <li>Settings → Database → Connection String (URI)</li>
+                        <li>Settings → API → URL y Keys (anon, service_role)</li>
+                    </ul>
+                </li>
+                <li>Configurar en <code>backend/.env</code>:
+                    <pre><code>DATABASE_URL=postgresql+asyncpg://postgres:[PASSWORD]@db.[PROJECT_ID].supabase.co:5432/postgres
+SUPABASE_URL=https://[PROJECT_ID].supabase.co
+SUPABASE_SERVICE_KEY=eyJ...
+SUPABASE_ANON_KEY=eyJ...</code></pre>
+                </li>
+                <li>Ejecutar migraciones:
+                    <pre><code>cd backend
+alembic upgrade head</code></pre>
+                </li>
+                <li>Crear buckets de Storage:
+                    <ul style="padding-left: 2rem;">
+                        <li>Storage → New bucket: <code>productos</code> (Public)</li>
+                        <li>Storage → New bucket: <code>modelos3d</code> (Public)</li>
+                    </ul>
+                </li>
+                <li>Crear usuario admin:
+                    <pre><code>ADMIN_EMAIL=admin@wingconcept.com \
+ADMIN_PASSWORD=TuPasswordSeguro123! \
+python scripts/crear_admin.py</code></pre>
+                </li>
+            </ol>
+
+            <h3>4.3 Migraciones Pendientes</h3>
+            <div class="alert alert-info">
+                <span class="badge badge-low">INFO</span>
+                <strong>Estado:</strong> Migraciones Alembic configuradas correctamente. 5 archivos de migración listos.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Migración</th>
+                        <th>Estado</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>20260620_0001</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Esquema inicial (10 tablas)</td>
+                    </tr>
+                    <tr>
+                        <td>20260704_0001</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Stripe USD + RLS</td>
+                    </tr>
+                    <tr>
+                        <td>20260711_0001</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Contenidos CMS</td>
+                    </tr>
+                    <tr>
+                        <td>20260711_0002</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Shows & Events</td>
+                    </tr>
+                    <tr>
+                        <td>20260711_0003</td>
+                        <td><span class="badge badge-medium">⚠️</span></td>
+                        <td>Cupones + RLS</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>🚀 Ejecutar migraciones:</h4>
+            <pre><code># Verificar estado actual
+alembic current
+
+# Ver historial
+alembic history
+
+# Ejecutar todas las migraciones pendientes
+alembic upgrade head
+
+# Verificar tablas creadas (si usas Supabase)
+# Dashboard → Table Editor → Ver 15 tablas creadas</code></pre>
+
+            <h3>4.4 Backup y Disaster Recovery</h3>
+            <div class="alert alert-high">
+                <span class="badge badge-high">ALTO</span>
+                <strong>Pendiente:</strong> Configurar estrategia de backups.
+            </div>
+
+            <div class="solution-box">
+                <h5>✅ Con Supabase:</h5>
+                <pre><code># Backups automáticos incluidos:
+# - Daily backups (7 días de retención)
+# - Point-in-Time Recovery (PITR) disponible en plan Pro
+# - Export manual: Dashboard → Database → Backup → Download
+
+# Para backups adicionales (opcional):
+# Script para exportar a S3
+#!/bin/bash
+DATE=$(date +%Y%m%d)
+pg_dump "$DATABASE_URL" | gzip > backup_$DATE.sql.gz
+aws s3 cp backup_$DATE.sql.gz s3://wingconcept-backups/
+rm backup_$DATE.sql.gz</code></pre>
+
+                <h5>✅ Con servidor propio:</h5>
+                <pre><code># Script de backup automático
+# /root/backup-db.sh
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/backups/postgres"
+mkdir -p $BACKUP_DIR
+
+# Backup con pg_dump
+pg_dump -h localhost -U postgres wingconcept | gzip > $BACKUP_DIR/wingconcept_$DATE.sql.gz
+
+# Eliminar backups > 30 días
+find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
+
+# Subir a S3 (opcional)
+aws s3 cp $BACKUP_DIR/wingconcept_$DATE.sql.gz s3://wingconcept-backups/
+
+# Agregar a crontab:
+# 0 2 * * * /root/backup-db.sh >> /var/log/backup.log 2>&1</code></pre>
+            </div>
+        </div>
+
+        <!-- 5. ANÁLISIS DE SEGURIDAD -->
+        <div class="section" id="seguridad">
+            <h2>5. 🔐 Análisis de Seguridad</h2>
+
+            <h3>5.1 Resumen de Seguridad</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" style="color: var(--success)">7/7</div>
+                    <div class="label">Security Headers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--success)">✓</div>
+                    <div class="label">Rate Limiting</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--success)">✓</div>
+                    <div class="label">JWT + Refresh Rotation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" style="color: var(--success)">✓</div>
+                    <div class="label">Webhook HMAC</div>
+                </div>
+            </div>
+
+            <h3>5.2 ✅ Implementaciones Correctas (14)</h3>
+            <div class="alert alert-success">
+                <strong>Aspectos de seguridad bien implementados:</strong>
+            </div>
+
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li><strong>Autenticación JWT:</strong> Token firmado con HS256, SECRET_KEY validado en startup</li>
+                <li><strong>Refresh Token Rotation:</strong> JTI blacklist en Redis, detección de reutilización</li>
+                <li><strong>Password Hashing:</strong> bcrypt con salt automático, no se usa passlib obsoleto</li>
+                <li><strong>Rate Limiting Triple Capa:</strong>
+                    <ul style="padding-left: 2rem;">
+                        <li>Nginx: 30 requests/minuto por IP</li>
+                        <li>FastAPI: 120 requests/minuto global</li>
+                        <li>Redis: 5 registros/hora, 10 logins/15min, 3 recovery/hora</li>
+                    </ul>
+                </li>
+                <li><strong>Security Headers (7/7):</strong>
+                    <ul style="padding-left: 2rem;">
+                        <li>X-Frame-Options: DENY</li>
+                        <li>X-Content-Type-Options: nosniff</li>
+                        <li>X-XSS-Protection: 1; mode=block</li>
+                        <li>Strict-Transport-Security: max-age=31536000</li>
+                        <li>Referrer-Policy: strict-origin-when-cross-origin</li>
+                        <li>Permissions-Policy: sin APIs peligrosas</li>
+                        <li>Content-Security-Policy: script-src 'self' 'unsafe-inline'</li>
+                    </ul>
+                </li>
+                <li><strong>CORS Configurado:</strong> ALLOWED_ORIGINS whitelist, credentials permitido</li>
+                <li><strong>SQLAlchemy ORM:</strong> Queries parametrizadas, sin SQL injection</li>
+                <li><strong>Sin eval/exec/pickle:</strong> Código auditado sin funciones peligrosas</li>
+                <li><strong>Webhook Validation:</strong> HMAC signature verification (Stripe/Wompi)</li>
+                <li><strong>Docker Security:</strong> Usuario non-root, slim images, health checks</li>
+                <li><strong>Docs Bloqueados en Prod:</strong> /docs, /redoc, /openapi.json retornan 404</li>
+                <li><strong>Email Verification:</strong> Token de verificación con expiración</li>
+                <li><strong>Password Reset:</strong> Token seguro con TTL de 24 horas</li>
+                <li><strong>Logging Estructurado:</strong> structlog sin exponer datos sensibles</li>
+            </ol>
+
+            <h3>5.3 ⚠️ Vulnerabilidades Identificadas (8)</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vulnerabilidad</th>
+                        <th>Severidad</th>
+                        <th>CVSS</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>VULN-001</td>
+                        <td>IDOR en órdenes (potential bypass)</td>
+                        <td><span class="badge badge-high">ALTO</span></td>
+                        <td>7.5</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-002</td>
+                        <td>Webhook sin atomicidad transaccional</td>
+                        <td><span class="badge badge-critical">CRÍTICO</span></td>
+                        <td>9.1</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-003</td>
+                        <td>Mass Assignment en admin update</td>
+                        <td><span class="badge badge-high">ALTO</span></td>
+                        <td>8.0</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-004</td>
+                        <td>Session ID con fallback a IP</td>
+                        <td><span class="badge badge-medium">MEDIO</span></td>
+                        <td>5.3</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-005</td>
+                        <td>Email enumeration en recovery</td>
+                        <td><span class="badge badge-medium">MEDIO</span></td>
+                        <td>5.0</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-006</td>
+                        <td>Email verification opcional</td>
+                        <td><span class="badge badge-medium">MEDIO</span></td>
+                        <td>4.5</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-007</td>
+                        <td>Frontend: Precio calculado localmente</td>
+                        <td><span class="badge badge-critical">CRÍTICO</span></td>
+                        <td>9.3</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                    <tr>
+                        <td>VULN-008</td>
+                        <td>Frontend: Sin CSRF tokens</td>
+                        <td><span class="badge badge-high">ALTO</span></td>
+                        <td>7.0</td>
+                        <td>⚠️ Pendiente</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>5.4 🔒 Mejoras de Seguridad Recomendadas</h3>
+
+            <h4>Prioridad P1 (Antes de Producción):</h4>
+            <ul class="checklist">
+                <li>Implementar webhook event table con reintentos automáticos</li>
+                <li>Corregir IDOR con verificación explícita de ownership</li>
+                <li>Validar precios en backend para configurador</li>
+                <li>Implementar CSRF protection en formularios</li>
+                <li>Forzar REQUIRE_EMAIL_VERIFIED=true en producción</li>
+            </ul>
+
+            <h4>Prioridad P2 (Post-lanzamiento):</h4>
+            <ul class="checklist">
+                <li>Implementar 2FA para admins (TOTP con pyotp)</li>
+                <li>Rate limiting por cuenta (además de IP)</li>
+                <li>Auditoría de dependencias automática en CI/CD</li>
+                <li>Docker image scanning con Trivy</li>
+                <li>Penetration testing externo</li>
+            </ul>
+
+            <h3>5.5 Checklist de Seguridad Pre-Deploy</h3>
+            <ul class="checklist">
+                <li>SECRET_KEY generado con <code>openssl rand -hex 32</code></li>
+                <li>REDIS_PASSWORD generado con <code>openssl rand -hex 16</code></li>
+                <li>Stripe/Wompi keys de PRODUCCIÓN (no test)</li>
+                <li>ALLOWED_ORIGINS con dominio real (no localhost)</li>
+                <li>DEBUG=False, LOG_LEVEL=WARNING</li>
+                <li>SSL/HTTPS configurado con Let's Encrypt</li>
+                <li>Nginx docs bloqueados (return 404)</li>
+                <li>Backups automáticos configurados</li>
+                <li>Sentry configurado para error tracking</li>
+                <li>Uptime monitoring configurado</li>
+                <li>Todas las migraciones ejecutadas</li>
+                <li>Admin user creado y testeado</li>
+            </ul>
+        </div>
+
+        <!-- 6. MEJORAS IMPLEMENTADAS -->
+        <div class="section" id="mejoras">
+            <h2>6. ✅ Mejoras Implementadas Correctamente</h2>
+
+            <div class="alert alert-success">
+                <strong>El proyecto tiene 14 implementaciones de seguridad y arquitectura correctas que deben mantenerse.</strong>
+            </div>
+
+            <h3>6.1 Arquitectura</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>Separación de Concerns:</strong> Models, Schemas, Services, Routes bien organizados</li>
+                <li>✅ <strong>Dependency Injection:</strong> FastAPI Depends para DB sessions, auth, permisos</li>
+                <li>✅ <strong>Async/Await:</strong> SQLAlchemy async, httpx async, todo no-bloqueante</li>
+                <li>✅ <strong>Docker Multi-Stage:</strong> Separación dev/prod con compose override</li>
+                <li>✅ <strong>Alembic Migrations:</strong> 5 migraciones versionadas, rollback disponible</li>
+            </ul>
+
+            <h3>6.2 Backend</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>Pydantic Validation:</strong> Schemas con validación estricta de tipos</li>
+                <li>✅ <strong>Custom Exceptions:</strong> Excepciones específicas con códigos HTTP correctos</li>
+                <li>✅ <strong>Middleware Stack:</strong> CORS, Security Headers, Trusted Hosts, Rate Limiting</li>
+                <li>✅ <strong>Health Endpoint:</strong> /health para Docker healthcheck y monitoring</li>
+                <li>✅ <strong>Structured Logging:</strong> structlog con contexto, sin datos sensibles</li>
+            </ul>
+
+            <h3>6.3 Frontend</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>Next.js 15:</strong> App Router con React Server Components</li>
+                <li>✅ <strong>Middleware Auth:</strong> Protección de rutas /admin con validación backend</li>
+                <li>✅ <strong>Context API:</strong> CartContext con Zustand para estado global</li>
+                <li>✅ <strong>Responsive Design:</strong> Tailwind CSS con breakpoints mobile-first</li>
+            </ul>
+
+            <h3>6.4 Integraciones</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>Stripe:</strong> Checkout Sessions con webhook validation</li>
+                <li>✅ <strong>Wompi:</strong> API integrada con webhook HMAC verification</li>
+                <li>✅ <strong>Resend:</strong> Email transaccional con templates HTML</li>
+                <li>✅ <strong>Supabase:</strong> Storage para productos y modelos 3D</li>
+            </ul>
+
+            <h3>6.5 Testing</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>Pytest:</strong> Configurado con pytest-asyncio, pytest-cov</li>
+                <li>✅ <strong>Conftest:</strong> Fixtures para DB, cliente HTTP, mocks</li>
+                <li>✅ <strong>Test API:</strong> Tests de autenticación implementados</li>
+            </ul>
+        </div>
+
+        <!-- 7. CHECKLIST PRE-PRODUCCIÓN -->
+        <div class="section" id="checklist">
+            <h2>7. ✅ Checklist Completo Pre-Producción</h2>
+
+            <h3>📋 Backend (12/19)</h3>
+            <ul class="checklist">
+                <li>✅ SECRET_KEY generado y configurado</li>
+                <li>❌ REDIS_PASSWORD generado y configurado</li>
+                <li>❌ DATABASE_URL de Supabase o servidor propio</li>
+                <li>❌ Migraciones ejecutadas (alembic upgrade head)</li>
+                <li>❌ Usuario admin creado</li>
+                <li>❌ Stripe production keys configuradas</li>
+                <li>❌ Stripe webhooks configurados en dashboard</li>
+                <li>❌ Resend API key con dominio verificado</li>
+                <li>❌ ALLOWED_ORIGINS con dominio real</li>
+                <li>✅ REQUIRE_EMAIL_VERIFIED=true</li>
+                <li>✅ DEBUG=False, LOG_LEVEL=WARNING</li>
+                <li>❌ SENTRY_DSN configurado (opcional)</li>
+                <li>✅ Rate limiting funcionando</li>
+                <li>✅ Security headers implementados</li>
+                <li>❌ Webhook atomicity implementado</li>
+                <li>❌ IDOR corregido</li>
+                <li>❌ Mass assignment corregido</li>
+                <li>❌ Session ID mejorado</li>
+                <li>❌ Email enumeration prevenido</li>
+            </ul>
+
+            <h3>🎨 Frontend (1/14)</h3>
+            <ul class="checklist">
+                <li>❌ Checkout: Usar orden_id del backend</li>
+                <li>❌ Checkout: Validar dirección completa</li>
+                <li>❌ Registro: Enviar dirección o remover campos</li>
+                <li>❌ Registro: Validación de email estricta</li>
+                <li>❌ Forgot password: UI de errores mejorada</li>
+                <li>❌ Admin dashboard: Skeleton loading</li>
+                <li>❌ Admin products: Formatear precios</li>
+                <li>❌ Admin orders: Resetear errores</li>
+                <li>❌ Cart: Usar precio numérico del backend</li>
+                <li>❌ Configurador: Validar precio con backend</li>
+                <li>❌ Cart Context: Normalizar estructura</li>
+                <li>❌ API: Re-lanzar error en refresh fail</li>
+                <li>❌ Implementar validaciones globales (Yup)</li>
+                <li>✅ Middleware: Cache de validación de token</li>
+            </ul>
+
+            <h3>🏗️ Infraestructura (3/7)</h3>
+            <ul class="checklist">
+                <li>✅ Docker compose configurado</li>
+                <li>✅ Nginx configurado con security headers</li>
+                <li>✅ Docs bloqueados en producción</li>
+                <li>❌ SSL/HTTPS con Let's Encrypt</li>
+                <li>❌ Frontend deployado (Vercel o Docker)</li>
+                <li>❌ Backups automáticos configurados</li>
+                <li>❌ Monitoring (Sentry, Uptime Robot)</li>
+            </ul>
+
+            <h3>🗄️ Base de Datos (0/6)</h3>
+            <ul class="checklist">
+                <li>❌ Supabase project creado o PostgreSQL instalado</li>
+                <li>❌ DATABASE_URL configurado en .env</li>
+                <li>❌ Migraciones ejecutadas (15 tablas creadas)</li>
+                <li>❌ Supabase Storage buckets creados</li>
+                <li>❌ Usuario admin creado</li>
+                <li>❌ Backups configurados</li>
+            </ul>
+
+            <h3>🔐 Seguridad (7/12)</h3>
+            <ul class="checklist">
+                <li>✅ JWT + Refresh rotation implementado</li>
+                <li>✅ Rate limiting triple capa</li>
+                <li>✅ Security headers (7/7)</li>
+                <li>✅ CORS configurado</li>
+                <li>✅ Webhook HMAC validation</li>
+                <li>✅ bcrypt password hashing</li>
+                <li>✅ Email verification</li>
+                <li>❌ CSRF protection</li>
+                <li>❌ IDOR corregido</li>
+                <li>❌ Mass assignment corregido</li>
+                <li>❌ Webhook atomicity</li>
+                <li>❌ Precio validado en backend</li>
+            </ul>
+
+            <h3>📊 Estado General</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 35%">23/58 tareas completadas (40%)</div>
+            </div>
+        </div>
+
+        <!-- 8. RECOMENDACIONES FINALES -->
+        <div class="section" id="recomendaciones">
+            <h2>8. 🎯 Recomendaciones Finales</h2>
+
+            <h3>🚨 Acción Inmediata Requerida</h3>
+            <div class="alert alert-critical">
+                <strong>El proyecto NO está listo para producción.</strong> Se requieren mínimo 8-12 días de trabajo para corregir todos los problemas críticos y de alta prioridad.
+            </div>
+
+            <h3>📅 Roadmap Sugerido</h3>
+
+            <h4>Sprint 1: Frontend Crítico (3-5 días)</h4>
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li>Corregir checkout para usar orden_id del backend</li>
+                <li>Implementar validación completa de dirección</li>
+                <li>Corregir o remover campos de dirección en registro</li>
+                <li>Implementar validación de precio en backend para configurador</li>
+                <li>Corregir parsing de precios en cart</li>
+                <li>Mejorar error handling en todas las páginas</li>
+                <li>Implementar validaciones con Yup</li>
+            </ol>
+
+            <h4>Sprint 2: Backend Seguridad (2-3 días)</h4>
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li>Implementar webhook_events table con reintentos</li>
+                <li>Corregir IDOR con verificación explícita</li>
+                <li>Corregir mass assignment con whitelist</li>
+                <li>Mejorar session ID generation</li>
+                <li>Prevenir email enumeration</li>
+                <li>Implementar CSRF protection</li>
+            </ol>
+
+            <h4>Sprint 3: Infraestructura (1-2 días)</h4>
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li>Decidir Supabase vs servidor propio</li>
+                <li>Configurar base de datos</li>
+                <li>Ejecutar migraciones</li>
+                <li>Crear usuario admin</li>
+                <li>Configurar SSL con Let's Encrypt</li>
+                <li>Deployar frontend</li>
+                <li>Configurar webhooks en Stripe</li>
+                <li>Configurar monitoring</li>
+            </ol>
+
+            <h4>Sprint 4: Testing Final (2 días)</h4>
+            <ol style="padding-left: 2rem; margin: 1rem 0;">
+                <li>Testing completo de flujo de compra</li>
+                <li>Testing de autenticación y recuperación</li>
+                <li>Testing de admin panel</li>
+                <li>Testing de webhooks (con Stripe CLI)</li>
+                <li>Penetration testing básico</li>
+                <li>Load testing (opcional)</li>
+                <li>Preparar documentación de deployment</li>
+            </ol>
+
+            <h3>💰 Costos Estimados Mensuales</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Costo Mínimo</th>
+                        <th>Costo Recomendado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Supabase (DB + Storage)</td>
+                        <td>$0 (Free tier)</td>
+                        <td>$25/mes (Pro)</td>
+                    </tr>
+                    <tr>
+                        <td>Servidor VPS (Backend)</td>
+                        <td>$5/mes (DigitalOcean)</td>
+                        <td>$12/mes (2GB RAM)</td>
+                    </tr>
+                    <tr>
+                        <td>Vercel (Frontend)</td>
+                        <td>$0 (Hobby)</td>
+                        <td>$20/mes (Pro)</td>
+                    </tr>
+                    <tr>
+                        <td>Resend (Email)</td>
+                        <td>$0 (3K emails/mes)</td>
+                        <td>$20/mes (50K emails)</td>
+                    </tr>
+                    <tr>
+                        <td>Sentry (Monitoring)</td>
+                        <td>$0 (5K events)</td>
+                        <td>$26/mes (10K events)</td>
+                    </tr>
+                    <tr>
+                        <td>Dominio .com</td>
+                        <td>$12/año</td>
+                        <td>$12/año</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>$5/mes + $12/año</strong></td>
+                        <td><strong>$103/mes + $12/año</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📚 Documentación Disponible</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li>✅ <strong>MEJORAS_SEGURIDAD.md</strong> - Mejoras de seguridad P0/P1/P2</li>
+                <li>✅ <strong>DATABASE_SETUP.md</strong> - Guía completa Supabase vs servidor propio</li>
+                <li>✅ <strong>RESUMEN_EJECUTIVO.md</strong> - Resumen para stakeholders</li>
+                <li>✅ <strong>INDICE_DOCUMENTACION.md</strong> - Índice de toda la documentación</li>
+                <li>✅ <strong>README.md</strong> - Instrucciones de setup y desarrollo</li>
+            </ul>
+
+            <h3>🎓 Recursos Adicionales</h3>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li><a href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10</a> - Vulnerabilidades web más comunes</li>
+                <li><a href="https://cheatsheetseries.owasp.org/" target="_blank">OWASP Cheat Sheets</a> - Guías de seguridad</li>
+                <li><a href="https://fastapi.tiangolo.com/tutorial/security/" target="_blank">FastAPI Security</a> - Documentación oficial</li>
+                <li><a href="https://nextjs.org/docs/app/building-your-application/authentication" target="_blank">Next.js Authentication</a> - Best practices</li>
+                <li><a href="https://stripe.com/docs/webhooks/best-practices" target="_blank">Stripe Webhooks</a> - Best practices</li>
+            </ul>
+
+            <h3>✉️ Contacto</h3>
+            <p>Para cualquier duda sobre esta auditoría o asistencia en la implementación de las correcciones:</p>
+            <ul style="padding-left: 2rem; margin: 1rem 0;">
+                <li><strong>Equipo:</strong> ZomiDev</li>
+                <li><strong>Proyecto:</strong> WingConcept</li>
+                <li><strong>Versión:</strong> 1.0.0</li>
+                <li><strong>Fecha:</strong> 13 de Julio, 2026</li>
+            </ul>
+
+            <div class="alert alert-info">
+                <strong>📝 Nota:</strong> Esta auditoría debe ser revisada y actualizada después de cada sprint de correcciones. Se recomienda generar un nuevo reporte de auditoría antes del despliegue final a producción.
+            </div>
+        </div>
+
+        <footer style="text-align: center; padding: 3rem 0; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 3rem;">
+            <p><strong>WingConcept - Auditoría Pre-Producción</strong></p>
+            <p>Generado el 13 de Julio de 2026 por ZomiDev</p>
+            <p style="margin-top: 1rem;">Este documento es confidencial y está destinado únicamente para uso interno del equipo de desarrollo.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scroll para enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Marcar items del checklist como completados al hacer clic
+        document.querySelectorAll('.checklist li').forEach(item => {
+            item.addEventListener('click', function() {
+                this.style.opacity = this.style.opacity === '0.5' ? '1' : '0.5';
+                this.style.textDecoration = this.style.textDecoration === 'line-through' ? 'none' : 'line-through';
+            });
+        });
+
+        // Print optimization
+        window.addEventListener('beforeprint', () => {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.pageBreakInside = 'avoid';
+            });
+        });
+
+        console.log('%c🔍 WingConcept - Auditoría Pre-Producción', 'font-size: 20px; color: #667eea; font-weight: bold;');
+        console.log('%c23/58 tareas completadas (40%)', 'font-size: 14px; color: #ea580c;');
+        console.log('%cSe requieren 8-12 días de trabajo antes de producción', 'font-size: 14px; color: #dc2626;');
+    </script>
+</body>
+</html>
