@@ -1,0 +1,15 @@
+# Cloudflare Tunnel — WingConcept (Mac local)
+#
+# 1. cloudflared tunnel create wingconcept
+# 2. Copiar este archivo a ~/.cloudflared/config.yml
+# 3. Reemplazar TUNNEL_ID y credentials-file con los tuyos
+#
+# credentials-file: /Users/TU_USUARIO/.cloudflared/TUNNEL_ID.json
+# tunnel: TUNNEL_ID
+
+ingress:
+  - hostname: wingconcept.com
+    service: http://localhost:80
+  - hostname: www.wingconcept.com
+    service: http://localhost:80
+  - service: http_status:404

@@ -17,30 +17,11 @@ Lo que **ya tienes** (Supabase, dominio, GitHub, Resend, Stripe) no sustituye un
 
 ## Opción A — Recomendada si no quieres Oracle (PC + Cloudflare Tunnel)
 
-Costo **$0**. El sitio corre en **tu computadora** (o la de alguien del equipo) con Docker; Cloudflare expone `wingconcept.com` con HTTPS **sin abrir puertos** en el router.
+Costo **$0**. El sitio corre en **tu computadora** con Docker; Cloudflare expone `wingconcept.com` con HTTPS **sin abrir puertos**.
 
-1. Cuenta gratis en [Cloudflare](https://dash.cloudflare.com) → añadir `wingconcept.com` y cambiar nameservers en tu registrador.
-2. En la PC (macOS/Linux), instalar Docker y [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
-3. Clonar rama `production` y configurar `backend/.env`.
-4. Levantar stack (sin SSL local; Cloudflare termina HTTPS):
+**Guía completa Mac + name.com:** ver **[DEPLOY_MAC.md](./DEPLOY_MAC.md)**.
 
-```bash
-cd docker
-export NGINX_CONF=nginx.bootstrap.conf
-docker compose --env-file ../backend/.env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-```
-
-5. Crear túnel y apuntar el dominio:
-
-```bash
-cloudflared tunnel create wingconcept
-cloudflared tunnel route dns wingconcept wingconcept.com
-cloudflared tunnel route dns wingconcept www.wingconcept.com
-# Configurar ingress: wingconcept.com → http://localhost:80
-cloudflared tunnel run wingconcept
-```
-
-6. Stripe webhook: `https://wingconcept.com/api/v1/webhooks/stripe`
+Resumen:
 
 **Limitación:** la PC debe estar encendida y con internet. Para tienda real 24/7, usa B o C.
 

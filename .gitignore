@@ -18,6 +18,7 @@ dist/
 # Documentación interna (no publicar)
 *.md
 !DEPLOY.md
+!DEPLOY_MAC.md
 !backend/README.md
 
 # Variables de entorno (no publicar)
