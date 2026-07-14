@@ -58,7 +58,15 @@ DNS:
 
 ---
 
-## Opción C — Oracle Cloud Always Free (24/7, recomendado producción)
+## Opción C — Google Cloud e2-micro (Always Free, 24/7)
+
+VM gratis en **us-central1 / us-west1 / us-east1** + DNS en name.com.
+
+**Guía paso a paso:** **[DEPLOY_GCP.md](./DEPLOY_GCP.md)** — usa `./deploy-gcp.sh` (optimizado para 1 GB RAM).
+
+---
+
+## Opción D — Oracle Cloud Always Free (24/7, más RAM)
 
 Servidor gratis en Oracle + DNS en **name.com** (registros A, sin Cloudflare).
 

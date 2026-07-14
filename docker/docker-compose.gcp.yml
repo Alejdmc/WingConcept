@@ -1,0 +1,37 @@
+# ============================================================
+# WingConcept — Docker Compose GCP (e2-micro, 1 GB RAM)
+# Override adicional para Google Cloud Always Free
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.gcp.yml up -d
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  backend:
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --workers 1
+      --proxy-headers
+      --forwarded-allow-ips=*
+    mem_limit: 400m
+
+  redis:
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --save 60 1
+      --loglevel warning
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+    mem_limit: 128m
+
+  frontend:
+    mem_limit: 450m
+
+  nginx:
+    mem_limit: 64m

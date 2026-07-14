@@ -20,6 +20,7 @@ dist/
 !DEPLOY.md
 !DEPLOY_MAC.md
 !DEPLOY_ORACLE.md
+!DEPLOY_GCP.md
 !backend/README.md
 
 # Variables de entorno (no publicar)
