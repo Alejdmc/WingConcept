@@ -1,8 +1,31 @@
-# WingConcept en Google Cloud — gratis 24/7
+# WingConcept en Google Cloud — e2-micro
 
-VM **e2-micro** (Always Free) + DNS en **name.com** + Docker.
+VM **e2-micro** + DNS en **name.com** + Docker.
 
-**Costo:** $0/mes si te mantienes en el free tier (1 e2-micro en regiones US).
+---
+
+## ⚠️ Muy importante: 90 días vs Always Free
+
+Google muestra **“$300 gratis / 90 días”** al registrarte. Eso es **una prueba aparte**, no es lo único que ofrecen.
+
+| Concepto | Qué es | ¿Caduca? |
+|----------|--------|----------|
+| **Trial $300** | Crédito extra para probar servicios | Sí, ~90 días |
+| **Always Free e2-micro** | 1 VM pequeña en regiones US | **No** — sigue gratis si te mantienes en el límite |
+
+**e2-micro en `us-central1`, `us-west1` o `us-east1`** puede ser **$0 para siempre** aunque termine el trial de 90 días, **siempre que**:
+
+- Solo uses **1× e2-micro** (no e2-small, e2-medium, etc.)
+- Región US elegible (Oregon, Iowa, Carolina del Sur)
+- Disco **≤ 30 GB** standard
+- No añadas Load Balancer, Cloud SQL, etc.
+- Tengas **billing account** activo (suelen pedir tarjeta; no deberían cobrar si no sales del free tier)
+
+Después de 90 días **no pierdes** la e2-micro free si cumples lo anterior. Lo que pierdes es el crédito de $300.
+
+**Si no quieres tarjeta ni ambigüedad de billing:** usa **Mac + Cloudflare** (`DEPLOY_MAC.md`) o sigue intentando **Oracle Always Free**.
+
+---
 
 **RAM:** 1 GB — justo. Usamos `docker-compose.gcp.yml` (1 worker, límites de memoria) + swap.
 
