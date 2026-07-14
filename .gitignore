@@ -17,13 +17,13 @@ dist/
 
 # Documentación interna (no publicar)
 *.md
+!DEPLOY.md
+!backend/README.md
 
 # Variables de entorno (no publicar)
 .env*
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+!.env.example
+!**/.env.production.example
 
 # Debug
 npm-debug.log*
