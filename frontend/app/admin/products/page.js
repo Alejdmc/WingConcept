@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { Search, Plus, Pencil, Package } from 'lucide-react'
 import { api } from '@/lib/api'
 
+const formatCurrency = (value, currency = 'USD') => {
+  const num = Number(value)
+  if (Number.isNaN(num)) return value
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(num)
+}
+
 function StockModal({ product, onClose, onSaved }) {
   const [variantes, setVariantes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -60,7 +66,7 @@ function StockModal({ product, onClose, onSaved }) {
               <div key={v.id} className="flex items-center gap-4 p-4 border border-borderline rounded">
                 <div className="flex-1">
                   <p className="font-semibold text-ink">{v.nombre}</p>
-                  <p className="text-sm text-ink2">${v.precio?.toLocaleString()} USD</p>
+                  <p className="text-sm text-ink2">{formatCurrency(v.precio)}</p>
                 </div>
                 <input
                   type="number"

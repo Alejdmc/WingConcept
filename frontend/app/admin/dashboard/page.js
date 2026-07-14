@@ -3,6 +3,18 @@ import { useState, useEffect } from 'react'
 import { BarChart3, Package, ShoppingCart, TrendingUp } from 'lucide-react'
 import { api } from '@/lib/api'
 
+const SkeletonCard = () => (
+  <div className="bg-white border border-borderline rounded-lg p-6 animate-pulse">
+    <div className="flex items-center justify-between">
+      <div className="flex-1">
+        <div className="h-3 w-16 bg-bg2 rounded" />
+        <div className="h-8 w-24 bg-bg2 rounded mt-3" />
+      </div>
+      <div className="w-14 h-14 bg-bg2 rounded-lg" />
+    </div>
+  </div>
+)
+
 export default function DashboardPage() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -67,19 +79,28 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {cards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white border border-borderline rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-ink2 text-sm font-semibold">{label}</p>
-                <p className="text-3xl font-black text-ink mt-2">{value}</p>
-              </div>
-              <div className={`${color} p-4 rounded-lg`}>
-                <Icon className="w-6 h-6 text-white" />
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          cards.map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="bg-white border border-borderline rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-ink2 text-sm font-semibold">{label}</p>
+                  <p className="text-3xl font-black text-ink mt-2">{value}</p>
+                </div>
+                <div className={`${color} p-4 rounded-lg`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="bg-white border border-borderline rounded-lg p-6">

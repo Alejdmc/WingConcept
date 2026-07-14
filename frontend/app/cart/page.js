@@ -112,7 +112,7 @@ export default function CartPage() {
 
                     <div className="text-right">
                       <p className="text-2xl font-black text-brand mb-4">
-                        ${(parseInt(item.price.replace('$', '').replace(',', '')) * (item.cantidad || 1)).toLocaleString()}
+                        ${(item.precio_unitario * (item.cantidad || 1)).toLocaleString()}
                       </p>
                       <button
                         onClick={() => removeFromCart(item.cartId || item.id)}

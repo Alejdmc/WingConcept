@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -9,7 +9,17 @@ import { persistAuthSession } from '@/lib/auth'
 import { useCart } from '@/hooks/useCart'
 import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/
+
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  )
+}
+
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { refetch } = useCart()
@@ -56,6 +66,11 @@ export default function RegisterPage() {
       return
     }
 
+    if (!EMAIL_REGEX.test(formData.email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.')
       return
@@ -90,6 +105,23 @@ export default function RegisterPage() {
           await refetch()
         } catch (mergeErr) {
           console.warn('Cart merge after register failed:', mergeErr)
+        }
+
+        if (formData.address && formData.city) {
+          try {
+            await api.usuarios.crearDireccion({
+              nombre_destinatario: `${formData.nombre} ${formData.apellido}`,
+              telefono: formData.telefono || null,
+              linea1: formData.address,
+              ciudad: formData.city,
+              departamento_estado: formData.state,
+              pais: formData.country || 'US',
+              codigo_postal: formData.zipCode || null,
+              es_principal: true,
+            })
+          } catch (addrErr) {
+            console.warn('Saving address after register failed:', addrErr)
+          }
         }
 
         clearAuthNext()

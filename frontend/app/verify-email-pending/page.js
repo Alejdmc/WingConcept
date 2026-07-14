@@ -1,6 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, RotateCcw } from 'lucide-react'
@@ -8,6 +8,14 @@ import { api } from '@/lib/api'
 import { saveAuthNext, getAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function VerifyEmailPendingPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPendingContent />
+    </Suspense>
+  )
+}
+
+function VerifyEmailPendingContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
   const nextUrl = getAuthNext(searchParams.get('next'), '/')

@@ -12,6 +12,15 @@ function getSessionId() {
   return sessionId
 }
 
+function clearSessionAndRedirect() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login?session_expired=true'
+  }
+}
+
 function buildQuery(params = {}) {
   const searchParams = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -68,9 +77,14 @@ async function request(path, options = {}) {
             return retry.status === 204 ? null : retry.json()
           }
         }
+        // Refresh request completed but did not return a usable token: session is dead
+        clearSessionAndRedirect()
+        throw { status: 401, detail: 'Session expired' }
       } catch (e) {
-        // fallthrough to error handling
+        if (e?.status === 401) throw e
         console.warn('Refresh token failed', e)
+        clearSessionAndRedirect()
+        throw { status: 401, detail: 'Session expired' }
       }
     }
   }

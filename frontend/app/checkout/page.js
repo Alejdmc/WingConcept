@@ -353,6 +353,9 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
   )
 }
 
+const PHONE_REGEX = /^\+?[\d\s\-()]{7,20}$/
+const POSTAL_CODE_REGEX = /^[a-zA-Z0-9\s-]{3,10}$/
+
 function ShippingStep({ setStep, appliedCoupon, setCartError }) {
   const [formData, setFormData] = useState({
     nombre_destinatario: '',
@@ -365,14 +368,34 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
     codigo_postal: '',
     notas: ''
   })
+  const [fieldErrors, setFieldErrors] = useState({})
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  const validate = (data) => {
+    const errors = {}
+    if (!PHONE_REGEX.test(data.telefono)) {
+      errors.telefono = 'Please enter a valid phone number.'
+    }
+    if (!data.codigo_postal || !POSTAL_CODE_REGEX.test(data.codigo_postal)) {
+      errors.codigo_postal = 'Please enter a valid postal code.'
+    }
+    return errors
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setCartError('')
+
+    const errors = validate(formData)
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      setCartError('Please correct the highlighted fields.')
+      return
+    }
+
     sessionStorage.setItem('shipping_address', JSON.stringify(formData))
     try {
       const direccion = await api.usuarios.crearDireccion({
@@ -434,8 +457,9 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
               value={formData.telefono}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-brand ${fieldErrors.telefono ? 'border-red-500' : 'border-borderline'}`}
             />
+            {fieldErrors.telefono && <p className="text-xs text-red-600 font-semibold mt-1">{fieldErrors.telefono}</p>}
           </div>
 
           {/* Street */}
@@ -510,8 +534,9 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
                 value={formData.codigo_postal}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-brand ${fieldErrors.codigo_postal ? 'border-red-500' : 'border-borderline'}`}
               />
+              {fieldErrors.codigo_postal && <p className="text-xs text-red-600 font-semibold mt-1">{fieldErrors.codigo_postal}</p>}
             </div>
           </div>
 
@@ -649,7 +674,25 @@ function PaymentStep({ setStep }) {
 }
 
 function ConfirmationStep() {
-  const orderId = Math.random().toString(36).substring(7).toUpperCase()
+  const [orderNumber, setOrderNumber] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const orderId = typeof window !== 'undefined' ? sessionStorage.getItem('current_order_id') : null
+    if (!orderId) {
+      setLoading(false)
+      return
+    }
+    api.ordenes.detalle(orderId)
+      .then((orden) => {
+        setOrderNumber(orden?.numero_orden || orden?.id || orderId)
+      })
+      .catch((err) => {
+        console.error('Error fetching order:', err)
+        setOrderNumber(orderId)
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div
@@ -667,7 +710,7 @@ function ConfirmationStep() {
 
         <div className="bg-bg2 rounded-lg p-6 mb-8">
           <p className="text-sm text-ink2 mb-2">Order Number</p>
-          <p className="text-3xl font-black text-brand">{orderId}</p>
+          <p className="text-3xl font-black text-brand">{loading ? '...' : (orderNumber || 'N/A')}</p>
         </div>
 
         <p className="text-sm text-ink2 mb-8">

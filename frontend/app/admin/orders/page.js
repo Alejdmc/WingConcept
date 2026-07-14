@@ -41,6 +41,7 @@ export default function OrdersPage() {
   }
 
   const handleStatusChange = async (orderId, newStatus) => {
+    setError('')
     try {
       const updated = await api.admin.actualizarOrden(orderId, { estado: newStatus })
       setOrders(orders.map((order) => (order.id === updated.id ? { ...order, estado: updated.estado, estado_display: updated.estado_display } : order)))

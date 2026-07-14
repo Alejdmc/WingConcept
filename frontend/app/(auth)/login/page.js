@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -10,6 +10,14 @@ import { useCart } from '@/hooks/useCart'
 import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { refetch } = useCart()
@@ -22,6 +30,12 @@ export default function LoginPage() {
   useEffect(() => {
     saveAuthNext(nextUrl)
   }, [nextUrl])
+
+  useEffect(() => {
+    if (searchParams.get('session_expired') === 'true') {
+      setError('Your session has expired. Please sign in again.')
+    }
+  }, [searchParams])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
