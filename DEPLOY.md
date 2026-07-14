@@ -1,22 +1,105 @@
 # Despliegue gratuito — WingConcept en wingconcept.com
 
-Todo el stack corre en **un solo servidor** con Docker. Sin Vercel, sin VPS de pago.
+## ¿Necesito Oracle Cloud?
 
-## Costo: $0/mes
+**No.** Oracle era solo **una opción** de servidor gratis. Para publicar en `wingconcept.com` a $0 necesitas **algún lugar que ejecute el código** — no hay magia sin eso.
 
-| Servicio | Plan | Uso |
-|----------|------|-----|
-| **Oracle Cloud** Always Free | VM ARM 4 OCPU / 24 GB RAM | Servidor (frontend + backend + Redis + nginx) |
-| **Supabase** | Free | PostgreSQL + Storage (ya configurado) |
-| **Let's Encrypt** | Gratis | SSL/HTTPS |
-| **Resend** | Free (3k emails/mes) | Correos transaccionales |
-| **Stripe** | Sin cuota mensual | Pagos (comisión por venta) |
+| Opción | Cuenta nueva | Tarjeta | Mejor si… |
+|--------|--------------|---------|-----------|
+| **A. Tu PC/Mac + Cloudflare Tunnel** | Cloudflare (gratis) | No | No quieres ningún VPS ni Oracle |
+| **B. Vercel + Render** | Vercel + Render (gratis) | No suele pedirse | Aceptas dos servicios PaaS gratuitos |
+| **C. Oracle / AWS / GCP free** | Sí | A veces verifican | Quieres un servidor 24/7 “de verdad” |
+| **D. Docker en cualquier máquina** | Ninguna extra | No | Ya tienes un VPS, NAS o servidor propio |
 
-Alternativas gratuitas al servidor: AWS EC2 free tier (12 meses), Google Cloud e2-micro.
+Lo que **ya tienes** (Supabase, dominio, GitHub, Resend, Stripe) no sustituye un servidor: solo cubren BD, DNS, repo y pagos/emails.
 
 ---
 
-## Arquitectura
+## Opción A — Recomendada si no quieres Oracle (PC + Cloudflare Tunnel)
+
+Costo **$0**. El sitio corre en **tu computadora** (o la de alguien del equipo) con Docker; Cloudflare expone `wingconcept.com` con HTTPS **sin abrir puertos** en el router.
+
+1. Cuenta gratis en [Cloudflare](https://dash.cloudflare.com) → añadir `wingconcept.com` y cambiar nameservers en tu registrador.
+2. En la PC (macOS/Linux), instalar Docker y [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
+3. Clonar rama `production` y configurar `backend/.env`.
+4. Levantar stack (sin SSL local; Cloudflare termina HTTPS):
+
+```bash
+cd docker
+export NGINX_CONF=nginx.bootstrap.conf
+docker compose --env-file ../backend/.env -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+5. Crear túnel y apuntar el dominio:
+
+```bash
+cloudflared tunnel create wingconcept
+cloudflared tunnel route dns wingconcept wingconcept.com
+cloudflared tunnel route dns wingconcept www.wingconcept.com
+# Configurar ingress: wingconcept.com → http://localhost:80
+cloudflared tunnel run wingconcept
+```
+
+6. Stripe webhook: `https://wingconcept.com/api/v1/webhooks/stripe`
+
+**Limitación:** la PC debe estar encendida y con internet. Para tienda real 24/7, usa B o C.
+
+---
+
+## Opción B — Vercel (frontend) + Render (backend)
+
+Costo **$0** en planes hobby/free. **No usa Oracle.**
+
+| Parte | Dónde | Dominio |
+|-------|--------|---------|
+| Next.js | [Vercel](https://vercel.com) — conectar repo GitHub, carpeta `frontend`, rama `production` | `wingconcept.com` |
+| FastAPI | [Render](https://render.com) — Web Service desde `backend/Dockerfile` | `api.wingconcept.com` |
+
+En Vercel (variables de entorno):
+
+```env
+NEXT_PUBLIC_API_URL=https://api.wingconcept.com
+```
+
+En Render (`backend/.env`): `ALLOWED_ORIGINS=https://wingconcept.com,https://www.wingconcept.com`
+
+DNS:
+
+| Tipo | Nombre | Valor |
+|------|--------|-------|
+| CNAME | `@` o A | Lo indica Vercel |
+| CNAME | `www` | Vercel |
+| CNAME | `api` | Lo indica Render |
+
+**Limitación Render free:** el servicio **se duerme** tras inactividad (~50 s al despertar). Los webhooks de Stripe pueden fallar si el backend está dormido. Para producción seria conviene Opción A o C.
+
+**Redis:** Render no incluye Redis gratis; habría que usar [Upstash Redis free](https://upstash.com) (otra cuenta) o adaptar el backend — hoy el carrito depende de Redis.
+
+---
+
+## Opción C — Un servidor con Docker (Oracle u otro)
+
+Todo en **un solo dominio** con el script `docker/deploy.sh` (frontend + API + Redis + nginx + Let's Encrypt).
+
+Oracle **Always Free** no es trial de 30 días: es gratis mientras uses solo recursos “Always Free”. A veces piden tarjeta para verificación. En algunas regiones cuesta conseguir VM Ampere.
+
+Alternativas similares: AWS EC2 free tier (12 meses), Google e2-micro, un VPS que ya tengas.
+
+---
+
+## Costo: $0/mes (servicios que ya usas o son free)
+
+| Servicio | Plan | Uso |
+|----------|------|-----|
+| **Servidor / PaaS** | Ver opciones A–C arriba | Ejecutar frontend + backend |
+| **Supabase** | Free | PostgreSQL + Storage (ya configurado) |
+| **Let's Encrypt / Cloudflare** | Gratis | HTTPS |
+| **Resend** | Free (3k emails/mes) | Correos |
+| **Stripe** | Sin cuota mensual | Pagos (comisión por venta) |
+
+---
+
+## Arquitectura (Opción C — todo en un servidor)
 
 ```
 wingconcept.com (DNS → IP del servidor)
@@ -31,47 +114,37 @@ wingconcept.com (DNS → IP del servidor)
             Redis
 ```
 
-- **Frontend** y **API** comparten el mismo dominio → el navegador llama a `/api/v1` sin CORS extra.
-- No hace falta `NEXT_PUBLIC_API_URL` en producción.
+- **Frontend** y **API** en el mismo dominio → el navegador usa `/api/v1` relativo.
+- No hace falta `NEXT_PUBLIC_API_URL` en producción (Opción C).
 
 ---
 
-## Paso 1 — Servidor gratis (Oracle Cloud)
+## Pasos Opción C — Servidor + Docker
 
-1. Crear cuenta en [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/).
-2. Crear VM **Ampere A1** (Ubuntu 22.04), abrir puertos **80** y **443** en Security List / firewall.
-3. SSH al servidor e instalar Docker:
+### 1. Servidor (Oracle u otro)
+
+1. VM Ubuntu 22.04, puertos **80** y **443** abiertos.
+2. Instalar Docker:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
-# Cerrar sesión y volver a entrar
 ```
 
----
-
-## Paso 2 — DNS
-
-En tu registrador del dominio `wingconcept.com`:
+### 2. DNS
 
 | Tipo | Nombre | Valor |
 |------|--------|-------|
 | A | `@` | IP pública del servidor |
 | A | `www` | IP pública del servidor |
 
-Espera propagación (5–30 min). Verifica: `dig wingconcept.com +short`
-
----
-
-## Paso 3 — Clonar y configurar
+### 3. Clonar y configurar
 
 ```bash
-git clone https://github.com/TU_ORG/WingConcept.git /opt/wingconcept
-cd /opt/wingconcept
-git checkout production
-
+git clone https://github.com/Alejdmc/WingConcept.git /opt/wingconcept
+cd /opt/wingconcept && git checkout production
 cp backend/.env.production.example backend/.env
-nano backend/.env   # Completar valores reales
+nano backend/.env
 ```
 
 Variables **obligatorias** en `backend/.env`:
@@ -94,17 +167,7 @@ FROM_EMAIL=noreply@wingconcept.com
 RUN_MIGRATIONS=true
 ```
 
-Admin inicial (después del primer `up`):
-
-```bash
-cd /opt/wingconcept/docker
-docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend \
-  python scripts/crear_admin.py
-```
-
----
-
-## Paso 4 — Desplegar
+### 4. Desplegar
 
 ```bash
 cd /opt/wingconcept/docker
@@ -112,46 +175,25 @@ chmod +x deploy.sh
 DOMAIN=wingconcept.com CERTBOT_EMAIL=tu@email.com ./deploy.sh
 ```
 
-El script:
-
-1. Levanta servicios con nginx HTTP (bootstrap).
-2. Obtiene certificado Let's Encrypt.
-3. Activa HTTPS y reconstruye si hace falta.
-
-Verificar:
-
-```bash
-curl -I https://wingconcept.com
-curl https://wingconcept.com/health
-```
-
----
-
-## Paso 5 — Stripe webhook
-
-En [Stripe Dashboard](https://dashboard.stripe.com) → Developers → Webhooks:
+### 5. Stripe webhook
 
 - **URL:** `https://wingconcept.com/api/v1/webhooks/stripe`
-- **Eventos:** `checkout.session.completed`, `payment_intent.payment_failed`, `charge.refunded`
-- Copiar `whsec_...` → `STRIPE_WEBHOOK_SECRET` en `backend/.env` y reiniciar backend.
+- Eventos: `checkout.session.completed`, `payment_intent.payment_failed`, `charge.refunded`
 
 ---
 
 ## Actualizar producción
 
 ```bash
-cd /opt/wingconcept
-git pull origin production
-cd docker
-./deploy.sh
+cd /opt/wingconcept && git pull origin production
+cd docker && ./deploy.sh
 ```
 
 ---
 
 ## Rama `production`
 
-- Despliegues desde la rama **`production`** (estable).
-- Desarrollo en `main`; merge a `production` cuando esté listo para publicar.
+Despliegues desde **`production`**. Desarrollo en `main`.
 
 ---
 
@@ -163,15 +205,14 @@ En `frontend/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-Sin esa variable en producción, la API usa rutas relativas `/api/v1`.
-
 ---
 
 ## Solución de problemas
 
 | Problema | Solución |
 |----------|----------|
-| Nginx no arranca | Certificados faltantes → `./deploy.sh` de nuevo o `NGINX_CONF=nginx.bootstrap.conf` |
+| Nginx no arranca | Certificados faltantes → `./deploy.sh` o `NGINX_CONF=nginx.bootstrap.conf` |
 | 502 Bad Gateway | `docker compose logs frontend backend` |
-| API CORS | Revisar `ALLOWED_ORIGINS` en `backend/.env` |
-| Imágenes rotas | Supabase bucket `productos` + `next.config.js` remotePatterns |
+| API CORS | `ALLOWED_ORIGINS` en `backend/.env` |
+| Imágenes rotas | Bucket Supabase `productos` + `next.config.js` |
+| No quiero Oracle | Usar **Opción A** (Cloudflare Tunnel) o **B** (Vercel+Render) |
