@@ -46,5 +46,13 @@ services:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
 
   nginx:
-    # En producción, descomentar el bloqueo de docs en nginx.conf
     restart: always
+
+  frontend:
+    volumes: []
+    environment:
+      - NODE_ENV=production
+      - INTERNAL_API_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy

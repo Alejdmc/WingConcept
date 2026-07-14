@@ -1,4 +1,6 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Producción (mismo dominio): vacío → /api/v1 relativo
+// Desarrollo: NEXT_PUBLIC_API_URL=http://localhost:8000 en .env.local
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
 const API = `${BASE}/api/v1`
 
 function getSessionId() {

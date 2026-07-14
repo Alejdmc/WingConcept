@@ -13,7 +13,8 @@ export async function middleware(request) {
 
     // Validar token con backend
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`, {
+      const apiBase = process.env.INTERNAL_API_URL || request.nextUrl.origin
+      const res = await fetch(`${apiBase}/api/v1/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
