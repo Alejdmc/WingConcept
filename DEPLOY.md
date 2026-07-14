@@ -58,7 +58,17 @@ DNS:
 
 ---
 
-## Opción C — Un servidor con Docker (Oracle u otro)
+## Opción C — Oracle Cloud Always Free (24/7, recomendado producción)
+
+Servidor gratis en Oracle + DNS en **name.com** (registros A, sin Cloudflare).
+
+**Guía paso a paso:** **[DEPLOY_ORACLE.md](./DEPLOY_ORACLE.md)**
+
+Resumen: VM Ubuntu Ampere → Docker → `./deploy.sh` → `https://wingconcept.com`
+
+---
+
+## Opción C (alternativa) — Otro VPS con Docker
 
 Todo en **un solo dominio** con el script `docker/deploy.sh` (frontend + API + Redis + nginx + Let's Encrypt).
 
