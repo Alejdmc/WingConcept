@@ -6,6 +6,7 @@ POST /api/v1/auth/refresh
 POST /api/v1/auth/recuperar
 POST /api/v1/auth/reset-password
 """
+import asyncio
 import logging
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -143,6 +144,9 @@ async def recuperar_password(
             token=token,
             frontend_url=settings.FRONTEND_URL,
         )
+    else:
+        # Mitigar email enumeration por timing
+        await asyncio.sleep(0.5)
 
     return {"message": "Si el email existe, recibirás las instrucciones en breve."}
 

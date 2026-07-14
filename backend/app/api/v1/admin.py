@@ -3,6 +3,7 @@ WingConcept Backend — Admin Endpoints
 Panel de administración: usuarios, órdenes, estadísticas
 Solo accesible con rol admin.
 """
+import logging
 import uuid
 from typing import Optional
 
@@ -31,7 +32,7 @@ from app.schemas.producto import (
     VarianteResponse,
     VarianteUpdate,
 )
-from app.schemas.usuario import UsuarioAdminUpdate, UsuarioResponse
+from app.schemas.usuario import CambiarRolRequest, UsuarioAdminUpdate, UsuarioResponse
 from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
 from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
 from app.services.orden_service import orden_service
@@ -40,6 +41,9 @@ from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+logger = logging.getLogger(__name__)
+
+UPDATABLE_USER_FIELDS = frozenset({"nombre", "apellido", "telefono", "activo"})
 
 
 # ── Dashboard Stats ───────────────────────────────────────────────────────────
@@ -127,18 +131,53 @@ async def actualizar_usuario(
     usuario_id: uuid.UUID,
     data: UsuarioAdminUpdate,
     db: AsyncSession = Depends(get_db),
-    _admin=Depends(get_current_admin),
+    admin=Depends(get_current_admin),
 ):
-    """Actualiza datos de un usuario (rol, activo, etc.)."""
+    """Actualiza datos básicos de un usuario (sin cambiar rol)."""
     from app.core.exceptions import RecursoNoEncontradoError
+
     result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
     usuario = result.scalar_one_or_none()
     if not usuario:
         raise RecursoNoEncontradoError("Usuario")
 
-    for key, value in data.model_dump(exclude_unset=True).items():
-        setattr(usuario, key, value)
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if field in UPDATABLE_USER_FIELDS:
+            setattr(usuario, field, value)
+        else:
+            logger.warning(
+                f"Admin {admin.id} intentó modificar campo no permitido: {field}"
+            )
 
+    await db.flush()
+    return UsuarioResponse.model_validate(usuario)
+
+
+@router.patch("/usuarios/{usuario_id}/rol", response_model=UsuarioResponse)
+async def cambiar_rol_usuario(
+    usuario_id: uuid.UUID,
+    data: CambiarRolRequest,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """Cambia el rol de un usuario — endpoint separado con auditoría."""
+    from app.core.exceptions import RecursoNoEncontradoError, ValidacionError
+
+    if usuario_id == admin.id:
+        raise ValidacionError("No puedes cambiar tu propio rol")
+
+    result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
+    usuario = result.scalar_one_or_none()
+    if not usuario:
+        raise RecursoNoEncontradoError("Usuario")
+
+    rol_anterior = usuario.rol
+    logger.info(
+        f"Admin {admin.id} cambió rol de usuario {usuario_id} "
+        f"de '{rol_anterior}' a '{data.rol}'"
+    )
+    usuario.rol = data.rol
     await db.flush()
     return UsuarioResponse.model_validate(usuario)
 

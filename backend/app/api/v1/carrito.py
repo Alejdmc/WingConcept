@@ -12,7 +12,12 @@ import uuid
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user, get_optional_user, get_session_id
+from app.core.dependencies import (
+    get_current_user,
+    get_optional_user,
+    get_or_create_session_id,
+    get_session_id,
+)
 from app.core.exceptions import CredencialesInvalidasError
 from app.database import get_db
 from app.schemas.carrito import (
@@ -20,16 +25,17 @@ from app.schemas.carrito import (
     AgregarItemRequest,
     CarritoResponse,
 )
-from app.services.carrito_service import _precio_desde_configuracion, carrito_service
+from app.services.carrito_service import carrito_service
+from app.services.configurador_service import configurador_service
 
 router = APIRouter(prefix="/carrito", tags=["Carrito"])
 
 
 @router.get("", response_model=CarritoResponse)
 async def obtener_carrito(
-    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
+    session_id: str = Depends(get_or_create_session_id),
 ):
     """
     Obtiene el carrito del usuario autenticado (DB) o anónimo (Redis).
@@ -39,27 +45,31 @@ async def obtener_carrito(
         carrito = await carrito_service.obtener_o_crear(db, current_user.id)
         return await carrito_service._carrito_a_response(db, carrito)
 
-    session_id = get_session_id(request)
     return await carrito_service.obtener_anonimo(session_id)
 
 
 @router.post("/items", response_model=CarritoResponse, status_code=status.HTTP_201_CREATED)
 async def agregar_item(
     data: AgregarItemRequest,
-    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
+    session_id: str = Depends(get_or_create_session_id),
 ):
     """
     Agrega un item al carrito.
 
     Acepta variante_id o producto_id (configurador 3D).
-    Opcionalmente configuracion con totalPrice para precio personalizado.
+    El precio se calcula en servidor — no se confía en totalPrice del cliente.
     """
     variante = await carrito_service.resolver_variante(
         db, variante_id=data.variante_id, producto_id=data.producto_id
     )
-    precio = _precio_desde_configuracion(data.configuracion, float(variante.precio))
+    precio = await configurador_service.resolver_precio_carrito(
+        db,
+        variante.producto_id,
+        float(variante.precio),
+        data.configuracion,
+    )
 
     if current_user:
         return await carrito_service.agregar_item(
@@ -71,7 +81,6 @@ async def agregar_item(
             precio_unitario=precio,
         )
 
-    session_id = get_session_id(request)
     return await carrito_service.agregar_item_anonimo(
         session_id=session_id,
         variante_id=str(variante.id),
@@ -92,9 +101,9 @@ async def agregar_item(
 async def actualizar_item(
     item_id: uuid.UUID,
     data: ActualizarCantidadRequest,
-    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
+    session_id: str = Depends(get_or_create_session_id),
 ):
     """Actualiza la cantidad de un item."""
     if current_user:
@@ -102,7 +111,6 @@ async def actualizar_item(
             db, current_user.id, item_id, data.cantidad
         )
 
-    session_id = get_session_id(request)
     return await carrito_service.actualizar_cantidad_anonimo(
         session_id, str(item_id), data.cantidad
     )
@@ -111,29 +119,27 @@ async def actualizar_item(
 @router.delete("/items/{item_id}", response_model=CarritoResponse)
 async def eliminar_item(
     item_id: uuid.UUID,
-    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
+    session_id: str = Depends(get_or_create_session_id),
 ):
     """Elimina un item del carrito."""
     if current_user:
         return await carrito_service.eliminar_item(db, current_user.id, item_id)
 
-    session_id = get_session_id(request)
     return await carrito_service.eliminar_item_anonimo(session_id, str(item_id))
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
 async def vaciar_carrito(
-    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
+    session_id: str = Depends(get_or_create_session_id),
 ):
     """Vacía el carrito completo."""
     if current_user:
         await carrito_service.vaciar(db, current_user.id)
     else:
-        session_id = get_session_id(request)
         await carrito_service.limpiar_anonimo(session_id)
 
 

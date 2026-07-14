@@ -4,7 +4,7 @@ Configurador 3D de paratrikes/paramotores
 """
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -32,4 +32,30 @@ class ConfiguracionResponse(BaseModel):
     updated_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class ValidarPrecioRequest(BaseModel):
+    """Validación de precio del configurador (fuente autoritativa)."""
+    producto_id: uuid.UUID
+    engine: Optional[str] = None
+    finish: Optional[str] = None
+    upgrades: List[str] = Field(default_factory=list)
+    opciones: Optional[Dict[str, Any]] = None
+
+    def a_configuracion(self) -> Dict[str, Any]:
+        data: Dict[str, Any] = {}
+        if self.opciones:
+            data.update(self.opciones)
+        if self.engine is not None:
+            data["engine"] = self.engine
+        if self.finish is not None:
+            data["finish"] = self.finish
+        if self.upgrades:
+            data["upgrades"] = self.upgrades
+        return data
+
+
+class ValidarPrecioResponse(BaseModel):
+    precio_total: float
+    desglose: Dict[str, float]
 

@@ -4,13 +4,14 @@ Autenticación, roles, rate limiting via Redis
 """
 import logging
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import Depends, Header, Request
+from fastapi import Depends, Header, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.config import settings
 from app.core.exceptions import (
     CredencialesInvalidasError,
     PermisosDenegadosError,
@@ -106,10 +107,38 @@ async def get_optional_user(
         return None
 
 
+def get_or_create_session_id(
+    request: Request,
+    response: Response,
+    x_session_id: Optional[str] = Header(None, alias="X-Session-ID"),
+) -> str:
+    """
+    Session ID para carritos anónimos.
+    Prioridad: header X-Session-ID → cookie → generar UUID nuevo en cookie httpOnly.
+    """
+    if x_session_id and validar_session_id(x_session_id):
+        return x_session_id
+
+    session_cookie = request.cookies.get("session_id")
+    if session_cookie and validar_session_id(session_cookie):
+        return session_cookie
+
+    new_session_id = str(uuid4())
+    response.set_cookie(
+        key="session_id",
+        value=new_session_id,
+        max_age=settings.REDIS_CART_TTL,
+        httponly=True,
+        secure=settings.is_production,
+        samesite="lax",
+    )
+    return new_session_id
+
+
 def get_session_id(request: Request) -> str:
     """
-    Extrae o genera un session_id para carritos anónimos.
-    Primero busca X-Session-ID header (validado por middleware), luego cookie.
+    Extrae session_id sin crear uno nuevo (p. ej. merge tras login).
+    Requiere header o cookie válidos — no usa fallback por IP.
     """
     session_id = request.headers.get("X-Session-ID")
     if session_id and validar_session_id(session_id):
@@ -117,7 +146,5 @@ def get_session_id(request: Request) -> str:
     session_cookie = request.cookies.get("session_id")
     if session_cookie and validar_session_id(session_cookie):
         return session_cookie
-    # Fallback: usar IP (no recomendado en producción, solo para dev)
-    client_ip = request.client.host if request.client else "unknown"
-    return f"anon:{client_ip}"
+    return str(uuid4())
 

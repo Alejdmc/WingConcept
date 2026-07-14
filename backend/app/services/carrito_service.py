@@ -15,19 +15,10 @@ from app.core.exceptions import RecursoNoEncontradoError
 from app.models.carrito import Carrito, ItemCarrito
 from app.models.variante import Variante
 from app.schemas.carrito import CarritoResponse, ItemCarritoResponse
+from app.services.configurador_service import configurador_service
 from app.utils.redis_client import carrito_delete, carrito_get, carrito_set
 
 logger = logging.getLogger(__name__)
-
-
-def _precio_desde_configuracion(configuracion: Optional[dict], precio_variante: float) -> float:
-    """Usa totalPrice del configurador 3D si viene en la configuración."""
-    if not configuracion:
-        return precio_variante
-    for key in ("totalPrice", "total_price", "precio"):
-        if key in configuracion and configuracion[key] is not None:
-            return float(configuracion[key])
-    return precio_variante
 
 
 class CarritoService:
@@ -107,7 +98,7 @@ class CarritoService:
         if not variante:
             raise RecursoNoEncontradoError("Variante")
 
-        precio = precio_unitario or _precio_desde_configuracion(configuracion, float(variante.precio))
+        precio = precio_unitario if precio_unitario is not None else float(variante.precio)
         carrito = await self.obtener_o_crear(db, usuario_id)
 
         # Items configurados siempre son línea nueva (misma variante, distinta config)
@@ -352,13 +343,19 @@ class CarritoService:
                 )
                 variante = variante_result.scalar_one_or_none()
                 if variante:
+                    precio = await configurador_service.resolver_precio_carrito(
+                        db,
+                        variante.producto_id,
+                        float(variante.precio),
+                        item.get("configuracion"),
+                    )
                     await self.agregar_item(
                         db,
                         usuario_id,
                         variante_id,
                         cantidad,
                         configuracion=item.get("configuracion"),
-                        precio_unitario=item.get("precio_unitario"),
+                        precio_unitario=precio,
                     )
             except Exception as e:
                 logger.warning(f"Error fusionando item anónimo {item.get('variante_id')}: {e}")

@@ -29,6 +29,10 @@ from app.schemas.orden import (
 
 logger = logging.getLogger(__name__)
 
+UPDATABLE_ORDEN_FIELDS = frozenset({
+    "estado", "notas_admin", "numero_guia", "transportadora",
+})
+
 
 def _build_admin_orden_response(orden: Orden) -> AdminOrdenResponse:
     """Construye respuesta enriquecida para el panel admin."""
@@ -202,6 +206,30 @@ class OrdenService:
 
         return OrdenResponse.model_validate(orden)
 
+    async def obtener_con_acceso(
+        self,
+        db: AsyncSession,
+        orden_id: UUID,
+        usuario,
+    ) -> OrdenResponse:
+        """
+        Obtiene orden verificando ownership explícito.
+        Admin puede ver cualquier orden; clientes solo las propias.
+        """
+        result = await db.execute(
+            select(Orden)
+            .options(selectinload(Orden.items))
+            .where(Orden.id == orden_id)
+        )
+        orden = result.scalar_one_or_none()
+        if not orden:
+            raise RecursoNoEncontradoError("Orden")
+
+        if getattr(usuario, "rol", "client") != "admin" and orden.usuario_id != usuario.id:
+            raise RecursoNoEncontradoError("Orden")
+
+        return OrdenResponse.model_validate(orden)
+
     async def listar_usuario(
         self,
         db: AsyncSession,
@@ -285,11 +313,17 @@ class OrdenService:
         if not orden:
             raise RecursoNoEncontradoError("Orden")
 
-        for key, value in data.model_dump(exclude_unset=True).items():
-            setattr(orden, key, value)
+        update_data = data.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            if field in UPDATABLE_ORDEN_FIELDS:
+                setattr(orden, field, value)
+            else:
+                logger.warning(
+                    f"Campo no permitido en actualización de orden ignorado: {field}"
+                )
 
         await db.flush()
-        logger.info(f"Orden {orden.numero_orden} actualizada: {data.model_dump(exclude_unset=True)}")
+        logger.info(f"Orden {orden.numero_orden} actualizada: {update_data}")
         return _build_admin_orden_response(orden)
 
 

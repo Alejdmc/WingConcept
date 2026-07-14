@@ -158,6 +158,8 @@ class Settings(BaseSettings):
         if self.ENVIRONMENT == "production":
             if self.DEBUG:
                 raise ValueError("DEBUG debe ser False en producción.")
+            if not self.REQUIRE_EMAIL_VERIFIED:
+                object.__setattr__(self, "REQUIRE_EMAIL_VERIFIED", True)
             if not self.DATABASE_URL:
                 raise ValueError("DATABASE_URL es requerido en producción.")
             if not self.REDIS_PASSWORD:

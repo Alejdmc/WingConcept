@@ -47,14 +47,18 @@ class CambiarPasswordRequest(BaseModel):
 
 
 class UsuarioAdminUpdate(UsuarioUpdate):
-    """Solo administradores pueden modificar estos campos."""
-    rol: Optional[str] = None
+    """Campos que un admin puede modificar vía PUT /admin/usuarios/{id}."""
     activo: Optional[bool] = None
+    # rol se cambia solo vía PATCH /admin/usuarios/{id}/rol
+
+
+class CambiarRolRequest(BaseModel):
+    rol: str = Field(..., pattern="^(client|admin)$")
 
     @field_validator("rol")
     @classmethod
-    def validar_rol(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and v not in ROLES_VALIDOS:
+    def validar_rol(cls, v: str) -> str:
+        if v not in ROLES_VALIDOS:
             raise ValueError(f"Rol '{v}' no válido. Opciones: client, admin")
         return v
 

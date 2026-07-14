@@ -15,9 +15,33 @@ from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
 from app.database import get_db
 from app.models.configuracion import Configuracion
 from app.models.producto import Producto
-from app.schemas.configuracion import ConfiguracionCreate, ConfiguracionResponse
+from app.schemas.configuracion import (
+    ConfiguracionCreate,
+    ConfiguracionResponse,
+    ValidarPrecioRequest,
+    ValidarPrecioResponse,
+)
+from app.services.configurador_service import configurador_service
 
 router = APIRouter(prefix="/configurador", tags=["Configurador 3D"])
+
+
+@router.post("/validar-precio", response_model=ValidarPrecioResponse)
+async def validar_precio_configuracion(
+    data: ValidarPrecioRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Calcula el precio autoritativo de una configuración en el servidor.
+    El frontend puede usarlo para mostrar totales; el carrito recalcula al agregar.
+    """
+    resultado = await configurador_service.validar_precio(
+        db, data.producto_id, data.a_configuracion()
+    )
+    return ValidarPrecioResponse(
+        precio_total=resultado.precio_total,
+        desglose=resultado.desglose,
+    )
 
 
 @router.post("", response_model=ConfiguracionResponse, status_code=status.HTTP_201_CREATED)

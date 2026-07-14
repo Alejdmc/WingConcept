@@ -13,6 +13,7 @@ from app.models.orden import Orden, ItemOrden   # noqa: F401
 from app.models.pago import Pago                # noqa: F401
 from app.models.contenido import Contenido      # noqa: F401
 from app.models.cupon import Cupon              # noqa: F401
+from app.models.webhook_event import WebhookEvent  # noqa: F401
 
 __all__ = [
     "Usuario",
@@ -27,5 +28,6 @@ __all__ = [
     "Pago",
     "Contenido",
     "Cupon",
+    "WebhookEvent",
 ]
 

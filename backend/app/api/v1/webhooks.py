@@ -1,11 +1,6 @@
 """
 WingConcept Backend — Webhooks Stripe
 POST /api/v1/webhooks/stripe
-
-Configurar en: https://dashboard.stripe.com → Developers → Webhooks
-URL: https://tudominio.com/api/v1/webhooks/stripe
-Eventos: checkout.session.completed, checkout.session.expired,
-         payment_intent.payment_failed, charge.refunded
 """
 import logging
 
@@ -14,8 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.services.email_service import email_service
 from app.services.pago_service import pago_service
+from app.services.webhook_service import webhook_service
 
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 logger = logging.getLogger(__name__)
@@ -28,7 +23,8 @@ async def webhook_stripe(
     stripe_signature: str = Header(None, alias="stripe-signature"),
 ):
     """
-    Recibe eventos de Stripe. Valida firma con STRIPE_WEBHOOK_SECRET.
+    Recibe eventos de Stripe. Valida firma, persiste en webhook_events y procesa
+    con idempotencia (reintentos seguros si Stripe reenvía el evento).
     """
     if settings.is_production and not settings.STRIPE_WEBHOOK_SECRET:
         logger.critical(
@@ -60,71 +56,38 @@ async def webhook_stripe(
             detail="Firma Stripe inválida",
         )
 
-    evento_tipo = event["type"]
-    logger.info(f"Webhook Stripe: evento={evento_tipo}")
+    event_dict = webhook_service.stripe_event_a_dict(event)
+    event_id = event_dict.get("id", "")
+    event_type = event_dict.get("type", "")
+
+    if not event_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Evento Stripe sin ID",
+        )
+
+    logger.info(f"Webhook Stripe: evento={event_type} id={event_id}")
+
+    evento_db, _es_nuevo = await webhook_service.registrar_o_obtener(
+        db,
+        proveedor="stripe",
+        event_id=event_id,
+        event_type=event_type,
+        payload=event_dict,
+    )
+
+    if evento_db.procesado:
+        return {"status": "duplicate", "event_id": event_id}
 
     try:
-        if evento_tipo == "checkout.session.completed":
-            session = event["data"]["object"]
-            referencia = session.get("client_reference_id", "")
-            payment_intent = session.get("payment_intent", "")
-
-            if referencia and payment_intent:
-                pago = await pago_service.procesar_pago_aprobado(
-                    db,
-                    referencia=referencia,
-                    transaction_id=payment_intent,
-                    respuesta_proveedor=dict(session),
-                )
-                if pago.orden and pago.orden.usuario and pago.orden.estado == "pagado":
-                    await email_service.enviar_pago_confirmado(
-                        email=pago.orden.usuario.email,
-                        nombre=pago.orden.usuario.nombre,
-                        numero_orden=pago.orden.numero_orden,
-                        proveedor="stripe",
-                    )
-
-        elif evento_tipo == "checkout.session.expired":
-            session = event["data"]["object"]
-            await pago_service.procesar_pago_rechazado(
-                db,
-                stripe_session_id=session.get("id"),
-                respuesta_proveedor=dict(session),
-            )
-
-        elif evento_tipo == "payment_intent.payment_failed":
-            payment_intent = event["data"]["object"]
-            referencia = (payment_intent.get("metadata") or {}).get("referencia")
-            if referencia:
-                await pago_service.procesar_pago_rechazado(
-                    db,
-                    referencia=referencia,
-                    respuesta_proveedor=dict(payment_intent),
-                )
-            else:
-                logger.warning(
-                    f"Pago fallido sin referencia en metadata: "
-                    f"{payment_intent.get('id')}"
-                )
-
-        elif evento_tipo == "charge.refunded":
-            charge = event["data"]["object"]
-            payment_intent = charge.get("payment_intent")
-            if payment_intent:
-                pago = await pago_service.procesar_pago_reembolsado(
-                    db,
-                    transaction_id=payment_intent,
-                    respuesta_proveedor=dict(charge),
-                )
-                if pago.orden and pago.orden.usuario:
-                    logger.info(
-                        f"Reembolso procesado orden:{pago.orden.numero_orden} "
-                        f"cliente:{pago.orden.usuario.email}"
-                    )
-
+        await webhook_service.procesar_evento_stripe(db, evento_db)
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error procesando webhook Stripe: {e}", exc_info=True)
+    except Exception:
+        # 500 → Stripe reintenta; el evento queda persistido con ultimo_error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error procesando webhook — se reintentará",
+        )
 
-    return {"status": "received"}
+    return {"status": "received", "event_id": event_id}

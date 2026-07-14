@@ -36,8 +36,7 @@ async def obtener_orden(
     current_user=Depends(get_current_user),
 ):
     """Obtiene el detalle de una orden. Solo el dueño o admin."""
-    usuario_id = None if current_user.rol == "admin" else current_user.id
-    return await orden_service.obtener_por_id(db, orden_id, usuario_id)
+    return await orden_service.obtener_con_acceso(db, orden_id, current_user)
 
 
 @router.post("", response_model=OrdenResponse, status_code=status.HTTP_201_CREATED)
