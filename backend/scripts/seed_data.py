@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── IDs fijos (deben coincidir con frontend/lib/products.js) ─────────────────
-DISRUPTOR_ID = "afcfd5fd-23cd-443c-90cf-6b64f4bd182c"
 IPRO_ID = "b2c3d4e5-f6a7-4890-b123-456789abcdef"
 VANGUARD_ID = "c1a2b3d4-e5f6-7890-1234-567890abcdef"
 NOMADIC_ID = "d1e2f3a4-b5c6-7890-1234-567890abcdef"
@@ -114,19 +113,12 @@ def main() -> None:
     )
     cur = conn.cursor()
 
-    # Desactivar producto genérico que ya no usa la app
-    cur.execute("UPDATE productos SET activo = false WHERE slug = 'paramotor-trike'")
+    # Desactivar productos que aún no están en catálogo
+    cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'paramotor-trike'")
+    cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'disruptor'")
 
     # ── Paramotors ────────────────────────────────────────────────────
-    disruptor_id = _upsert_producto(
-        cur, DISRUPTOR_ID, "Disruptor", "disruptor",
-        "Paramotor de alto rendimiento para pilotos exigentes.",
-        "High performance paramotor", "paramotor", "performance",
-        ["/images/disruptor_ejemplo.PNG"], 1,
-    )
-    _upsert_variante(cur, _vid("disruptor-standard"), disruptor_id, "Disruptor Standard", "DISC-STD-001", 4500.00, 5,
-                     '{"motor": "Vittorazi Moster 185", "peso_kg": 28, "empuje_kg": 95}')
-
+    # Disruptor: omitido — producto aún no disponible
     ipro_id = _upsert_producto(
         cur, IPRO_ID, "I-Pro", "i-pro",
         "El I-Pro redefine lo que significa volar ligero.",
@@ -195,7 +187,7 @@ def main() -> None:
     conn.commit()
     cur.close()
     conn.close()
-    print("Seed completado: Disruptor, I-Pro, Vanguard, Nomadic + 13 accesorios")
+    print("Seed completado: I-Pro, Vanguard, Nomadic + 13 accesorios")
     print(f"  Vanguard ID: {vanguard_id}")
     print(f"  Nomadic ID:  {nomadic_id}")
 

@@ -29,12 +29,12 @@ const fallbackProducts = [
   },
   { 
     id: 3,
-    name: 'Disruptor', 
-    image: '/images/motor.png', 
-    price: '$4,500', 
-    desc: 'Ultimate Power & Agility', 
-    specs: '28kg | 95kg thrust',
-    badge: 'Best Seller',
+    name: 'I-Pro', 
+    image: '/images/ipro_ejemplo.PNG', 
+    price: '$5,950', 
+    desc: 'Next-gen lightweight design', 
+    specs: '26kg | 90kg thrust',
+    badge: 'New',
     href: '/paramotors'
   },
 ]
