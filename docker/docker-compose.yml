@@ -125,7 +125,7 @@ services:
   # ── Certbot — SSL Let's Encrypt ────────────────────────────────────────────
   # Docs: https://certbot.eff.org/docs
   # Comando inicial para obtener certificado:
-  #   docker-compose run --rm certbot certonly --webroot \
+  #   docker compose run --rm --entrypoint certbot certbot certonly --webroot \
   #     -w /var/www/certbot -d tudominio.com --email tu@email.com --agree-tos
   # Renovación automática (cron):
   #   0 0 */60 * * docker-compose run --rm certbot renew

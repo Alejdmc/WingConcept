@@ -32,7 +32,7 @@ if [ "$(swapon --show | wc -l)" -lt 1 ] && [ ! -f /swapfile ]; then
 fi
 
 HAS_CERT=false
-if $COMPOSE run --rm certbot certificates 2>/dev/null | grep -q "Certificate Name: $DOMAIN"; then
+if $COMPOSE run --rm --entrypoint certbot certbot certificates 2>/dev/null | grep -q "Certificate Name: $DOMAIN"; then
   HAS_CERT=true
 fi
 
@@ -45,7 +45,7 @@ if [ "$HAS_CERT" = false ]; then
   sleep 30
 
   echo "==> Certificado Let's Encrypt..."
-  $COMPOSE run --rm certbot certonly --webroot \
+  $COMPOSE run --rm --entrypoint certbot certbot certonly --webroot \
     -w /var/www/certbot \
     -d "$DOMAIN" \
     -d "www.$DOMAIN" \
