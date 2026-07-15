@@ -39,7 +39,7 @@ export default function CartPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-5xl font-black uppercase mb-8">Shopping Cart</h1>
+          <h1 className="text-3xl sm:text-5xl font-black uppercase mb-8">Shopping Cart</h1>
           {error && (
             <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm">{error}</div>
           )}

@@ -72,7 +72,7 @@ export default function AdventurePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-7xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               {hero.titulo}
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />
@@ -100,7 +100,7 @@ export default function AdventurePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Featured Expeditions</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Featured Expeditions</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
@@ -189,7 +189,7 @@ export default function AdventurePage() {
 
       <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-5xl font-black uppercase mb-8">Ready for Your Next Adventure?</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase mb-8">Ready for Your Next Adventure?</h2>
           <p className="text-xl mb-12">Contact us to book your expedition and start planning your ultimate paramotor journey.</p>
           <Link href="/contact" className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
             Get in Touch

@@ -87,7 +87,7 @@ export default function NomadicPage() {
               
               <div>
                 <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Limitless — {nomadic.year}</p>
-                <h1 className="text-7xl font-black uppercase text-ink leading-tight mb-4">
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink leading-tight mb-4">
                   {nomadic.name}
                 </h1>
                 <div className="h-2 w-24 bg-brand" />
@@ -136,7 +136,7 @@ export default function NomadicPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink">Why Nomadic?</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">Why Nomadic?</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -168,7 +168,7 @@ export default function NomadicPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink">Engine Options</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">Engine Options</h2>
             <p className="text-ink2 text-lg mt-4">Choose the power that suits your adventure</p>
           </motion.div>
 
@@ -195,7 +195,7 @@ export default function NomadicPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink">Specifications</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">Specifications</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -220,7 +220,7 @@ export default function NomadicPage() {
           <motion.h2
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            className="text-6xl font-black uppercase mb-8">
+            className="text-3xl sm:text-6xl font-black uppercase mb-8">
             Ready to Go Further?
           </motion.h2>
           <motion.p

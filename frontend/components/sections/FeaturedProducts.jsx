@@ -108,7 +108,7 @@ export default function FeaturedProducts() {
             transition={{ duration: 0.6, delay: 0.1 }}>
             <p className="text-brand font-bold uppercase tracking-[0.3em] text-sm mb-4">Premium Selection</p>
           </motion.div>
-          <h2 className="text-6xl md:text-7xl font-black uppercase text-white mb-6 tracking-tight">Featured Products</h2>
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase text-white mb-6 tracking-tight">Featured Products</h2>
           <motion.div 
             initial={{ width: 0 }}
             whileInView={{ width: '100%' }}
@@ -117,18 +117,17 @@ export default function FeaturedProducts() {
         </div>
         
         {/* Grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}>
-          
+          viewport={{ once: true, amount: 0.15 }}>
+
           {items.map((product) => (
             <motion.div
               key={product.id}
               variants={itemVariants}
-              layout
               whileHover={{ y: -8 }}
               className={`relative group cursor-pointer transition-all duration-500`}
               onClick={() => setSelectedId(selectedId === product.id ? null : product.id)}

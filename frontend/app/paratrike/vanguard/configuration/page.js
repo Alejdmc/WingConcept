@@ -135,7 +135,7 @@ export default function ConfiguratorPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
-          <h1 className="text-5xl font-black uppercase tracking-tight text-ink">Vanguard V8.0</h1>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Vanguard V8.0</h1>
           <p className="text-xl text-ink2 mt-2">Configure your dream machine</p>
         </div>
 

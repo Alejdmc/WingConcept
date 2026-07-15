@@ -37,13 +37,6 @@ const services = [
   }
 ]
 
-const stats = [
-  { number: '50+', label: 'Projects Delivered' },
-  { number: '30+', label: 'Happy Clients' },
-  { number: '5+', label: 'Years Experience' },
-  { number: '24/7', label: 'Support Available' }
-]
-
 const team = [
   {
     name: 'Creative Direction',
@@ -88,63 +81,44 @@ export default function ZomiDevAboutPage() {
       {/* Hero */}
       <section className="relative py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-br from-bg2 to-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
-            {/* Left: Logo & Title */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-6 sm:space-y-8">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <Image
-                  src="/images/ZomiDev.png"
-                  alt="ZomiDev Logo"
-                  width={300}
-                  height={300}
-                  className="drop-shadow-lg w-16 h-16 sm:w-20 sm:h-20 lg:w-[120px] lg:h-[120px] shrink-0"
-                />
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-3xl mx-auto text-center space-y-6 sm:space-y-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              <Image
+                src="/images/ZomiDev.png"
+                alt="ZomiDev Logo"
+                width={300}
+                height={300}
+                className="drop-shadow-lg w-16 h-16 sm:w-20 sm:h-20 lg:w-[120px] lg:h-[120px] shrink-0"
+              />
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
+            </div>
 
-              <div className="space-y-4">
-                <p className="text-lg sm:text-xl text-ink2 leading-relaxed">
-                  We are a forward-thinking startup specializing in creating powerful web and mobile applications that drive real business results.
-                </p>
-                <p className="text-base sm:text-lg text-ink leading-relaxed">
-                  From concept to deployment, we craft digital solutions that combine cutting-edge technology with exceptional design, solving complex business challenges with elegant code.
-                </p>
-              </div>
+            <div className="space-y-4">
+              <p className="text-lg sm:text-xl text-ink2 leading-relaxed">
+                We are a forward-thinking startup specializing in creating powerful web and mobile applications that drive real business results.
+              </p>
+              <p className="text-base sm:text-lg text-ink leading-relaxed">
+                From concept to deployment, we craft digital solutions that combine cutting-edge technology with exceptional design, solving complex business challenges with elegant code.
+              </p>
+            </div>
 
-              <div className="pt-4">
-                <p className="text-sm uppercase tracking-widest text-brand font-bold mb-4">Our Expertise</p>
-                <div className="flex flex-wrap gap-3">
-                  {['React', 'Next.js', 'Node.js', 'Python', 'Mobile', 'Cloud'].map((tech, i) => (
-                    <span
-                      key={i}
-                      className="px-4 py-2 bg-brand-soft text-brand rounded-full font-semibold text-sm">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
+            <div className="pt-4">
+              <p className="text-sm uppercase tracking-widest text-brand font-bold mb-4">Our Expertise</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {['React', 'Next.js', 'Node.js', 'Python', 'Mobile', 'Cloud'].map((tech, i) => (
+                  <span
+                    key={i}
+                    className="px-4 py-2 bg-brand-soft text-brand rounded-full font-semibold text-sm">
+                    {tech}
+                  </span>
+                ))}
               </div>
-            </motion.div>
-
-            {/* Right: Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="grid grid-cols-2 gap-4 sm:gap-6">
-              {stats.map((stat, i) => (
-                <div
-                  key={i}
-                  className="bg-white border-2 border-brand rounded-xl p-5 sm:p-8 text-center hover:shadow-lg transition-all">
-                  <p className="text-3xl sm:text-4xl font-black text-brand mb-2">{stat.number}</p>
-                  <p className="text-xs sm:text-sm uppercase tracking-widest text-ink2 font-bold">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 

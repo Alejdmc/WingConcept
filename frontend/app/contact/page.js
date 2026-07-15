@@ -87,7 +87,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
               Get In Touch
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />

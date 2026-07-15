@@ -65,7 +65,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-40 px-8">
+      <div className="flex items-center justify-between h-40 px-4 sm:px-6 md:px-8">
         <Link href="/" className="flex items-center">
           <Image
             src="/images/logo.png"
@@ -99,7 +99,7 @@ export default function Navbar() {
           <Link
             href={userHref}
             onClick={handleUserClick}
-            className="w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
+            className="w-10 h-10 sm:w-9 sm:h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors"
             title="My account"
             aria-label="My account">
             <User className="w-5 h-5" />
@@ -108,7 +108,7 @@ export default function Navbar() {
           {/* Cart */}
           <Link
             href="/cart"
-            className="relative w-9 h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors">
+            className="relative w-10 h-10 sm:w-9 sm:h-9 rounded text-ink2 hover:text-brand hover:bg-brand-soft flex items-center justify-center transition-colors">
             <ShoppingCart className="w-5 h-5" />
             {itemCount > 0 && (
               <span className="absolute top-1 right-1 bg-brand text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
@@ -120,7 +120,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden w-9 h-9 flex items-center justify-center text-ink2 hover:text-brand transition-colors">
+            className="md:hidden w-10 h-10 flex items-center justify-center text-ink2 hover:text-brand transition-colors">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>

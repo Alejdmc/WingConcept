@@ -206,7 +206,7 @@ function RegisterForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase text-ink mb-2">First Name *</label>
                 <div className="relative">
@@ -271,7 +271,7 @@ function RegisterForm() {
             </div>
 
             {/* Country & State */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase text-ink mb-2">Country</label>
                 <div className="relative">
@@ -301,7 +301,7 @@ function RegisterForm() {
             </div>
 
             {/* City & Zip */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input 
                 name="city" 
                 placeholder="City" 

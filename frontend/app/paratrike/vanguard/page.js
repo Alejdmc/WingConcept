@@ -66,7 +66,7 @@ export default function ParatrikePage() {
         <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
             <p className="text-brand font-bold uppercase tracking-[0.3em] text-sm mb-4">Premium Trike</p>
-            <h1 className="text-6xl lg:text-7xl font-black uppercase text-ink mb-6 leading-tight">{vanguard.name}</h1>
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black uppercase text-ink mb-6 leading-tight">{vanguard.name}</h1>
             <p className="text-xl text-ink2 font-semibold mb-4">{vanguard.tagline}</p>
             <p className="text-lg text-ink leading-relaxed mb-8">{vanguard.description}</p>
 
@@ -93,7 +93,7 @@ export default function ParatrikePage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Key Innovations</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Key Innovations</h2>
             <div className="w-12 h-1 bg-brand mx-auto" />
           </motion.div>
 
@@ -132,7 +132,7 @@ export default function ParatrikePage() {
       {/* Engine Compatibility */}
       <section className="py-24 px-6 bg-bg2">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-black uppercase text-ink mb-16 text-center">Compatible Engines</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-16 text-center">Compatible Engines</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vanguard.engines.map((engine, i) => (
               <div key={i} className="bg-white border border-borderline rounded-lg p-6 hover:shadow-lg transition">
@@ -150,7 +150,7 @@ export default function ParatrikePage() {
       {/* Specs Section */}
       <section id="specs" className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl font-black uppercase text-ink mb-16 text-center">Technical Specifications</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-16 text-center">Technical Specifications</h2>
           <div className="bg-bg2 rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
             {Object.entries(vanguard.specs).map(([key, value]) => (
               <div key={key} className="p-8 border-b border-borderline">
@@ -164,7 +164,7 @@ export default function ParatrikePage() {
 
       {/* CTA Section */}
       <section className="relative z-10 py-20 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
-        <h2 className="text-5xl font-black uppercase mb-6">Ready to Customize?</h2>
+        <h2 className="text-3xl sm:text-5xl font-black uppercase mb-6">Ready to Customize?</h2>
         <Link href="/paratrike/vanguard/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded hover:shadow-lg transition">
           Start Customizing
         </Link>
