@@ -71,46 +71,46 @@ export default function ZomiDevAboutPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-4 sm:py-6 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+            className="group inline-flex items-center gap-2 pl-2 pr-3 sm:pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-xs sm:text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all shrink-0">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors shrink-0">
               <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
             </span>
             Back
           </Link>
-          <p className="text-sm text-ink2 font-semibold">Designed & Developed by ZomiDev</p>
+          <p className="text-xs sm:text-sm text-ink2 font-semibold text-right truncate">Designed & Developed by ZomiDev</p>
         </div>
       </div>
 
       {/* Hero */}
-      <section className="relative py-32 px-6 bg-gradient-to-br from-bg2 to-white overflow-hidden">
+      <section className="relative py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-br from-bg2 to-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             {/* Left: Logo & Title */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="space-y-8">
-              <div className="flex items-center gap-4">
+              className="space-y-6 sm:space-y-8">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <Image
                   src="/images/ZomiDev.png"
                   alt="ZomiDev Logo"
                   width={300}
                   height={300}
-                  className="drop-shadow-lg"
+                  className="drop-shadow-lg w-16 h-16 sm:w-20 sm:h-20 lg:w-[120px] lg:h-[120px] shrink-0"
                 />
-                <h1 className="text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
               </div>
 
               <div className="space-y-4">
-                <p className="text-xl text-ink2 leading-relaxed">
+                <p className="text-lg sm:text-xl text-ink2 leading-relaxed">
                   We are a forward-thinking startup specializing in creating powerful web and mobile applications that drive real business results.
                 </p>
-                <p className="text-lg text-ink leading-relaxed">
+                <p className="text-base sm:text-lg text-ink leading-relaxed">
                   From concept to deployment, we craft digital solutions that combine cutting-edge technology with exceptional design, solving complex business challenges with elegant code.
                 </p>
               </div>
@@ -134,13 +134,13 @@ export default function ZomiDevAboutPage() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="grid grid-cols-2 gap-6">
+              className="grid grid-cols-2 gap-4 sm:gap-6">
               {stats.map((stat, i) => (
                 <div
                   key={i}
-                  className="bg-white border-2 border-brand rounded-xl p-8 text-center hover:shadow-lg transition-all">
-                  <p className="text-4xl font-black text-brand mb-2">{stat.number}</p>
-                  <p className="text-sm uppercase tracking-widest text-ink2 font-bold">{stat.label}</p>
+                  className="bg-white border-2 border-brand rounded-xl p-5 sm:p-8 text-center hover:shadow-lg transition-all">
+                  <p className="text-3xl sm:text-4xl font-black text-brand mb-2">{stat.number}</p>
+                  <p className="text-xs sm:text-sm uppercase tracking-widest text-ink2 font-bold">{stat.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -149,18 +149,18 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* Services Grid */}
-      <section className="py-24 px-6 bg-bg2">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-bg2">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16">
+            className="text-center mb-10 sm:mb-16">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">What We Do</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Our Expertise</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink mb-4">Our Expertise</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {services.map((service, i) => {
               const Icon = service.icon
               return (
@@ -169,9 +169,9 @@ export default function ZomiDevAboutPage() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white rounded-xl p-8 border border-borderline hover:shadow-lg hover:border-brand transition-all">
-                  <Icon className="w-12 h-12 text-brand mb-6" />
-                  <h3 className="text-2xl font-black text-ink mb-4 uppercase">{service.title}</h3>
+                  className="bg-white rounded-xl p-6 sm:p-8 border border-borderline hover:shadow-lg hover:border-brand transition-all">
+                  <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-brand mb-6" />
+                  <h3 className="text-xl sm:text-2xl font-black text-ink mb-4 uppercase">{service.title}</h3>
                   <p className="text-ink2 leading-relaxed">{service.description}</p>
                 </motion.div>
               )
@@ -181,24 +181,24 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16">
+            className="text-center mb-10 sm:mb-16">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Why Partners Trust Us</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Our Approach</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink mb-4">Our Approach</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               className="space-y-8">
-              
-              <div className="flex gap-6">
+
+              <div className="flex gap-4 sm:gap-6">
                 <div className="flex-shrink-0">
                   <Award className="w-8 h-8 text-brand mt-1" />
                 </div>
@@ -210,7 +210,7 @@ export default function ZomiDevAboutPage() {
                 </div>
               </div>
 
-              <div className="flex gap-6">
+              <div className="flex gap-4 sm:gap-6">
                 <div className="flex-shrink-0">
                   <Users className="w-8 h-8 text-brand mt-1" />
                 </div>
@@ -222,7 +222,7 @@ export default function ZomiDevAboutPage() {
                 </div>
               </div>
 
-              <div className="flex gap-6">
+              <div className="flex gap-4 sm:gap-6">
                 <div className="flex-shrink-0">
                   <Zap className="w-8 h-8 text-brand mt-1" />
                 </div>
@@ -238,8 +238,8 @@ export default function ZomiDevAboutPage() {
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              className="bg-gradient-to-br from-brand to-brand/80 rounded-2xl p-12 text-white">
-              <h3 className="text-3xl font-black uppercase mb-8">Our Process</h3>
+              className="bg-gradient-to-br from-brand to-brand/80 rounded-2xl p-6 sm:p-12 text-white">
+              <h3 className="text-2xl sm:text-3xl font-black uppercase mb-8">Our Process</h3>
               <ol className="space-y-6">
                 <li className="flex gap-4">
                   <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-white text-brand rounded-full font-black">1</span>
@@ -276,25 +276,25 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* Team */}
-      <section className="py-24 px-6 bg-bg2">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-bg2">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16">
+            className="text-center mb-10 sm:mb-16">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Our Team</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Talented & Passionate</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink mb-4">Talented & Passionate</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {team.map((member, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-xl p-8 border border-borderline text-center hover:shadow-lg hover:border-brand transition-all">
+                className="bg-white rounded-xl p-6 sm:p-8 border border-borderline text-center hover:shadow-lg hover:border-brand transition-all">
                 <div className="w-20 h-20 bg-brand-soft rounded-full flex items-center justify-center mx-auto mb-6">
                   <Code2 className="w-10 h-10 text-brand" />
                 </div>
@@ -308,22 +308,22 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* Technology Stack */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16">
+            className="text-center mb-10 sm:mb-16">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Technology</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Modern Stack</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink mb-4">Modern Stack</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="bg-bg2 rounded-xl p-8 border border-borderline">
+              className="bg-bg2 rounded-xl p-6 sm:p-8 border border-borderline">
               <h3 className="font-black text-ink uppercase mb-6">Frontend</h3>
               <ul className="space-y-2 text-ink2">
                 <li>• React & Next.js</li>
@@ -337,7 +337,7 @@ export default function ZomiDevAboutPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-bg2 rounded-xl p-8 border border-borderline">
+              className="bg-bg2 rounded-xl p-6 sm:p-8 border border-borderline">
               <h3 className="font-black text-ink uppercase mb-6">Backend</h3>
               <ul className="space-y-2 text-ink2">
                 <li>• Node.js & Express</li>
@@ -351,7 +351,7 @@ export default function ZomiDevAboutPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-bg2 rounded-xl p-8 border border-borderline">
+              className="bg-bg2 rounded-xl p-6 sm:p-8 border border-borderline">
               <h3 className="font-black text-ink uppercase mb-6">Infrastructure</h3>
               <ul className="space-y-2 text-ink2">
                 <li>• AWS & Google Cloud</li>
@@ -365,24 +365,24 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}>
-            <h2 className="text-5xl font-black uppercase mb-8">Ready to Build Something Amazing?</h2>
-            <p className="text-xl mb-12 text-white/90">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase mb-8">Ready to Build Something Amazing?</h2>
+            <p className="text-lg sm:text-xl mb-10 sm:mb-12 text-white/90">
               Let's turn your vision into reality. Contact us today to discuss your project.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
               <a
                 href="mailto:zomidev@zomidev.com"
-                className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
+                className="inline-block bg-white text-brand px-8 sm:px-12 py-4 sm:py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
                 Get In Touch
               </a>
               <a
                 href="tel:+573238125686"
-                className="inline-block border-2 border-white text-white px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
+                className="inline-block border-2 border-white text-white px-8 sm:px-12 py-4 sm:py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
                 Contact Us
               </a>
             </div>
@@ -391,7 +391,7 @@ export default function ZomiDevAboutPage() {
       </section>
 
       {/* Footer Note */}
-      <section className="py-12 px-6 bg-white border-t border-borderline text-center">
+      <section className="py-12 px-4 sm:px-6 bg-white border-t border-borderline text-center">
         <p className="text-sm text-ink2">
           ZomiDev © 2026 — Creating digital solutions that drive business growth
         </p>
