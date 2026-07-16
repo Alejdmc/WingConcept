@@ -193,7 +193,13 @@ class Settings(BaseSettings):
 
     def get_allowed_hosts(self) -> List[str]:
         """Retorna lista de hosts confiables para TrustedHostMiddleware."""
-        return [host.strip() for host in self.ALLOWED_HOSTS.split(",")]
+        hosts = [host.strip() for host in self.ALLOWED_HOSTS.split(",") if host.strip()]
+        # Docker Compose: healthcheck (localhost) y middleware Next.js (backend:8000)
+        if self.REDIS_HOST == "redis":
+            for internal in ("backend", "localhost", "127.0.0.1"):
+                if internal not in hosts:
+                    hosts.append(internal)
+        return hosts
 
     def get_allowed_image_types(self) -> List[str]:
         return [t.strip() for t in self.ALLOWED_IMAGE_TYPES.split(",")]
