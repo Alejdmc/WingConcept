@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag } from 'lucide-react'
-import { isAdminUser, clearAuthSession, getStoredUser } from '@/lib/auth'
+import { clearAuthSession, getStoredUser } from '@/lib/auth'
 import { api } from '@/lib/api'
 
 export default function AdminLayout({ children }) {
@@ -23,11 +23,20 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (!token || !isAdminUser()) {
+    if (!token) {
       router.replace('/login')
       return
     }
-    setReady(true)
+
+    api.auth.me()
+      .then((user) => {
+        if (user?.rol !== 'admin') {
+          router.replace('/')
+          return
+        }
+        setReady(true)
+      })
+      .catch(() => router.replace('/login'))
   }, [router])
 
   const handleLogout = async () => {

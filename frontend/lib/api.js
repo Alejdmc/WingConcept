@@ -39,6 +39,7 @@ async function request(path, options = {}) {
   const sessionId = getSessionId()
 
   const res = await fetch(`${API}${path}`, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),

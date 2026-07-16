@@ -53,7 +53,8 @@ function LoginForm() {
 
     const destination = res.rol === 'admin' ? '/admin/dashboard' : nextUrl
     clearAuthNext()
-    router.push(destination.startsWith('/') ? destination : '/')
+    // Navegación completa para que middleware reciba cookies recién guardadas
+    window.location.assign(destination.startsWith('/') ? destination : '/')
   }
 
   const handleSubmit = async (e) => {

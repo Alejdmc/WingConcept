@@ -10,8 +10,8 @@ export function persistAuthSession(data) {
   localStorage.setItem('refresh_token', data.refresh_token)
   localStorage.setItem('user', JSON.stringify({ nombre: data.nombre, rol: data.rol }))
 
-  document.cookie = `access_token=${data.access_token}; path=/; max-age=${maxAge}; SameSite=Lax`
-  const secureFlag = typeof window !== 'undefined' && window.location && window.location.protocol === 'https:' ? '; Secure' : ''
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+  const secureFlag = secure ? '; Secure' : ''
   document.cookie = `access_token=${data.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`
   document.cookie = `user=${encodeURIComponent(JSON.stringify({ nombre: data.nombre, rol: data.rol }))}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`
   window.dispatchEvent(new Event('auth-changed'))
