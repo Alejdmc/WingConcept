@@ -23,7 +23,7 @@ const navItems = [
     label: 'More',
     children: [
       { label: 'About Us', href: '/about' },
-      { label: 'Curso Inductivo', href: '/curso-inductivo' },
+      { label: 'Induction Course', href: '/induction-course' },
       { label: 'Contact', href: '/contact' },
     ],
   },

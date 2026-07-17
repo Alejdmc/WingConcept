@@ -7,46 +7,46 @@ import { ArrowLeft, ShieldCheck, Award, Users, Cpu, BadgeCheck, ClipboardCheck, 
 const PILLARS = [
   {
     icon: ShieldCheck,
-    title: 'Seguridad',
-    desc: 'La seguridad es el eje de cada vuelo. Cada trike pasa por inspección de motor, ala/cordaje, arnés y sistema de paracaídas de emergencia antes de ser entregado a un piloto.',
+    title: 'Safety',
+    desc: 'Safety is the foundation of every flight. Each trike goes through an engine, wing/lines, harness and emergency parachute inspection before being handed to a pilot.',
   },
   {
     icon: BadgeCheck,
-    title: 'Confiabilidad',
-    desc: 'Trabajamos con motores y estructuras de fabricantes reconocidos en la industria, con mantenimiento preventivo documentado en cada equipo.',
+    title: 'Reliability',
+    desc: 'We work with engines and structures from industry-recognized manufacturers, with documented preventive maintenance on every unit.',
   },
   {
     icon: Award,
-    title: 'Pilotos Certificados',
-    desc: 'Nuestros instructores siguen programas de certificación reconocidos en la industria del paramotor (niveles progresivos tipo PPG1 a PPG3: manejo en tierra, despegue/aterrizaje seguro, vuelo independiente y condiciones avanzadas).',
+    title: 'Certified Pilots',
+    desc: 'Our instructors follow certification programs recognized in the paramotor industry (progressive levels such as PPG1 to PPG3: ground handling, safe takeoff/landing, independent flight, and advanced conditions).',
   },
   {
     icon: Cpu,
-    title: 'Equipos de Última Generación',
-    desc: 'Chasis, motores e instrumentación actualizados constantemente para ofrecer mejor rendimiento, menor peso y mayor control en vuelo.',
+    title: 'Latest-Generation Equipment',
+    desc: 'Chassis, engines and instrumentation constantly updated for better performance, less weight and greater flight control.',
   },
   {
     icon: ShieldCheck,
-    title: 'Trikes Certificados',
-    desc: 'Cada paratrike que operamos cumple especificaciones estructurales y de seguridad verificadas antes de salir a vuelo.',
+    title: 'Certified Trikes',
+    desc: 'Every paratrike we operate meets structural and safety specifications verified before flight.',
   },
   {
     icon: Cpu,
-    title: 'Tecnología Utilizada',
-    desc: 'Instrumentación de vuelo, sistemas de suspensión activa y componentes en fibra de carbono / acero de alta resistencia para máxima precisión y durabilidad.',
+    title: 'Technology Used',
+    desc: 'Flight instrumentation, active suspension systems and high-strength carbon fiber / steel components for maximum precision and durability.',
   },
   {
     icon: HeartHandshake,
-    title: 'Compromiso con el Cliente',
-    desc: 'Acompañamiento antes, durante y después del vuelo. Tu seguridad y confianza son la prioridad en cada experiencia con Wing Concept.',
+    title: 'Commitment to Our Clients',
+    desc: 'Support before, during and after the flight. Your safety and confidence are the priority in every Wing Concept experience.',
   },
 ]
 
 const PREFLIGHT_CHECKLIST = [
-  { icon: Radio, title: 'Motor y Combustible', desc: 'Verificación de nivel de combustible, cableado del acelerador y funcionamiento general del motor.' },
-  { icon: ClipboardCheck, title: 'Ala y Líneas', desc: 'Revisión del tejido del ala y las líneas/riser en busca de nudos, desgaste o daños.' },
-  { icon: Users, title: 'Arnés y Equipo de Seguridad', desc: 'Inspección de correas del arnés, casco y equipo de comunicación.' },
-  { icon: ShieldCheck, title: 'Paracaídas de Emergencia', desc: 'Confirmación de que el paracaídas de reserva está correctamente empacado y vigente.' },
+  { icon: Radio, title: 'Engine & Fuel', desc: 'Verification of fuel level, throttle cable and overall engine operation.' },
+  { icon: ClipboardCheck, title: 'Wing & Lines', desc: 'Inspection of the wing fabric and lines/risers for knots, wear or damage.' },
+  { icon: Users, title: 'Harness & Safety Gear', desc: 'Inspection of harness straps, helmet and communication equipment.' },
+  { icon: ShieldCheck, title: 'Emergency Parachute', desc: 'Confirmation that the reserve parachute is properly packed and up to date.' },
 ]
 
 export default function CursoInductivoPage() {
@@ -68,17 +68,17 @@ export default function CursoInductivoPage() {
       {/* Hero */}
       <section className="relative h-[60vh] min-h-[420px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image src="/images/bootcamp.jpg" alt="Curso Inductivo" fill className="object-cover" priority />
+          <Image src="/images/bootcamp.jpg" alt="Induction Course" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-black/55" />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
-              Curso Inductivo
+              Induction Course
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />
             <p className="text-xl md:text-2xl font-bold text-white drop-shadow-xl">
-              Seguridad, confiabilidad y profesionalismo antes de cada vuelo
+              Safety, reliability and professionalism before every flight
             </p>
           </motion.div>
         </div>
@@ -112,7 +112,7 @@ export default function CursoInductivoPage() {
       <section className="py-24 px-6 bg-bg2">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Procedimientos Antes del Vuelo</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Pre-Flight Procedures</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
@@ -136,8 +136,8 @@ export default function CursoInductivoPage() {
       {/* CTA */}
       <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-3xl sm:text-5xl font-black uppercase mb-8">¿Listo para volar con confianza?</h2>
-          <p className="text-xl mb-12">Conoce más sobre nuestro programa de inducción y agenda tu primer vuelo.</p>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase mb-8">Ready to fly with confidence?</h2>
+          <p className="text-xl mb-12">Learn more about our induction program and book your first flight.</p>
           <Link href="/contact" className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
             Get in Touch
           </Link>
