@@ -60,10 +60,9 @@ export default function Footer() {
           </div>
           {/* Right: Social */}
           <div className="flex items-center gap-6">
-            <a href="https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0" className="text-white/60 hover:text-brand transition"><Instagram className="w-5 h-5" /></a>
-            <a href="https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr" className="text-white/60 hover:text-brand transition"><Facebook className="w-5 h-5" /></a>
-            {/* <a href="#" className="text-white/60 hover:text-brand transition"><TikTokIcon /></a> */}
-            {/* <a href="#" className="text-white/60 hover:text-brand transition"><Youtube className="w-5 h-5" /></a> */}
+            <a href="https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-brand transition"><Instagram className="w-7 h-7" /></a>
+            <a href="https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-brand transition"><Facebook className="w-7 h-7" /></a>
+            <a href="https://www.youtube.com/@wingconcept" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-brand transition"><Youtube className="w-7 h-7" /></a>
           </div>
 
           {/* Legal Links */}

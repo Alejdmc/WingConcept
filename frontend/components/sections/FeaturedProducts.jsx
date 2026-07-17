@@ -10,7 +10,7 @@ const fallbackProducts = [
   { 
     id: 1,
     name: 'Vanguard V8.0', 
-    image: '/images/1vanguard.png', 
+    image: '/images/vanguard/1.png',
     price: '$5,950', 
     desc: 'Ultimate High-Performance Trike', 
     specs: 'Premium Aluminum | Advanced Aerodynamics',

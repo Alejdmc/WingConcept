@@ -4,13 +4,19 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Check, Zap, Shield, Gauge } from 'lucide-react'
+import Gallery from '@/components/sections/Gallery'
+
+const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
+  src: `/images/vanguard/${i + 1}.png`,
+  alt: `Vanguard V8.0 ${i + 1}`,
+}))
 
 const vanguard = {
   id: 1,
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V7.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
-  image: '/images/1vanguard.png',
+  image: '/images/vanguard/1.png',
   price: 'Contact for pricing',
   year: 2020,
   brand: 'Wing Concept',
@@ -128,6 +134,9 @@ export default function ParatrikePage() {
           </div>
         </div>
       </section>
+
+      {/* Gallery */}
+      <Gallery images={VANGUARD_GALLERY} eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engine Compatibility */}
       <section className="py-24 px-6 bg-bg2">

@@ -10,6 +10,7 @@ import { getStoredUser } from '@/lib/auth'
 const navItems = [
   { label: 'Paramotors', href: '/paramotors' },
   { label: 'Paratrike', href: '/paratrike' },
+  { label: 'Parts', href: '/parts' },
   {
     label: 'Adventure',
     children: [
@@ -22,6 +23,7 @@ const navItems = [
     label: 'More',
     children: [
       { label: 'About Us', href: '/about' },
+      { label: 'Curso Inductivo', href: '/curso-inductivo' },
       { label: 'Contact', href: '/contact' },
     ],
   },
@@ -65,7 +67,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-40 px-4 sm:px-6 md:px-8">
+      <div className="flex items-center justify-between h-36 px-4 sm:px-6 md:px-8">
         <Link href="/" className="flex items-center">
           <Image
             src="/images/logo.png"
@@ -73,7 +75,7 @@ export default function Navbar() {
             width={700}
             height={200}
             priority
-            className="h-40 w-auto"
+            className="h-36 w-auto"
           />
         </Link>
 

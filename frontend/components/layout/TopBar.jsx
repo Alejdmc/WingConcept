@@ -9,7 +9,7 @@ const TikTokIcon = () => (
 
 export default function TopBar() {
   return (
-    <div className="bg-bg2 border-b border-borderline h-9 flex items-center justify-between px-4 sm:px-6 md:px-8">
+    <div className="bg-bg2 border-b border-borderline h-12 flex items-center justify-between px-4 sm:px-6 md:px-8">
       <div className="hidden md:flex items-center gap-5">
         <a href="mailto:andres@wingconcept.com"
           className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink2 tracking-wide hover:text-brand transition-colors">
@@ -30,12 +30,11 @@ export default function TopBar() {
       <div className="flex items-center gap-1">
         {[
           { Icon: Instagram, href: 'https://www.instagram.com/wing_concepts?igsh=aW0yMWU3M2c2Y3d0' },
-          { Icon: Facebook,  href: 'https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr' }
-          //{ Icon: TikTokIcon, href: '#' },
-          //{ Icon: Youtube,   href: '#' },
+          { Icon: Facebook,  href: 'https://www.facebook.com/share/17htSFE4gR/?mibextid=wwXIfr' },
+          { Icon: Youtube,   href: 'https://www.youtube.com/@wingconcept' },
         ].map(({ Icon, href }, i) => (
-          <a key={i} href={href} className="p-2 -m-2 text-ink2 hover:text-brand transition-colors">
-            <Icon className="w-[15px] h-[15px]" />
+          <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="p-2 -m-2 text-ink2 hover:text-brand transition-colors">
+            <Icon className="w-5 h-5" />
           </a>
         ))}
       </div>
