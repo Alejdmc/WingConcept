@@ -14,11 +14,15 @@ from alembic import context
 
 # ── Cargar .env ───────────────────────────────────────────────────────────────
 from dotenv import load_dotenv
-load_dotenv()
+if not os.environ.get("DATABASE_URL"):
+    load_dotenv()
 
 # ── Importar todos los modelos para autogenerate ──────────────────────────────
 from app.database import Base
-from app.models import usuario, producto, variante, configuracion, carrito, orden, pago, direccion_envio  # noqa: F401
+from app.models import (  # noqa: F401
+    usuario, producto, variante, configuracion, carrito, orden, pago,
+    direccion_envio, admin_invitation,
+)
 
 # ── Config Alembic ────────────────────────────────────────────────────────────
 config = context.config
