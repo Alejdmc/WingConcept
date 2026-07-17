@@ -4,14 +4,15 @@ Manejo dual: usuarios autenticados (PostgreSQL) y anónimos (Redis)
 """
 import logging
 import uuid
-from typing import Any, Dict, Optional
+import json
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import RecursoNoEncontradoError
+from app.core.exceptions import RecursoNoEncontradoError, StockInsuficienteError
 from app.models.carrito import Carrito, ItemCarrito
 from app.models.variante import Variante
 from app.schemas.carrito import CarritoResponse, ItemCarritoResponse
@@ -22,6 +23,80 @@ logger = logging.getLogger(__name__)
 
 
 class CarritoService:
+
+    @staticmethod
+    def _config_key(configuracion: Optional[Dict[str, Any]]) -> Optional[str]:
+        if not configuracion:
+            return None
+        return json.dumps(configuracion, sort_keys=True, default=str)
+
+    @staticmethod
+    def _cantidad_variante_en_carrito(
+        items: List[Any],
+        variante_id: UUID,
+        *,
+        excluir_item_id: Optional[UUID] = None,
+    ) -> int:
+        total = 0
+        for item in items:
+            vid = item.variante_id if hasattr(item, "variante_id") else item.get("variante_id")
+            if str(vid) != str(variante_id):
+                continue
+            iid = item.id if hasattr(item, "id") else item.get("id")
+            if excluir_item_id and str(iid) == str(excluir_item_id):
+                continue
+            qty = item.cantidad if hasattr(item, "cantidad") else item.get("cantidad", 1)
+            total += int(qty)
+        return total
+
+    def _validar_stock(
+        self,
+        variante: Variante,
+        cantidad_nueva: int,
+        items_actuales: List[Any],
+        *,
+        excluir_item_id: Optional[UUID] = None,
+    ) -> None:
+        if variante.stock <= 0:
+            return
+        en_carrito = self._cantidad_variante_en_carrito(
+            items_actuales, variante.id, excluir_item_id=excluir_item_id
+        )
+        if en_carrito + cantidad_nueva > variante.stock:
+            raise StockInsuficienteError(variante.nombre)
+
+    def _normalizar_item_anonimo(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        """Asegura tipos compatibles con ItemCarritoResponse."""
+        item_id = item.get("id") or item.get("cartId")
+        variante_id = item.get("variante_id")
+        precio = float(item.get("precio_unitario", 0))
+        cantidad = int(item.get("cantidad", 1))
+        subtotal = float(item.get("subtotal", precio * cantidad))
+        nombre = item.get("name") or item.get("producto_nombre") or item.get("variante_nombre") or ""
+        return {
+            "id": item_id,
+            "variante_id": variante_id,
+            "cantidad": cantidad,
+            "precio_unitario": precio,
+            "subtotal": subtotal,
+            "variante_nombre": item.get("variante_nombre"),
+            "producto_nombre": item.get("producto_nombre"),
+            "producto_imagen": item.get("producto_imagen"),
+            "configuracion": item.get("configuracion"),
+            "cartId": item_id,
+            "name": nombre,
+            "price": item.get("price") or f"${precio:,.0f}",
+        }
+
+    def _carrito_anonimo_a_response(self, data: Optional[Dict[str, Any]]) -> CarritoResponse:
+        if not data:
+            return CarritoResponse()
+        items = [self._normalizar_item_anonimo(i) for i in data.get("items", [])]
+        return CarritoResponse(
+            items=items,
+            total=float(data.get("total", 0)),
+            cantidad_items=int(data.get("cantidad_items", 0)),
+        )
 
     async def resolver_variante(
         self,
@@ -101,16 +176,27 @@ class CarritoService:
         precio = precio_unitario if precio_unitario is not None else float(variante.precio)
         carrito = await self.obtener_o_crear(db, usuario_id)
 
-        # Items configurados siempre son línea nueva (misma variante, distinta config)
+        config_key = self._config_key(configuracion)
         item_existente = None
-        if not configuracion:
-            item_existente = next(
-                (i for i in carrito.items if i.variante_id == variante_id and not i.configuracion),
-                None,
-            )
+        for i in carrito.items:
+            if i.variante_id != variante_id:
+                continue
+            if self._config_key(i.configuracion) == config_key:
+                item_existente = i
+                break
+
+        cantidad_final = (
+            item_existente.cantidad + cantidad if item_existente else cantidad
+        )
+        self._validar_stock(
+            variante,
+            cantidad_final,
+            carrito.items,
+            excluir_item_id=item_existente.id if item_existente else None,
+        )
 
         if item_existente:
-            item_existente.cantidad = item_existente.cantidad + cantidad
+            item_existente.cantidad = cantidad_final
         else:
             nuevo_item = ItemCarrito(
                 carrito_id=carrito.id,
@@ -142,6 +228,15 @@ class CarritoService:
             select(Variante).where(Variante.id == item.variante_id)
         )
         variante = variante_result.scalar_one_or_none()
+        if not variante:
+            raise RecursoNoEncontradoError("Variante")
+
+        self._validar_stock(
+            variante,
+            cantidad,
+            carrito.items,
+            excluir_item_id=item_id,
+        )
 
         item.cantidad = cantidad
         await db.flush()
@@ -227,7 +322,7 @@ class CarritoService:
     async def obtener_anonimo(self, session_id: str) -> CarritoResponse:
         """Obtiene el carrito anónimo desde Redis."""
         data = await carrito_get(session_id)
-        return CarritoResponse(**data) if data else CarritoResponse()
+        return self._carrito_anonimo_a_response(data)
 
     async def agregar_item_anonimo(
         self,
@@ -239,22 +334,35 @@ class CarritoService:
         producto_nombre: str = "",
         imagen: str = "",
         configuracion: Optional[Dict[str, Any]] = None,
+        stock_disponible: Optional[int] = None,
     ) -> CarritoResponse:
         """Agrega un item al carrito anónimo en Redis."""
         data = await carrito_get(session_id)
         items = data.get("items", []) if data else []
 
-        # Configuraciones distintas = líneas distintas aunque sea la misma variante
+        config_key = self._config_key(configuracion)
         item_existente = None
-        if not configuracion:
-            item_existente = next(
-                (i for i in items if i["variante_id"] == variante_id and not i.get("configuracion")),
-                None,
+        for i in items:
+            if i.get("variante_id") != variante_id:
+                continue
+            if self._config_key(i.get("configuracion")) == config_key:
+                item_existente = i
+                break
+
+        cantidad_final = (
+            item_existente["cantidad"] + cantidad if item_existente else cantidad
+        )
+        if stock_disponible is not None and stock_disponible > 0:
+            en_carrito = self._cantidad_variante_en_carrito(
+                items, UUID(variante_id),
+                excluir_item_id=UUID(item_existente["id"]) if item_existente else None,
             )
+            if en_carrito + cantidad_final > stock_disponible:
+                raise StockInsuficienteError(variante_nombre or producto_nombre)
 
         if item_existente:
-            item_existente["cantidad"] += cantidad
-            item_existente["subtotal"] = item_existente["precio_unitario"] * item_existente["cantidad"]
+            item_existente["cantidad"] = cantidad_final
+            item_existente["subtotal"] = item_existente["precio_unitario"] * cantidad_final
         else:
             item_id = str(uuid.uuid4())
             items.append({
@@ -275,14 +383,14 @@ class CarritoService:
         total = sum(i["subtotal"] for i in items)
         carrito_data = {"items": items, "total": total, "cantidad_items": sum(i["cantidad"] for i in items)}
         await carrito_set(session_id, carrito_data)
-        return CarritoResponse(**carrito_data)
+        return self._carrito_anonimo_a_response(carrito_data)
 
     async def limpiar_anonimo(self, session_id: str) -> None:
         """Elimina el carrito anónimo de Redis (tras login o checkout)."""
         await carrito_delete(session_id)
 
     async def actualizar_cantidad_anonimo(
-        self, session_id: str, item_id: str, cantidad: int
+        self, session_id: str, item_id: str, cantidad: int, stock_disponible: Optional[int] = None
     ) -> CarritoResponse:
         """Actualiza cantidad de un item en carrito anónimo."""
         data = await carrito_get(session_id)
@@ -290,6 +398,13 @@ class CarritoService:
         item = next((i for i in items if str(i.get("id")) == str(item_id)), None)
         if not item:
             raise RecursoNoEncontradoError("Item del carrito")
+
+        if stock_disponible is not None and stock_disponible > 0:
+            en_carrito = self._cantidad_variante_en_carrito(
+                items, UUID(item["variante_id"]), excluir_item_id=UUID(item_id)
+            )
+            if en_carrito + cantidad > stock_disponible:
+                raise StockInsuficienteError(item.get("name") or "Producto")
 
         item["cantidad"] = cantidad
         item["subtotal"] = item["precio_unitario"] * cantidad
@@ -300,7 +415,7 @@ class CarritoService:
             "cantidad_items": sum(i["cantidad"] for i in items),
         }
         await carrito_set(session_id, carrito_data)
-        return CarritoResponse(**carrito_data)
+        return self._carrito_anonimo_a_response(carrito_data)
 
     async def eliminar_item_anonimo(self, session_id: str, item_id: str) -> CarritoResponse:
         """Elimina un item del carrito anónimo."""
@@ -317,7 +432,7 @@ class CarritoService:
             "cantidad_items": sum(i["cantidad"] for i in items),
         }
         await carrito_set(session_id, carrito_data)
-        return CarritoResponse(**carrito_data)
+        return self._carrito_anonimo_a_response(carrito_data)
 
     async def fusionar_anonimo_con_usuario(
         self, db: AsyncSession, usuario_id: UUID, session_id: str

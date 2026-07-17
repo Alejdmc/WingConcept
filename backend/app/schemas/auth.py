@@ -4,7 +4,7 @@ WingConcept Backend — Schemas Auth (Pydantic V2)
 import uuid
 from typing import Optional
 from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
-from app.utils.validators import validar_password
+from app.utils.validators import sanitizar_texto, sanitizar_telefono, validar_password
 
 
 class RegisterRequest(BaseModel):
@@ -25,6 +25,27 @@ class RegisterRequest(BaseModel):
     )
     telefono: Optional[str] = Field(None, max_length=20)
     password: str = Field(..., min_length=8)
+    invite_token: Optional[str] = Field(None, max_length=200, alias="inviteToken")
+
+    @field_validator("nombre", "apellido")
+    @classmethod
+    def sanitizar_nombre(cls, v: str) -> str:
+        cleaned = sanitizar_texto(v, max_length=100)
+        if len(cleaned) < 2:
+            raise ValueError("Debe tener al menos 2 caracteres")
+        return cleaned
+
+    @field_validator("telefono")
+    @classmethod
+    def validar_tel(cls, v: Optional[str]) -> Optional[str]:
+        return sanitizar_telefono(v)
+
+    @field_validator("invite_token")
+    @classmethod
+    def sanitizar_invite(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        return sanitizar_texto(v.strip(), max_length=200)
 
     @field_validator("password")
     @classmethod

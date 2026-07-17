@@ -107,6 +107,8 @@ export const api = {
     logout: () => request('/auth/logout', { method: 'POST' }),
     forgotPassword: (email) => request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }) }),
     resetPassword: (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
+    acceptAdminInvite: (token) =>
+      request('/auth/accept-admin-invite', { method: 'POST', body: JSON.stringify({ token }) }),
   },
 
   carrito: {
@@ -148,6 +150,11 @@ export const api = {
     eliminarContenido: (contenidoId, permanente = false) =>
       request(`/admin/contenidos/${contenidoId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
     usuarios: (params = {}) => request(`/admin/usuarios${buildQuery(params)}`),
+    crearInvitacion: (email) =>
+      request('/admin/invitaciones', { method: 'POST', body: JSON.stringify({ email }) }),
+    listarInvitaciones: (params = {}) => request(`/admin/invitaciones${buildQuery(params)}`),
+    revocarInvitacion: (invitacionId) =>
+      request(`/admin/invitaciones/${invitacionId}`, { method: 'DELETE' }),
     cupones: (params = {}) => request(`/admin/cupones${buildQuery(params)}`),
     crearCupon: (data) => request('/admin/cupones', { method: 'POST', body: JSON.stringify(data) }),
   },

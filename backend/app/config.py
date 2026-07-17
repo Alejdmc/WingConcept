@@ -84,6 +84,9 @@ class Settings(BaseSettings):
     # ── Frontend URL (links en emails) ───────────────────────
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # ── Admin invitaciones ───────────────────────────────────
+    ADMIN_INVITE_EXPIRE_DAYS: int = 7
+
     # ── Hosts confiables (TrustedHostMiddleware) ──────────────
     # En producción: "wingconcept.com,www.wingconcept.com"
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"

@@ -18,7 +18,7 @@ services:
       --workers 4
       --proxy-headers
       --forwarded-allow-ips=*
-    volumes: []  # Sin montar código fuente en producción
+    volumes: !reset []  # Sin montar código fuente en producción
     environment:
       - ENVIRONMENT=production
       - DEBUG=False

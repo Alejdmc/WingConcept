@@ -7,6 +7,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.utils.validators import sanitizar_texto
+
 SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows"})
 TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion", "show", "evento"})
 
@@ -45,6 +47,28 @@ class ContenidoCreate(BaseModel):
         if v_lower not in TIPOS_VALIDOS:
             raise ValueError(f"Tipo '{v}' no válido.")
         return v_lower
+
+    @field_validator("titulo", "slug", "ubicacion", "duracion", "dificultad", "fecha", "hora", "capacidad", "precio")
+    @classmethod
+    def sanitizar_textos(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        max_len = 300 if v and len(v) > 200 else 255
+        return sanitizar_texto(v, max_length=max_len)
+
+    @field_validator("descripcion")
+    @classmethod
+    def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return sanitizar_texto(v, max_length=5000)
+
+    @field_validator("highlights")
+    @classmethod
+    def sanitizar_highlights(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return v
+        return [sanitizar_texto(h, max_length=200) for h in v[:30]]
 
 
 class ContenidoUpdate(BaseModel):

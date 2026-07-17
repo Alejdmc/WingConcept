@@ -316,5 +316,32 @@ class EmailService:
             "html": self._wrap(body, preheader=f"Use code {codigo} on your next order."),
         }, "cupon_descuento", email)
 
+    async def enviar_invitacion_admin(
+        self,
+        email: str,
+        token: str,
+        frontend_url: str = "",
+        invited_by: str = "WingConcept",
+    ) -> bool:
+        """Email con enlace para registrarse como administrador."""
+        url_base = (frontend_url or settings.FRONTEND_URL).rstrip("/")
+        register_url = f"{url_base}/register?invite={token}"
+
+        body = f"""
+        {self._heading("Admin invitation")}
+        <p>You have been invited by <strong>{invited_by}</strong> to join WingConcept as an administrator.</p>
+        <p>Create your account using the link below. The invitation expires in {settings.ADMIN_INVITE_EXPIRE_DAYS} days.</p>
+        {self._button(register_url, "Create admin account")}
+        <p style="color:{_INK2};font-size:13px;word-break:break-all;">
+            Register with <strong>{email}</strong> — the invitation is tied to this address.
+        </p>
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": "WingConcept admin invitation",
+            "html": self._wrap(body, preheader="You've been invited to admin WingConcept."),
+        }, "invitacion_admin", email)
+
 
 email_service = EmailService()

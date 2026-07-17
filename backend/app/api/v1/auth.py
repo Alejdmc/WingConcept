@@ -24,9 +24,11 @@ from app.schemas.auth import (
     TokenResponse,
     VerifyEmailRequest,
 )
+from app.schemas.invitacion import AcceptAdminInviteRequest
 from app.schemas.usuario import UsuarioResponse
 from app.services.auth_service import auth_service
 from app.services.email_service import email_service
+from app.services.invitation_service import invitation_service
 from app.utils.redis_client import check_rate_limit
 from app.core.exceptions import CredencialesInvalidasError, PermisosDenegadosError
 from app.core.dependencies import get_current_user
@@ -50,12 +52,28 @@ async def register(
     usuario = await auth_service.registrar(db, data)
 
     # Enviar emails (no bloquear registro si fallan)
-    verify_token = auth_service.generar_token_verificacion(usuario)
-    await email_service.enviar_verificacion_email(
-        usuario.email, usuario.nombre, verify_token, settings.FRONTEND_URL
-    )
+    if usuario.rol != "admin":
+        verify_token = auth_service.generar_token_verificacion(usuario)
+        await email_service.enviar_verificacion_email(
+            usuario.email, usuario.nombre, verify_token, settings.FRONTEND_URL
+        )
     await email_service.enviar_bienvenida(usuario.email, usuario.nombre)
 
+    return usuario
+
+
+@router.post("/accept-admin-invite", response_model=UsuarioResponse)
+async def accept_admin_invite(
+    data: AcceptAdminInviteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Usuario autenticado acepta invitación de admin enviada a su email.
+    """
+    usuario = await invitation_service.aceptar_invitacion_usuario_existente(
+        db, data.token, current_user
+    )
     return usuario
 
 
