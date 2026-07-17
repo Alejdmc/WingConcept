@@ -76,7 +76,7 @@ export function CartProvider({ children }) {
         cantidad: config.cantidad || 1,
         configuracion: {
           engine: config.engine,
-          finish: config.finish,
+          chassisType: config.chassisType,
           propeller: config.propeller,
           chassisColor: config.chassisColor,
           accentColor: config.accentColor,

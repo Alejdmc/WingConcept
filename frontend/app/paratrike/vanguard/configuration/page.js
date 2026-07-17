@@ -18,10 +18,10 @@ const CONFIG_OPTIONS = {
     { id: 'simonini-v2', name: 'Simonini Victor 2 (112HP)', basePrice: 12000 },
     { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000 },
   ],
-  chassisFinishes: [
-    { id: 'black-matte', name: 'Black Stealth Matte', price: 0, description: 'Low-profile matte black finish, scratch resistant.', swatch: '#1c1c1c' },
-    { id: 'gloss-carbon', name: 'Gloss Carbon Fiber', price: 800, description: 'Glossy carbon fiber, premium look and reduced weight.', swatch: '#2f3542' },
-    { id: 'titanium-anodized', name: 'Titanium Anodized', price: 500, description: 'Anodized titanium, high durability and corrosion resistance.', swatch: '#8e8e8e' },
+  chassisTypes: [
+    { id: 'commercial', name: 'Commercial', description: 'Reinforced frame built for daily commercial operations, tandem flights and rental fleets. Durable and low maintenance.' },
+    { id: 'adventure', name: 'Adventure', description: 'Lightweight, agile frame for backcountry flying and off-grid exploration. Built to handle rugged conditions.' },
+    { id: 'reportage', name: 'Reportage', description: 'Stable platform tailored for aerial photography and video work, with extra mounting points for camera gear.' },
   ],
   propellers: [
     { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 0 },
@@ -65,7 +65,7 @@ export default function ConfiguratorPage() {
   const { addConfiguredProduct } = useCart()
   const [step, setStep] = useState(0)
   const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
-  const [selectedFinish, setSelectedFinish] = useState(CONFIG_OPTIONS.chassisFinishes[0].id)
+  const [selectedChassisType, setSelectedChassisType] = useState(CONFIG_OPTIONS.chassisTypes[0].id)
   const [selectedPropeller, setSelectedPropeller] = useState(CONFIG_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
   const [selectedChassisColor, setSelectedChassisColor] = useState(CONFIG_OPTIONS.colors[0].name)
@@ -77,18 +77,17 @@ export default function ConfiguratorPage() {
   const accessories = CONFIG_OPTIONS.accessories
 
   const engine = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
-  const finish = CONFIG_OPTIONS.chassisFinishes.find(f => f.id === selectedFinish)
+  const chassisType = CONFIG_OPTIONS.chassisTypes.find(t => t.id === selectedChassisType)
   const propeller = CONFIG_OPTIONS.propellers.find(p => p.id === selectedPropeller)
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
     const baseChassis = 5950
     const enginePrice = engine?.basePrice || 0
-    const finishPrice = finish?.price || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + finishPrice + propellerPrice + upgradesPrice
-  }, [engine, finish, propeller, selectedUpgrades])
+    return baseChassis + enginePrice + propellerPrice + upgradesPrice
+  }, [engine, propeller, selectedUpgrades])
 
   const goToPreviousImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
@@ -114,7 +113,7 @@ export default function ConfiguratorPage() {
         producto_id: VANGUARD_PRODUCTO_ID,
         cantidad: 1,
         engine: selectedEngine,
-        finish: selectedFinish,
+        chassisType: selectedChassisType,
         propeller: selectedPropeller,
         chassisColor: selectedChassisColor,
         peripheralColor: selectedPeriphColor,
@@ -273,24 +272,16 @@ export default function ConfiguratorPage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
-                  <ConfigSection title="Chassis. Choose your finish">
+                  <ConfigSection title="Chassis. Choose your type">
                     <div className="grid sm:grid-cols-1 gap-4">
-                      {CONFIG_OPTIONS.chassisFinishes.map(f => (
+                      {CONFIG_OPTIONS.chassisTypes.map(t => (
                         <OptionCard
-                          key={f.id}
-                          selected={selectedFinish === f.id}
-                          onClick={() => setSelectedFinish(f.id)}
+                          key={t.id}
+                          selected={selectedChassisType === t.id}
+                          onClick={() => setSelectedChassisType(t.id)}
                         >
-                          <div className="flex items-center gap-4">
-                            <span className="w-14 h-14 rounded-lg shrink-0 border border-borderline" style={{ backgroundColor: f.swatch }} />
-                            <div className="flex-1">
-                              <div className="flex justify-between items-center">
-                                <p className="font-bold uppercase text-ink">{f.name}</p>
-                                <p className="text-sm text-ink2">{f.price === 0 ? 'Standard' : `+$${f.price.toLocaleString()}`}</p>
-                              </div>
-                              <p className="text-sm text-ink2 mt-1">{f.description}</p>
-                            </div>
-                          </div>
+                          <p className="font-bold uppercase text-ink">{t.name}</p>
+                          <p className="text-sm text-ink2 mt-1">{t.description}</p>
                         </OptionCard>
                       ))}
                     </div>
@@ -359,12 +350,12 @@ export default function ConfiguratorPage() {
                 {step === 4 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
-                      <SummaryRow label="Chassis" value={finish?.name} price={finish?.price} />
+                      <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
-                          <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accesorios</p>
+                          <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>
                           {selectedAccessoryItems.map(a => <SummaryRow key={a.id} label={a.name} price={a.price} />)}
                         </div>
                       )}
