@@ -64,8 +64,8 @@ export default function OrdersPage() {
         <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>
       )}
 
-      <div className="bg-white border border-borderline rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-bg2">
             <tr className="border-b border-borderline">
               <th className="text-left py-4 px-6 font-semibold text-ink">Order ID</th>

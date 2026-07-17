@@ -39,7 +39,7 @@ export default function AboutPage() {
                 className="drop-shadow-lg brightness-0 invert"
               />
             </div>
-            <h1 className="text-7xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               About Us
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto" />
@@ -80,7 +80,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}>
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">From Humble Beginnings</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-8">To Global Recognition</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-8">To Global Recognition</h2>
             <div className="h-1 w-16 bg-brand mb-8" />
             <p className="text-lg text-ink leading-relaxed">
               Every great story starts somewhere, and ours began in a modest workshop where Andrés Arango 
@@ -124,7 +124,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Our Passion is reflected in</p>
-            <h2 className="text-5xl font-black uppercase text-ink">Our Approach</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">Our Approach</h2>
           </motion.div>
 
           <motion.div
@@ -207,7 +207,7 @@ export default function AboutPage() {
             transition={{ duration: 0.8 }}
             className="order-1 lg:order-2">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">How We go</p>
-            <h2 className="text-5xl font-black uppercase text-ink mb-8">to market</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-8">to market</h2>
             <div className="h-1 w-16 bg-brand mb-8" />
             <p className="text-lg text-ink leading-relaxed">
               Every WINGCONCEPT paramotor is proudly manufactured in Colombia, combining local talent 
@@ -230,7 +230,7 @@ export default function AboutPage() {
           <motion.h2
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            className="text-7xl font-black uppercase mb-8 leading-tight">
+            className="text-4xl sm:text-6xl font-black uppercase mb-8 leading-tight">
             Flying is more<br />than a sport
           </motion.h2>
           <motion.p
@@ -251,7 +251,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-20">
             <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">The Visionary</p>
-            <h2 className="text-6xl font-black uppercase text-ink">Andrés Arango</h2>
+            <h2 className="text-3xl sm:text-6xl font-black uppercase text-ink">Andrés Arango</h2>
             <p className="text-ink2 font-semibold uppercase tracking-widest text-sm mt-4">Founder & Chief Engineer</p>
           </motion.div>
 
@@ -314,7 +314,7 @@ export default function AboutPage() {
       {/* Final CTA */}
       <section className="py-24 px-6 bg-bg2">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-black uppercase text-ink mb-8">Ready to Experience Freedom?</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-8">Ready to Experience Freedom?</h2>
           <p className="text-xl text-ink2 mb-12">Discover our premium paramotor and trike collection.</p>
           <Link href="/paratrike" className="inline-block bg-brand text-white px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition text-lg">
             Explore Products

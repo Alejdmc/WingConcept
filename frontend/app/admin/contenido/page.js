@@ -115,7 +115,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold mb-1">Type</label>
           <select name="tipo" value={form.tipo} onChange={handleChange} className="w-full p-2 border rounded">
@@ -145,7 +145,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
 
       {isCard && (
         <>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold mb-1">Location</label>
               <input name="ubicacion" value={form.ubicacion} onChange={handleChange} className="w-full p-2 border rounded" />
@@ -157,7 +157,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
           </div>
 
           {isExpedicion && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">Duration</label>
                 <input name="duracion" value={form.duracion} onChange={handleChange} className="w-full p-2 border rounded" />
@@ -170,7 +170,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
           )}
 
           {isEvento && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">Time</label>
                 <input name="hora" value={form.hora} onChange={handleChange} placeholder="8:00 AM - 5:00 PM" className="w-full p-2 border rounded" />
@@ -346,7 +346,7 @@ export default function AdminContenidoPage() {
             <h2 className="font-black text-lg">{viewing.titulo}</h2>
             <button onClick={() => setViewing(null)} className="text-ink2 hover:text-ink">✕</button>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <p><span className="font-semibold">Type:</span> {tipoLabel(viewing.tipo)}</p>
             <p><span className="font-semibold">Status:</span> {viewing.activo ? 'Active' : 'Inactive'}</p>
             <p className="col-span-2"><span className="font-semibold">Description:</span> {viewing.descripcion || '—'}</p>
@@ -362,8 +362,8 @@ export default function AdminContenidoPage() {
         </div>
       )}
 
-      <div className="bg-white border border-borderline rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-bg2">
             <tr>
               <th className="text-left py-4 px-6 font-semibold">Type</th>

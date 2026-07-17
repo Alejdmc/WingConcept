@@ -184,7 +184,7 @@ export default function EditProductPage({ params }) {
 
           <div className="pt-4 border-t border-borderline space-y-3">
             <p className="text-sm font-semibold text-ink">Add variant</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
                 placeholder="Name"
                 value={newVariante.nombre}

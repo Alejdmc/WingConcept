@@ -169,7 +169,7 @@ export default function AdminDescuentosPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-1">Discount type</label>
             <select name="tipo" value={form.tipo} onChange={handleFormChange} className="w-full p-3 border rounded">
@@ -230,11 +230,11 @@ export default function AdminDescuentosPage() {
         </button>
       </form>
 
-      <div className="bg-white border border-borderline rounded-lg overflow-hidden">
+      <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
         <div className="px-6 py-4 border-b border-borderline">
           <h2 className="font-black text-lg">Issued coupons</h2>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-bg2">
             <tr>
               <th className="text-left py-4 px-6 font-semibold">Code</th>

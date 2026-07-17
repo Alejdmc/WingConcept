@@ -5,7 +5,7 @@ import { getStoredUser } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
+import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function CartPage() {
@@ -39,7 +39,7 @@ export default function CartPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-5xl font-black uppercase mb-8">Shopping Cart</h1>
+          <h1 className="text-3xl sm:text-5xl font-black uppercase mb-8">Shopping Cart</h1>
           {error && (
             <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm">{error}</div>
           )}
@@ -84,7 +84,15 @@ export default function CartPage() {
               {/* Items */}
               <div className="divide-y divide-borderline">
                 {items.map(item => (
-                  <div key={item.cartId || item.id} className="p-6 flex gap-6">
+                  <div key={item.cartId || item.id} className="relative p-6 flex gap-6">
+                    <button
+                      onClick={() => removeFromCart(item.cartId || item.id)}
+                      aria-label="Remove item"
+                      title="Remove item"
+                      className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full text-ink2 hover:text-red-600 hover:bg-red-50 transition">
+                      <X className="w-4 h-4" />
+                    </button>
+
                     <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
                       {item.producto_imagen && (
                         <Image src={item.producto_imagen} alt={item.name || ''} fill className="object-cover" />
@@ -92,7 +100,7 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-bold text-ink text-lg">{item.name}</h3>
+                      <h3 className="font-bold text-ink text-lg pr-8">{item.name}</h3>
                       <p className="text-sm text-ink2 mb-4">{item.price}</p>
 
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
@@ -111,15 +119,9 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-2xl font-black text-brand mb-4">
+                      <p className="text-2xl font-black text-brand">
                         ${(item.precio_unitario * (item.cantidad || 1)).toLocaleString()}
                       </p>
-                      <button
-                        onClick={() => removeFromCart(item.cartId || item.id)}
-                        className="text-red-600 hover:text-red-700 transition flex items-center gap-1 text-sm font-semibold">
-                        <Trash2 className="w-4 h-4" />
-                        Remove
-                      </button>
                     </div>
                   </div>
                 ))}

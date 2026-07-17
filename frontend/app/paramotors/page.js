@@ -33,7 +33,7 @@ export default function ParamotorsPage() {
           </div>
 
           <p className="text-brand font-bold uppercase tracking-[0.3em] text-sm mb-4">Coming Soon</p>
-          <h1 className="text-5xl font-black uppercase text-ink mb-6 leading-tight">Paramotors</h1>
+          <h1 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-6 leading-tight">Paramotors</h1>
           <p className="text-lg text-ink2 leading-relaxed mb-10">
             We're still working on our paramotor lineup. In the meantime, check out our paratrikes —
             built with the same passion, science, and freedom.

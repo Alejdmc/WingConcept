@@ -150,7 +150,7 @@ export default function CuentaPage() {
       <form onSubmit={saveProfile} className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
         <h2 className="font-black text-lg text-ink">Personal information</h2>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-1">First name</label>
             <input name="nombre" value={profile.nombre} onChange={handleProfileChange} required className="w-full p-3 border rounded" />

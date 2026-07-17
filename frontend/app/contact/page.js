@@ -1,7 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Phone, MapPin, Instagram, Facebook, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, Instagram, Facebook, MessageCircle, Youtube } from 'lucide-react'
 import { useState } from 'react'
 
 const contactInfo = [
@@ -38,6 +38,12 @@ const socialMedia = [
     icon: MessageCircle,
     url: 'https://wa.me/18187494545',
     color: 'hover:text-green-500'
+  },
+  {
+    name: 'YouTube',
+    icon: Youtube,
+    url: 'https://www.youtube.com/@wingconcept',
+    color: 'hover:text-red-600'
   }
 ]
 
@@ -87,7 +93,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
               Get In Touch
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />

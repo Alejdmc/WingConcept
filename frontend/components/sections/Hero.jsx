@@ -4,6 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 
+const titleLine = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+}
+
+const titleWord = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+  },
+}
+
 export default function Hero() {
   const images = ['/images/paramotor_image.jpg', '/images/paramotor_image2.jpg', '/images/image1.jpg']
   const [index, setIndex] = useState(0)
@@ -42,11 +58,15 @@ export default function Hero() {
           <span className="w-8 h-px bg-brand" /> WING CONCEPT PARAMOTORS <span className="w-8 h-px bg-brand" />
         </p>
 
-        <h1 className="font-sans font-black uppercase leading-[0.95] text-[clamp(50px,8vw,100px)] tracking-[-0.03em] text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.6)] mb-8">
-          WHERE<br />
-          <span className="text-brand">FREEDOM TAKES</span><br />
-          WINGS
-        </h1>
+        <motion.h1
+          variants={titleLine}
+          initial="hidden"
+          animate="visible"
+          className="font-sans font-black uppercase leading-[0.95] text-[clamp(50px,8vw,100px)] tracking-[-0.03em] text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.6)] mb-8">
+          <motion.span variants={titleWord} className="block">WHERE</motion.span>
+          <motion.span variants={titleWord} className="block text-brand">FREEDOM TAKES</motion.span>
+          <motion.span variants={titleWord} className="block">WINGS</motion.span>
+        </motion.h1>
 
         
 

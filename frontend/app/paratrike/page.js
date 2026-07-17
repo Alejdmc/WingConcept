@@ -13,7 +13,7 @@ const TRIKES = [
     year: 2024,
     tagline: 'Performance Meets Precision',
     description: 'The ultimate high-performance trike for serious enthusiasts. Built with cutting-edge engineering and premium materials.',
-    image: '/images/1vanguard.png',
+    image: '/images/vanguard/1.png',
     basePrice: 5950,
     features: [
       'Premium aluminum construction',
@@ -72,7 +72,7 @@ export default function ParaTrikeSelectionPage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-7xl font-black uppercase text-ink tracking-tighter mb-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
               Paratrikes
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />
@@ -124,7 +124,7 @@ export default function ParaTrikeSelectionPage() {
 
                     {/* Title Over Image */}
                     <div className="absolute bottom-0 left-0 right-0 p-8 cursor-pointer" onClick={() => router.push(trike.href)}>
-                      <h2 className="text-5xl font-black uppercase text-white mb-2 leading-tight">
+                      <h2 className="text-3xl sm:text-5xl font-black uppercase text-white mb-2 leading-tight">
                         {trike.name}
                       </h2>
                       <p className="text-xl font-bold text-white/90">{trike.tagline}</p>
@@ -181,7 +181,7 @@ export default function ParaTrikeSelectionPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink">Choose Your Path</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">Choose Your Path</h2>
             <p className="text-ink2 text-lg mt-4">Both platforms deliver exceptional performance in their respective domains</p>
           </motion.div>
 
@@ -246,7 +246,7 @@ export default function ParaTrikeSelectionPage() {
       {/* Final CTA */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-black uppercase text-ink mb-8">Ready to Fly?</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-8">Ready to Fly?</h2>
           <p className="text-xl text-ink2 mb-12 max-w-2xl mx-auto">
             Explore both platforms, customize your perfect configuration, and experience the freedom of flight.
           </p>
@@ -258,7 +258,7 @@ export default function ParaTrikeSelectionPage() {
             </button>
             <button
               onClick={() => router.push('/paratrike/nomadic')}
-              className="inline-block border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand-soft transition">
+              className="inline-block bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition">
               Nomadic Trike
             </button>
           </div>

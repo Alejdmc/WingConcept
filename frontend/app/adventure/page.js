@@ -3,8 +3,21 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Calendar, Users } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, Clock } from 'lucide-react'
 import { api } from '@/lib/api'
+
+// Tasa de cambio COP -> USD. Actualizar aquí cuando cambie.
+const COP_TO_USD_RATE = 3218.44
+
+const TOURISTIC_FLIGHT_RATES = [
+  { duration: '15 min', cop: 250000 },
+  { duration: '30 min', cop: 450000 },
+  { duration: '45 min', cop: 650000 },
+  { duration: '60 min', cop: 800000 },
+  { duration: '120 min', cop: 1500000 },
+]
+
+const formatUSD = (cop) => (cop / COP_TO_USD_RATE).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
 const FALLBACK = {
   hero: {
@@ -72,7 +85,7 @@ export default function AdventurePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-7xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               {hero.titulo}
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />
@@ -100,7 +113,7 @@ export default function AdventurePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center mb-16">
-            <h2 className="text-5xl font-black uppercase text-ink mb-4">Featured Expeditions</h2>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Featured Expeditions</h2>
             <div className="h-1 w-16 bg-brand mx-auto" />
           </motion.div>
 
@@ -187,9 +200,39 @@ export default function AdventurePage() {
         </div>
       </section>
 
+      {/* Touristic Flight */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-center mb-16">
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Touristic Flight</h2>
+            <div className="h-1 w-16 bg-brand mx-auto" />
+          </motion.div>
+
+          <div className="flex items-center justify-center gap-3 mb-10 text-ink2">
+            <Clock className="w-5 h-5 text-brand" />
+            <span className="font-bold">7:00 AM – 10:00 AM</span>
+            <span className="text-borderline">|</span>
+            <span className="font-bold">3:00 PM – 6:30 PM</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {TOURISTIC_FLIGHT_RATES.map((rate) => (
+              <div key={rate.duration} className="bg-bg2 border border-borderline rounded-xl p-6 text-center hover:border-brand transition">
+                <p className="font-black uppercase text-ink text-lg mb-2">{rate.duration}</p>
+                <p className="text-2xl font-black text-brand">{formatUSD(rate.cop)}</p>
+                <p className="text-ink2 text-sm mt-1">${rate.cop.toLocaleString('es-CO')} COP</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-5xl font-black uppercase mb-8">Ready for Your Next Adventure?</h2>
+          <h2 className="text-3xl sm:text-5xl font-black uppercase mb-8">Ready for Your Next Adventure?</h2>
           <p className="text-xl mb-12">Contact us to book your expedition and start planning your ultimate paramotor journey.</p>
           <Link href="/contact" className="inline-block bg-white text-brand px-12 py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
             Get in Touch

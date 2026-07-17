@@ -127,7 +127,7 @@ export default function NewProductPage() {
             <input name="nombre" value={variante.nombre} onChange={handleVarianteChange} className="w-full p-3 border border-borderline rounded" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-ink mb-1">Price (USD) *</label>
               <input name="precio" type="number" min="0" step="0.01" value={variante.precio} onChange={handleVarianteChange} required className="w-full p-3 border border-borderline rounded" />
