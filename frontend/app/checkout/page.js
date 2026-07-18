@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
-import { getStoredUser } from '@/lib/auth'
+import { getStoredUser, ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import { api } from '@/lib/api'
 
@@ -40,15 +40,17 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false)
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    const user = getStoredUser()
-    if (!token || !user) {
-      saveAuthNext('/checkout')
-      router.replace('/login?next=/checkout')
-      return
+    const verify = async () => {
+      const ok = await ensureValidSession()
+      if (!ok) {
+        saveAuthNext('/checkout')
+        router.replace('/login?next=/checkout')
+        return
+      }
+      setReady(true)
+      refetch()
     }
-    setReady(true)
-    refetch()
+    verify()
   }, [router, refetch])
 
   if (!ready) {

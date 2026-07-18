@@ -1,10 +1,10 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
-import { getStoredUser } from '@/lib/auth'
+import { ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -12,10 +12,9 @@ export default function CartPage() {
   const router = useRouter()
   const { items, removeFromCart, updateQuantity, total, error, refetch, cargando } = useCart()
 
-  const handleCheckout = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    const user = getStoredUser()
-    if (!token || !user) {
+  const handleCheckout = async () => {
+    const ok = await ensureValidSession()
+    if (!ok) {
       saveAuthNext('/checkout')
       router.push('/login?next=/checkout')
       return
@@ -94,9 +93,13 @@ export default function CartPage() {
                     </button>
 
                     <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
-                      {item.producto_imagen && (
-                        <Image src={item.producto_imagen} alt={item.name || ''} fill className="object-cover" />
-                      )}
+                      <SafeImage
+                        src={item.producto_imagen}
+                        alt={item.name || 'Product'}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
                     </div>
 
                     <div className="flex-1">

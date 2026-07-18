@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
 from app.core.middleware import global_rate_limit_middleware, validate_session_id_middleware
@@ -218,6 +219,15 @@ async def log_requests(request: Request, call_next):
 import app.models as _models_registry  # noqa: F401
 from app.api.router import api_router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.error(f"Error de base de datos en {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Servicio temporalmente no disponible. Intenta de nuevo en unos minutos."},
+    )
 
 
 # ── Endpoints base ────────────────────────────────────────────────────────────
