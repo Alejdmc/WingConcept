@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
 import { api } from '@/lib/api'
-import { getStoredUser } from '@/lib/auth'
-import { persistAuthSession } from '@/lib/auth'
+import { getStoredUser, persistAuthSession } from '@/lib/auth'
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)

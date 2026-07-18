@@ -2,19 +2,27 @@ import { NextResponse } from 'next/server'
 
 const adminPaths = ['/admin']
 
+function getApiBase() {
+  return (
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:8000'
+  )
+}
+
 export async function middleware(request) {
   const token = request.cookies.get('access_token')?.value
-  const isAdminPath = adminPaths.some(path => request.nextUrl.pathname.startsWith(path))
+  const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
   if (isAdminPath) {
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Validar token con backend
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await fetch(`${getApiBase()}/api/v1/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
       })
 
       if (!res.ok) {
@@ -22,12 +30,10 @@ export async function middleware(request) {
       }
 
       const user = await res.json()
-      
-      // Solo admin accede
       if (user.rol !== 'admin') {
         return NextResponse.redirect(new URL('/', request.url))
       }
-    } catch (err) {
+    } catch {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
@@ -36,5 +42,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/admin/:path*'],
 }

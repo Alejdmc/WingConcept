@@ -1,6 +1,19 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const API = `${BASE}/api/v1`
 
+const PUBLIC_PATHS = new Set([
+  '/auth/login',
+  '/auth/register',
+  '/auth/recuperar',
+  '/auth/reset-password',
+  '/auth/refresh',
+  '/auth/resend-verification',
+])
+
+function isPublicPath(path) {
+  return PUBLIC_PATHS.has(path) || path.startsWith('/auth/verify-email')
+}
+
 function getSessionId() {
   if (typeof window === 'undefined') return null
   let sessionId = localStorage.getItem('session_id')
@@ -16,8 +29,28 @@ function clearSessionAndRedirect() {
   if (typeof window === 'undefined') return
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
-  if (!window.location.pathname.startsWith('/login')) {
+  localStorage.removeItem('user')
+  document.cookie = 'access_token=; path=/; max-age=0'
+  document.cookie = 'user=; path=/; max-age=0'
+  const path = window.location.pathname
+  if (!path.startsWith('/login') && !path.startsWith('/register') && !path.includes('forgot-password')) {
     window.location.href = '/login?session_expired=true'
+  }
+}
+
+async function parseErrorResponse(res) {
+  try {
+    const data = await res.json()
+    const detail = data?.detail
+    if (typeof detail === 'string') return detail
+    if (Array.isArray(detail)) {
+      return detail.map((item) => item?.msg || item?.message || String(item)).join(', ')
+    }
+    return data?.message || `Error ${res.status}`
+  } catch {
+    return res.status === 500
+      ? 'Service temporarily unavailable. Please try again in a moment.'
+      : `Error ${res.status}`
   }
 }
 
@@ -33,23 +66,32 @@ function buildQuery(params = {}) {
 }
 
 async function request(path, options = {}) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const { skipAuth = false, ...fetchOptions } = options
+  const isPublic = skipAuth || isPublicPath(path)
+  const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
 
-  const res = await fetch(`${API}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...(sessionId && { 'X-Session-ID': sessionId }),
-      ...options.headers,
-    },
-    ...options,
-  })
+  let res
+  try {
+    res = await fetch(`${API}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(sessionId && { 'X-Session-ID': sessionId }),
+        ...options.headers,
+      },
+      ...fetchOptions,
+    })
+  } catch {
+    throw {
+      status: 0,
+      detail: `Cannot reach the API at ${BASE}. Make sure the backend is running on port 8000.`,
+    }
+  }
 
-  if (res.status === 401 && typeof window !== 'undefined') {
-    // Try refresh token once
+  if (res.status === 401 && !isPublic && typeof window !== 'undefined') {
     const refreshToken = localStorage.getItem('refresh_token')
-    if (refreshToken) {
+    if (refreshToken && path !== '/auth/refresh') {
       try {
         const refreshRes = await fetch(`${API}/auth/refresh`, {
           method: 'POST',
@@ -60,29 +102,26 @@ async function request(path, options = {}) {
           const r = await refreshRes.json()
           if (r.access_token) {
             localStorage.setItem('access_token', r.access_token)
-            // retry original request with new token
+            if (r.refresh_token) localStorage.setItem('refresh_token', r.refresh_token)
             const retry = await fetch(`${API}${path}`, {
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${r.access_token}`,
                 ...(sessionId && { 'X-Session-ID': sessionId }),
-                ...options.headers,
+                ...fetchOptions.headers,
               },
-              ...options,
+              ...fetchOptions,
             })
             if (!retry.ok) {
-              const err = await retry.json().catch(() => ({}))
-              throw { status: retry.status, detail: err.detail || 'Unknown error' }
+              throw { status: retry.status, detail: await parseErrorResponse(retry) }
             }
             return retry.status === 204 ? null : retry.json()
           }
         }
-        // Refresh request completed but did not return a usable token: session is dead
         clearSessionAndRedirect()
         throw { status: 401, detail: 'Session expired' }
       } catch (e) {
         if (e?.status === 401) throw e
-        console.warn('Refresh token failed', e)
         clearSessionAndRedirect()
         throw { status: 401, detail: 'Session expired' }
       }
@@ -90,25 +129,26 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw { status: res.status, detail: err.detail || 'Unknown error' }
+    throw { status: res.status, detail: await parseErrorResponse(res) }
   }
   return res.status === 204 ? null : res.json()
 }
 
 export const api = {
   auth: {
-    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
-    register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-    refresh: (data) => request('/auth/refresh', { method: 'POST', body: JSON.stringify(data) }),
+    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
+    register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
+    refresh: (data) => request('/auth/refresh', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
     me: () => request('/auth/me'),
-    verifyEmail: (token) => request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) }),
-    resendVerificationEmail: (email) => request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }),
+    verifyEmail: (token) =>
+      request('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }), skipAuth: true }),
+    resendVerificationEmail: (email) =>
+      request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
     logout: () => request('/auth/logout', { method: 'POST' }),
-    forgotPassword: (email) => request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }) }),
-    resetPassword: (data) => request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
-    acceptAdminInvite: (token) =>
-      request('/auth/accept-admin-invite', { method: 'POST', body: JSON.stringify({ token }) }),
+    forgotPassword: (email) =>
+      request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
+    resetPassword: (data) =>
+      request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
   },
 
   carrito: {

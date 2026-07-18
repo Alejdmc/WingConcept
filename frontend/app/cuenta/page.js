@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import { clearAuthSession, getStoredUser, isAdminUser, persistAuthSession } from '@/lib/auth'
+import { clearAuthSession, ensureValidSession, getStoredUser, isAdminUser, persistAuthSession } from '@/lib/auth'
 
 export default function CuentaPage() {
   const router = useRouter()
@@ -28,17 +28,17 @@ export default function CuentaPage() {
   })
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (!token) {
-      router.replace('/login?next=/cuenta')
-      return
-    }
-    if (isAdminUser()) {
-      router.replace('/admin/settings')
-      return
-    }
+    const init = async () => {
+      const ok = await ensureValidSession()
+      if (!ok) {
+        router.replace('/login?next=/cuenta')
+        return
+      }
+      if (isAdminUser()) {
+        router.replace('/admin/settings')
+        return
+      }
 
-    const load = async () => {
       try {
         const [data, misCupones] = await Promise.all([
           api.usuarios.perfil(),
@@ -57,7 +57,7 @@ export default function CuentaPage() {
         setLoading(false)
       }
     }
-    load()
+    init()
   }, [router])
 
   const handleProfileChange = (e) => {

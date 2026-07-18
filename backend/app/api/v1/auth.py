@@ -71,6 +71,9 @@ async def accept_admin_invite(
     """
     Usuario autenticado acepta invitación de admin enviada a su email.
     """
+    from app.services.admin_policy import assert_invite_flow_allowed
+
+    assert_invite_flow_allowed(hide_endpoint=True)
     usuario = await invitation_service.aceptar_invitacion_usuario_existente(
         db, data.token, current_user
     )
@@ -145,26 +148,40 @@ async def recuperar_password(
     """
     Solicita recuperación de contraseña.
     Siempre retorna 200 aunque el email no exista (seguridad).
-    Rate limit: 3 intentos/hora por IP.
+    Rate limit: 5 intentos/hora por IP.
     """
+    from app.core.exceptions import ServicioNoDisponibleError
+
     client_ip = request.client.host if request.client else "unknown"
-    permitido, _ = await check_rate_limit(client_ip, limit=3, window_seconds=3600, prefix="rl:recuperar")
+    permitido, _ = await check_rate_limit(
+        f"{client_ip}:{data.email.lower()}",
+        limit=5,
+        window_seconds=3600,
+        prefix="rl:recuperar",
+    )
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos. Espera 1 hora.")
 
-    token_data = await auth_service.solicitar_recuperacion(db, data.email)
+    try:
+        token_data = await auth_service.solicitar_recuperacion(db, data.email)
 
-    if token_data:
-        token, nombre = token_data
-        await email_service.enviar_recuperacion_password(
-            email=data.email,
-            nombre=nombre,
-            token=token,
-            frontend_url=settings.FRONTEND_URL,
+        if token_data:
+            token, nombre = token_data
+            await email_service.enviar_recuperacion_password(
+                email=data.email,
+                nombre=nombre,
+                token=token,
+                frontend_url=settings.FRONTEND_URL,
+            )
+        else:
+            await asyncio.sleep(0.5)
+    except ServicioNoDisponibleError:
+        raise
+    except Exception as exc:
+        logger.error(f"Error en recuperación de contraseña: {exc}")
+        raise ServicioNoDisponibleError(
+            "Servicio temporalmente no disponible. Intenta de nuevo en unos minutos."
         )
-    else:
-        # Mitigar email enumeration por timing
-        await asyncio.sleep(0.5)
 
     return {"message": "Si el email existe, recibirás las instrucciones en breve."}
 
