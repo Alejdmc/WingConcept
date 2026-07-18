@@ -42,6 +42,7 @@ from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
 from app.services.invitation_service import invitation_service
 from app.services.email_service import email_service
+from app.services.admin_policy import assert_invite_flow_allowed
 from app.config import settings
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -174,8 +175,7 @@ async def cambiar_rol_usuario(
 
     if data.rol == "admin":
         raise ValidacionError(
-            "No se puede promover a admin manualmente. Usa invitaciones desde "
-            "POST /admin/invitaciones"
+            "No se puede promover a admin. La creación de administradores está deshabilitada."
         )
 
     result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
@@ -201,10 +201,7 @@ async def crear_invitacion_admin(
     db: AsyncSession = Depends(get_db),
     admin=Depends(get_current_admin),
 ):
-    """
-    Envía invitación por email para crear cuenta admin.
-    El enlace lleva a /register?invite=TOKEN (el frontend debe pasar inviteToken al registrar).
-    """
+    assert_invite_flow_allowed(hide_endpoint=True)
     invitacion, token = await invitation_service.crear_invitacion(
         db, data.email, admin.id
     )
@@ -224,7 +221,7 @@ async def listar_invitaciones_admin(
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Lista invitaciones de admin (pendientes y usadas)."""
+    assert_invite_flow_allowed(hide_endpoint=True)
     data = await invitation_service.listar_invitaciones(db, pagina, por_pagina)
     return {
         **data,
@@ -238,7 +235,7 @@ async def revocar_invitacion_admin(
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Revoca una invitación pendiente."""
+    assert_invite_flow_allowed(hide_endpoint=True)
     await invitation_service.revocar_invitacion(db, invitacion_id)
 
 

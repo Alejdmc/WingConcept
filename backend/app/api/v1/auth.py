@@ -71,6 +71,9 @@ async def accept_admin_invite(
     """
     Usuario autenticado acepta invitación de admin enviada a su email.
     """
+    from app.services.admin_policy import assert_invite_flow_allowed
+
+    assert_invite_flow_allowed(hide_endpoint=True)
     usuario = await invitation_service.aceptar_invitacion_usuario_existente(
         db, data.token, current_user
     )

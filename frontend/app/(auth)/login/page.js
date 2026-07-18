@@ -7,7 +7,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { persistAuthSession } from '@/lib/auth'
 import { useCart } from '@/hooks/useCart'
-import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, getInviteToken } from '@/lib/authFlow'
+import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 export default function LoginPage() {
   return (
@@ -22,7 +22,6 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const { refetch } = useCart()
   const nextUrl = getAuthNext(searchParams.get('next'), '/')
-  const inviteToken = getInviteToken(searchParams)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -43,8 +42,6 @@ function LoginForm() {
   }
 
   const completeLogin = async (res) => {
-    persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
-
     try {
       await api.carrito.merge()
       await refetch()
@@ -57,17 +54,6 @@ function LoginForm() {
     router.push(destination.startsWith('/') ? destination : '/')
   }
 
-  const acceptInviteIfNeeded = async (loginRes) => {
-    if (!inviteToken || loginRes.rol === 'admin') return loginRes
-
-    const updated = await api.auth.acceptAdminInvite(inviteToken)
-    return {
-      ...loginRes,
-      rol: updated.rol,
-      nombre: updated.nombre,
-      apellido: updated.apellido,
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -75,19 +61,18 @@ function LoginForm() {
     setLoading(true)
 
     try {
-      let res = await api.auth.login(formData)
-      res = await acceptInviteIfNeeded(res)
+      const res = await api.auth.login(formData)
+      persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
       await completeLogin(res)
     } catch (err) {
-      setError(err.detail || 'Login failed')
+      setError(err.detail || err.message || 'Login failed. Check that the backend is running.')
     } finally {
       setLoading(false)
     }
   }
 
-  const registerHref = buildAuthUrl('/register', nextUrl, inviteToken)
+  const registerHref = buildAuthUrl('/register', nextUrl)
   const isCheckoutFlow = nextUrl === '/checkout'
-  const isAdminInvite = Boolean(inviteToken)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg via-bg2 to-bg3 flex items-center justify-center px-4 py-12">
@@ -109,11 +94,6 @@ function LoginForm() {
             {isCheckoutFlow && (
               <p className="text-sm text-brand font-semibold mt-3">
                 Sign in to continue your purchase
-              </p>
-            )}
-            {isAdminInvite && (
-              <p className="text-sm text-brand font-semibold mt-3">
-                Sign in with the invited email to activate admin access
               </p>
             )}
             <div className="w-12 h-1 bg-brand mx-auto mt-4" />

@@ -5,7 +5,7 @@ Persistencia idempotente de eventos Stripe antes de procesarlos.
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from sqlalchemy import select

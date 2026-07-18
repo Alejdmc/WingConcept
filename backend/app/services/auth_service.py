@@ -42,6 +42,8 @@ class AuthService:
             raise RecursoDuplicadoError("El email ya está registrado")
 
         if data.invite_token:
+            from app.services.admin_policy import assert_invite_flow_allowed
+            assert_invite_flow_allowed()
             from app.services.invitation_service import invitation_service
             await invitation_service._obtener_invitacion_valida(
                 db, data.invite_token, data.email
@@ -61,6 +63,8 @@ class AuthService:
         await db.flush()
 
         if data.invite_token:
+            from app.services.admin_policy import assert_invite_flow_allowed
+            assert_invite_flow_allowed()
             from app.services.invitation_service import invitation_service
             await invitation_service.consumir_invitacion_registro(
                 db, data.invite_token, data.email, usuario.id

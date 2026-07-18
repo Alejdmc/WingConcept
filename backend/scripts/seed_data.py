@@ -176,14 +176,6 @@ def main() -> None:
         )
         _upsert_variante(cur, _vid(slug), producto_id, nombre, f"NOM-ACC-{acc_id.upper()}", precio, stock, es_principal=True)
 
-    # ── Promover admin ────────────────────────────────────────────────
-    cur.execute(
-        "UPDATE usuarios SET rol='admin' WHERE email='admin@wingconcept.com' RETURNING email, rol"
-    )
-    row = cur.fetchone()
-    if row:
-        print(f"Usuario promovido a admin: {row[0]} -> {row[1]}")
-
     conn.commit()
     cur.close()
     conn.close()

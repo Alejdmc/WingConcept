@@ -67,6 +67,11 @@ async def lifespan(app: FastAPI):
                 f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)"
             )
 
+    if settings.ALLOW_NEW_ADMINS:
+        logger.warning("⚠️  ALLOW_NEW_ADMINS=true — se pueden crear nuevos administradores")
+    else:
+        logger.info("🔒 Creación de administradores bloqueada (ALLOW_NEW_ADMINS=false)")
+
     yield
 
     # Shutdown
@@ -227,6 +232,20 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={"detail": "Servicio temporalmente no disponible. Intenta de nuevo en unos minutos."},
+    )
+
+
+@app.exception_handler(OSError)
+async def network_exception_handler(request: Request, exc: OSError):
+    logger.error(f"Error de red en {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={
+            "detail": (
+                "No se pudo conectar a la base de datos. "
+                "Verifica DATABASE_URL en .env (usa el Session pooler de Supabase si la conexión directa falla)."
+            )
+        },
     )
 
 

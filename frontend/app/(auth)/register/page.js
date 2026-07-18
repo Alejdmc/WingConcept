@@ -7,7 +7,7 @@ import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Globe, MapPin, AlertCircle, C
 import { api } from '@/lib/api'
 import { persistAuthSession } from '@/lib/auth'
 import { useCart } from '@/hooks/useCart'
-import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, getInviteToken } from '@/lib/authFlow'
+import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
 
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/
 
@@ -24,7 +24,6 @@ function RegisterForm() {
   const searchParams = useSearchParams()
   const { refetch } = useCart()
   const nextUrl = getAuthNext(searchParams.get('next'), '/')
-  const inviteToken = getInviteToken(searchParams)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,9 +34,8 @@ function RegisterForm() {
     saveAuthNext(nextUrl)
   }, [nextUrl])
 
-  const loginHref = buildAuthUrl('/login', nextUrl, inviteToken)
+  const loginHref = buildAuthUrl('/login', nextUrl)
   const isCheckoutFlow = nextUrl === '/checkout'
-  const isAdminInvite = Boolean(inviteToken)
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -92,7 +90,6 @@ function RegisterForm() {
         email: formData.email,
         telefono: formData.telefono,
         password: formData.password,
-        ...(inviteToken && { inviteToken }),
       })
 
       // Auto-login para continuar la compra con el carrito anónimo fusionado
@@ -158,11 +155,7 @@ function RegisterForm() {
       }, 2000)
     } catch (err) {
       const detail = err.detail || 'Error creating account. Please try again.'
-      if (inviteToken && err.status === 409) {
-        setError(`${detail} If you already have an account, sign in to accept the invitation.`)
-      } else {
-        setError(detail)
-      }
+      setError(detail)
     } finally {
       setLoading(false)
     }
@@ -181,17 +174,8 @@ function RegisterForm() {
         className="w-full max-w-lg">
         
         <div className="bg-white border border-borderline rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-black uppercase text-center mb-2">
-            {isAdminInvite ? 'Create Admin Account' : 'Create Account'}
-          </h1>
-          <p className="text-center text-ink2 mb-2">
-            {isAdminInvite ? 'Complete your WingConcept admin invitation' : 'Join Wing Concept today'}
-          </p>
-          {isAdminInvite && (
-            <p className="text-center text-brand text-sm font-semibold mb-2">
-              Use the same email address that received the invitation.
-            </p>
-          )}
+          <h1 className="text-3xl font-black uppercase text-center mb-2">Create Account</h1>
+          <p className="text-center text-ink2 mb-2">Join Wing Concept today</p>
           {isCheckoutFlow && (
             <p className="text-center text-brand text-sm font-semibold mb-6">
               Create an account to continue your purchase

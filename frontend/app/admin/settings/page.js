@@ -1,13 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { getStoredUser } from '@/lib/auth'
-import { persistAuthSession } from '@/lib/auth'
-
-function formatDate(value) {
-  if (!value) return '—'
-  return new Date(value).toLocaleString()
-}
+import { getStoredUser, persistAuthSession } from '@/lib/auth'
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -29,11 +23,6 @@ export default function AdminSettingsPage() {
     nueva_password: '',
     confirmar: '',
   })
-
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [sendingInvite, setSendingInvite] = useState(false)
-  const [invitations, setInvitations] = useState([])
-  const [loadingInvites, setLoadingInvites] = useState(true)
 
   useEffect(() => {
     const load = async () => {
@@ -58,22 +47,6 @@ export default function AdminSettingsPage() {
       }
     }
     load()
-  }, [])
-
-  const loadInvitations = async () => {
-    setLoadingInvites(true)
-    try {
-      const data = await api.admin.listarInvitaciones({ por_pagina: 20 })
-      setInvitations(data.items || [])
-    } catch {
-      setInvitations([])
-    } finally {
-      setLoadingInvites(false)
-    }
-  }
-
-  useEffect(() => {
-    loadInvitations()
   }, [])
 
   const handleProfileChange = (e) => {
@@ -142,35 +115,6 @@ export default function AdminSettingsPage() {
     }
   }
 
-  const sendInvite = async (e) => {
-    e.preventDefault()
-    setSendingInvite(true)
-    setError('')
-    setMessage('')
-    try {
-      await api.admin.crearInvitacion(inviteEmail.trim())
-      setInviteEmail('')
-      setMessage('Admin invitation sent successfully.')
-      await loadInvitations()
-    } catch (err) {
-      setError(err.detail || 'Could not send invitation.')
-    } finally {
-      setSendingInvite(false)
-    }
-  }
-
-  const revokeInvite = async (invitacionId) => {
-    setError('')
-    setMessage('')
-    try {
-      await api.admin.revocarInvitacion(invitacionId)
-      setMessage('Invitation revoked.')
-      await loadInvitations()
-    } catch (err) {
-      setError(err.detail || 'Could not revoke invitation.')
-    }
-  }
-
   if (loading) {
     return <p className="text-ink2">Loading settings...</p>
   }
@@ -217,69 +161,6 @@ export default function AdminSettingsPage() {
           {savingProfile ? 'Saving...' : 'Save profile'}
         </button>
       </form>
-
-      <section className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
-        <h2 className="font-black text-lg text-ink">Admin invitations</h2>
-        <p className="text-sm text-ink2">
-          Invite a new administrator by email. They will receive a link to register or sign in.
-        </p>
-
-        <form onSubmit={sendInvite} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="admin@example.com"
-            required
-            className="flex-1 p-3 border rounded"
-          />
-          <button
-            type="submit"
-            disabled={sendingInvite}
-            className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90 disabled:opacity-50"
-          >
-            {sendingInvite ? 'Sending...' : 'Send invite'}
-          </button>
-        </form>
-
-        <div className="border-t border-borderline pt-4">
-          <h3 className="text-sm font-bold uppercase text-ink2 mb-3">Recent invitations</h3>
-          {loadingInvites ? (
-            <p className="text-ink2 text-sm">Loading invitations...</p>
-          ) : invitations.length === 0 ? (
-            <p className="text-ink2 text-sm">No invitations yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {invitations.map((inv) => {
-                const pending = !inv.used_at && new Date(inv.expires_at) > new Date()
-                return (
-                  <li
-                    key={inv.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border border-borderline rounded"
-                  >
-                    <div>
-                      <p className="font-semibold text-ink">{inv.email}</p>
-                      <p className="text-xs text-ink2">
-                        Expires {formatDate(inv.expires_at)}
-                        {inv.used_at ? ' · Used' : pending ? ' · Pending' : ' · Expired'}
-                      </p>
-                    </div>
-                    {pending && (
-                      <button
-                        type="button"
-                        onClick={() => revokeInvite(inv.id)}
-                        className="text-sm font-bold text-red-600 hover:underline self-start sm:self-auto"
-                      >
-                        Revoke
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-      </section>
 
       <form onSubmit={savePassword} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
         <h2 className="font-black text-lg text-ink">Change password</h2>

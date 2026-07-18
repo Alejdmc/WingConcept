@@ -71,15 +71,23 @@ async function request(path, options = {}) {
   const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
 
-  const res = await fetch(`${API}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...(sessionId && { 'X-Session-ID': sessionId }),
-      ...options.headers,
-    },
-    ...fetchOptions,
-  })
+  let res
+  try {
+    res = await fetch(`${API}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(sessionId && { 'X-Session-ID': sessionId }),
+        ...options.headers,
+      },
+      ...fetchOptions,
+    })
+  } catch {
+    throw {
+      status: 0,
+      detail: `Cannot reach the API at ${BASE}. Make sure the backend is running on port 8000.`,
+    }
+  }
 
   if (res.status === 401 && !isPublic && typeof window !== 'undefined') {
     const refreshToken = localStorage.getItem('refresh_token')
@@ -141,8 +149,6 @@ export const api = {
       request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
     resetPassword: (data) =>
       request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
-    acceptAdminInvite: (token) =>
-      request('/auth/accept-admin-invite', { method: 'POST', body: JSON.stringify({ token }) }),
   },
 
   carrito: {
@@ -184,11 +190,6 @@ export const api = {
     eliminarContenido: (contenidoId, permanente = false) =>
       request(`/admin/contenidos/${contenidoId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
     usuarios: (params = {}) => request(`/admin/usuarios${buildQuery(params)}`),
-    crearInvitacion: (email) =>
-      request('/admin/invitaciones', { method: 'POST', body: JSON.stringify({ email }) }),
-    listarInvitaciones: (params = {}) => request(`/admin/invitaciones${buildQuery(params)}`),
-    revocarInvitacion: (invitacionId) =>
-      request(`/admin/invitaciones/${invitacionId}`, { method: 'DELETE' }),
     cupones: (params = {}) => request(`/admin/cupones${buildQuery(params)}`),
     crearCupon: (data) => request('/admin/cupones', { method: 'POST', body: JSON.stringify(data) }),
   },
