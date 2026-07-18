@@ -21,7 +21,7 @@ const fallbackProducts = [
   { 
     id: 2,
     name: 'Nomadic Trike', 
-    image: '/images/nomadic1.png', 
+    image: '/images/nomadic/1.jpg',
     price: '$8,950', 
     desc: 'The Ultimate Off-Grid Adventure Machine', 
     specs: 'Stainless Steel | All-Terrain Capability',

@@ -1,9 +1,8 @@
 'use client'
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, Zap, Shield, Gauge } from 'lucide-react'
+import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather } from 'lucide-react'
 import Gallery from '@/components/sections/Gallery'
 
 const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
@@ -15,7 +14,7 @@ const vanguard = {
   id: 1,
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
-  description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V7.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
+  description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
   image: '/images/vanguard/1.png',
   price: 'Contact for pricing',
   year: 2020,
@@ -43,6 +42,36 @@ const vanguard = {
       title: 'S.A. Shock Absorber (Active Suspension)',
       desc: '1200N resistance per unit. Only 350g each. Safe takeoffs on unprepared terrain and short runways.',
     },
+    {
+      icon: Package,
+      title: 'Interchangeable Mission Pod',
+      desc: 'Swap the passenger basket to match the mission: Commercial for tandem flights and rental fleets, Adventure for backcountry exploration, or Reportage for aerial photography and filming — all on the same airframe.',
+    },
+    {
+      icon: Truck,
+      title: 'Tool-Free Field Disassembly',
+      desc: 'Breaks down quickly for effortless ground transport — no trailer required. The compact footprint is engineered to load straight into the bed of a pickup truck.',
+    },
+    {
+      icon: Fuel,
+      title: 'Onboard Fuel Gauge & Dual USB Charging',
+      desc: 'Every trike ships with an integrated fuel gauge and dual USB charging ports, keeping the pilot informed and devices powered throughout the flight.',
+    },
+    {
+      icon: Backpack,
+      title: 'Passenger Backrest Instrument & Hydration Pocket',
+      desc: 'The passenger seat backrest doubles as an instrument holder and carries a dedicated Camel Back pocket, keeping the pilot informed and hydrated, plus side pockets and retention straps for the communication radio.',
+    },
+    {
+      icon: Wind,
+      title: 'Low-Drag Propeller Protection Mesh',
+      desc: 'The only trike in the world with a low propeller guard mesh that shields against sand and small stones kicked up by the wheels, while its dynamic design still allows full airflow to the propeller without adding drag.',
+    },
+    {
+      icon: Feather,
+      title: 'Ultra-Light Airframe',
+      desc: 'The bare structure — fully instrumented, without engine or propeller — weighs just 60 kg (132 lb), delivering an exceptional power-to-weight ratio.',
+    },
   ],
 
   engines: [
@@ -63,8 +92,6 @@ const vanguard = {
 }
 
 export default function ParatrikePage() {
-  const [activeFeature, setActiveFeature] = useState(0)
-
   return (
     <main className="bg-white">
       {/* Hero Section */}
@@ -103,34 +130,23 @@ export default function ParatrikePage() {
             <div className="w-12 h-1 bg-brand mx-auto" />
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              {vanguard.features.map((feature, i) => {
-                const Icon = feature.icon
-                return (
-                  <button key={i} onClick={() => setActiveFeature(i)} className={`w-full text-left p-6 rounded-lg border-2 transition-all ${activeFeature === i ? 'border-brand bg-brand-soft' : 'border-borderline hover:border-brand/50'}`}>
-                    <div className="flex items-start gap-4">
-                      <Icon className={`w-6 h-6 mt-1 ${activeFeature === i ? 'text-brand' : 'text-ink2'}`} />
-                      <div>
-                        <h3 className="font-black text-ink uppercase tracking-wide mb-2">{feature.title}</h3>
-                        {activeFeature === i && <p className="text-ink2 text-sm leading-relaxed">{feature.desc}</p>}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            <motion.div key={activeFeature} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-bg2 rounded-xl p-10 flex flex-col justify-center">
-              <div className="mb-6">
-                {(() => {
-                  const Icon = vanguard.features[activeFeature].icon;
-                  return <Icon className="w-16 h-16 text-brand mb-4" />;
-                })()}
-              </div>
-              <h3 className="text-3xl font-black text-ink mb-4">{vanguard.features[activeFeature].title}</h3>
-              <p className="text-lg text-ink2 leading-relaxed mb-6">{vanguard.features[activeFeature].desc}</p>
-            </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {vanguard.features.map((feature, i) => {
+              const Icon = feature.icon
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: (i % 3) * 0.1, duration: 0.4 }}
+                  className="p-6 rounded-lg border-2 border-borderline bg-bg2/40">
+                  <Icon className="w-8 h-8 text-brand mb-4" />
+                  <h3 className="font-black text-ink uppercase tracking-wide mb-2">{feature.title}</h3>
+                  <p className="text-ink2 text-sm leading-relaxed">{feature.desc}</p>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -168,6 +184,17 @@ export default function ParatrikePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Built for Every Mission */}
+      <section className="py-24 px-6 bg-bg2">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Built for Every Mission</h2>
+          <div className="w-12 h-1 bg-brand mx-auto mb-8" />
+          <p className="text-lg text-ink2 leading-relaxed">
+            Wing Concept engineers every trike to perform across the full spectrum of flight: tandem instruction, drop-back skydive support, cross-country expeditions, aerobatics, aerial advertising, commercial operations, and long-range touring — or anything else a pilot can imagine. Gravity and the sky are no longer the limit.
+          </p>
         </div>
       </section>
 

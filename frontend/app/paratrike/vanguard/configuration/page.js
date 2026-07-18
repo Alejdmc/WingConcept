@@ -35,12 +35,12 @@ const CONFIG_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Maintain a constant cruising speed without holding the throttle throughout the flight.', image: '/images/accessories/cruise-control.jpg' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'Integrated hydration system for the pilot, ideal for long flights.', image: '/images/accessories/camel-back.jpg' },
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'Sun-shielding mesh on the cabin roof, reduces direct heat.', image: '/images/accessories/sun-roof-netting.jpg' },
-    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90, description: 'Side bag for extra storage during flight.', image: '/images/accessories/lateral-bag.jpg' },
-    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective cockpit liner for pilot and passenger, added comfort and durability.', image: '/images/accessories/cockpit-liner.jpg' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440, description: 'Basic flight instrument kit: altimeter and airspeed indicator.', image: '/images/accessories/instrument-kit-vanguard.jpg' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Flight cruise control throttle module engineered for twin-cylinder aviation engines, strategically positioned for instant and safe manual deactivation.', image: '/images/accessories/cruise-control.jpg' },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: "Crucial hydration system for pilots undertaking long cross-country flights. The bladder unit is engineered to fit into the dedicated instrument pocket on the backrest of the passenger seat.", image: '/images/accessories/camel-back.jpg' },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'Overhead sunshade mesh netting that blocks harmful UV rays while remaining fully aerodynamic to eliminate flight drag.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90, description: 'Rugged side pannier bag tailored for long-distance trike touring, perfect for transporting camping equipment and beverages.', image: '/images/accessories/lateral-bag.jpg' },
+    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Specialized protective storage cover that wraps the pilot and passenger cabin. Intended for open trailer transport, it shields sensitive flight equipment against wind and road grime without adding aerodynamic drag while towing.', image: '/images/parts/cockpit-liner.png' },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440, description: 'Flight management dashboard kit with a USB charging port and 3 precision TTO engine sensors monitoring Cylinder Head Temperature (CHT), RPM, and radiator water temperature, plus an exclusive integrated Fuel Gauge instrument. Compatible with all engine types (Rotax, Vittorazi, Polini, Sky, etc.).', image: '/images/parts/instrument-kit-vanguard.png' },
   ]
 }
 

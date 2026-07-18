@@ -32,7 +32,7 @@ const TRIKES = [
     year: 2026,
     tagline: 'The Ultimate Off-Grid Adventure',
     description: 'Built for extreme conditions and remote expeditions. Go further, land anywhere with our ruggedized design.',
-    image: '/images/nomadic1.png',
+    image: '/images/nomadic/1.jpg',
     basePrice: 8950,
     features: [
       'High-durability stainless steel',
@@ -66,7 +66,7 @@ export default function ParaTrikeSelectionPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="py-32 px-6 bg-gradient-to-b from-bg2 to-white">
+      <section className="py-12 px-6 bg-gradient-to-b from-bg2 to-white">
         <div className="max-w-7xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -84,7 +84,7 @@ export default function ParaTrikeSelectionPage() {
       </section>
 
       {/* Trikes Selection */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {TRIKES.map((trike, i) => (
@@ -98,7 +98,7 @@ export default function ParaTrikeSelectionPage() {
                 <div className="relative rounded-2xl overflow-hidden shadow-lg border border-borderline hover:shadow-2xl hover:border-brand transition-all h-full flex flex-col">
                   
                   {/* Image Section */}
-                  <div className="relative h-96 overflow-hidden bg-bg2 cursor-pointer" onClick={() => router.push(trike.href)}>
+                  <div className="relative h-72 overflow-hidden bg-bg2 cursor-pointer" onClick={() => router.push(trike.href)}>
                     <Image
                       src={trike.image}
                       alt={trike.name}
@@ -106,13 +106,6 @@ export default function ParaTrikeSelectionPage() {
                       className="object-cover hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    
-                    {/* Badge */}
-                    <div className="absolute top-6 right-6">
-                      <div className={`${trike.accent} text-ink px-4 py-2 rounded-full font-bold uppercase text-xs tracking-widest`}>
-                        {trike.brand} — {trike.year}
-                      </div>
-                    </div>
 
                     {/* Title Over Image */}
                     <div className="absolute bottom-0 left-0 right-0 p-8 cursor-pointer" onClick={() => router.push(trike.href)}>

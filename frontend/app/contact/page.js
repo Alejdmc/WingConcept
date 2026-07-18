@@ -1,5 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, Instagram, Facebook, MessageCircle, Youtube } from 'lucide-react'
 import { useState } from 'react'
@@ -86,19 +87,49 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-bg2 to-white">
-        <div className="max-w-4xl mx-auto text-center px-6 relative z-10">
+      {/* Hero Section - Con imagen de fondo tipo Parajet */}
+      <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Imagen de fondo */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/front1.jpg"
+            alt="WINGCONCEPT Paramotor"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay oscuro para mejorar legibilidad */}
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+
+        {/* Contenido sobre la imagen */}
+        <div className="relative z-10 max-w-7xl mx-auto text-center px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
+            <div className="mb-8 flex justify-center">
+              <Image
+                src="/images/logo.png"
+                alt="Wing Concept"
+                width={500}
+                height={200}
+                className="drop-shadow-lg brightness-0 invert"
+              />
+            </div>
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               Get In Touch
             </h1>
-            <div className="h-2 w-24 bg-brand mx-auto mb-8" />
-            <p className="text-xl text-ink2">We're here to help. Reach out with any questions or to book your next adventure.</p>
+            <div className="h-2 w-24 bg-brand mx-auto" />
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-2xl md:text-4xl font-black text-white max-w-3xl mx-auto leading-tight mt-8 drop-shadow-xl">
+            We're here to help. Reach out with any questions<br />or to book your next adventure.
+          </motion.p>
         </div>
       </section>
 
