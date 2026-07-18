@@ -150,6 +150,8 @@ export const api = {
     eliminarContenido: (contenidoId, permanente = false) =>
       request(`/admin/contenidos/${contenidoId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
     usuarios: (params = {}) => request(`/admin/usuarios${buildQuery(params)}`),
+    actualizarUsuario: (usuarioId, data) => request(`/admin/usuarios/${usuarioId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    cambiarRolUsuario: (usuarioId, rol) => request(`/admin/usuarios/${usuarioId}/rol`, { method: 'PATCH', body: JSON.stringify({ rol }) }),
     crearInvitacion: (email) =>
       request('/admin/invitaciones', { method: 'POST', body: JSON.stringify({ email }) }),
     listarInvitaciones: (params = {}) => request(`/admin/invitaciones${buildQuery(params)}`),

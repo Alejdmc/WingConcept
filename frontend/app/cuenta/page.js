@@ -219,8 +219,11 @@ export default function CuentaPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        <Link href="/cart" className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90">
+      <div className="flex flex-wrap gap-4">
+        <Link href="/orders" className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90">
+          My orders
+        </Link>
+        <Link href="/cart" className="px-6 py-3 border border-borderline rounded font-bold text-ink hover:border-brand">
           View cart
         </Link>
         <button onClick={handleLogout} className="px-6 py-3 border border-borderline rounded font-bold text-ink hover:border-brand">

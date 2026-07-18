@@ -67,8 +67,12 @@ export default function CartPage() {
           Back
         </Link>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded text-sm">{error}</div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Cart Items */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
