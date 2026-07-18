@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShoppingCart, Check, Package } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { PARTS } from '@/lib/parts'
+import { ACCESSORIES } from '@/lib/accessories'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
@@ -27,15 +28,27 @@ export default function PartsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts</h1>
-          <p className="text-xl text-ink2 mt-2">Repuestos y componentes estructurales para Vanguard y Nomadic</p>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
+          <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PARTS.map((part) => (
-            <PartCard key={part.id} part={part} />
-          ))}
-        </div>
+        <section className="mb-16">
+          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {PARTS.map((part) => (
+              <PartCard key={part.id} part={part} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ACCESSORIES.map((accessory) => (
+              <PartCard key={accessory.id} part={accessory} />
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )

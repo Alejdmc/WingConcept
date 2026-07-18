@@ -12,24 +12,25 @@ import WizardProgress from '@/components/configurator/WizardProgress'
 
 const CONFIG_OPTIONS = {
   engines: [
-    { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950 },
-    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200 },
-    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300 MY25', power: '36 HP', basePrice: 4560 },
+    { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg' },
+    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg' },
+    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300 MY25', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg' },
   ],
   chassisFinishes: [
-    { id: 'stainless-brushed', name: 'Stainless Steel Brushed', price: 0, description: 'Brushed stainless steel, maximum weather resistance.', swatch: '#b5b8bb' },
-    { id: 'anodized-black', name: 'Anodized Black', price: 600, description: 'Black anodized finish, aggressive look and extra corrosion protection.', swatch: '#1c1c1c' },
-    { id: 'titanium-finish', name: 'Titanium Finish', price: 1200, description: 'Titanium finish, lightweight with high structural strength.', swatch: '#8e8e8e' },
+    { id: 'stainless-brushed', name: 'Stainless Steel Brushed', description: 'Brushed stainless steel, maximum weather resistance.', swatch: '#b5b8bb' },
+    { id: 'anodized-black', name: 'Anodized Black', description: 'Black anodized finish, aggressive look and extra corrosion protection.', swatch: '#1c1c1c' },
+    { id: 'titanium-finish', name: 'Titanium Finish', description: 'Titanium finish, lightweight with high structural strength.', swatch: '#8e8e8e' },
   ],
   propellers: [
     { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 0 },
     { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 0 },
   ],
   colors: [
-    { name: 'Gunmetal', hex: '#2c3e50' },
-    { name: 'Desert Sand', hex: '#c9b894' },
-    { name: 'Forest Green', hex: '#27ae60' },
-    { name: 'Arctic White', hex: '#ecf0f1' }
+    { name: 'Candy Red', hex: '#e74c3c' },
+    { name: 'Candy Blue', hex: '#3498db' },
+    { name: 'Candy Purple', hex: '#9b59b6' },
+    { name: 'White', hex: '#ffffff' },
+    { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
     { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Maintain a constant cruising speed without holding the throttle throughout the flight.', image: '/images/accessories/cruise-control.jpg' },
@@ -69,11 +70,10 @@ export default function ConfiguratorNomadicPage() {
   const totalPrice = useMemo(() => {
     const baseChassis = 8950
     const enginePrice = engine?.basePrice || 0
-    const finishPrice = finish?.price || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + finishPrice + propellerPrice + upgradesPrice
-  }, [engine, finish, propeller, selectedUpgrades])
+    return baseChassis + enginePrice + propellerPrice + upgradesPrice
+  }, [engine, propeller, selectedUpgrades])
 
   const toggleUpgrade = (id) => {
     setSelectedUpgrades(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
@@ -221,10 +221,7 @@ export default function ConfiguratorNomadicPage() {
                           <div className="flex items-center gap-4">
                             <span className="w-14 h-14 rounded-lg shrink-0 border border-borderline" style={{ backgroundColor: f.swatch }} />
                             <div className="flex-1">
-                              <div className="flex justify-between items-center">
-                                <p className="font-bold uppercase text-ink">{f.name}</p>
-                                <p className="text-sm text-ink2">{f.price === 0 ? 'Standard' : `+$${f.price.toLocaleString()}`}</p>
-                              </div>
+                              <p className="font-bold uppercase text-ink">{f.name}</p>
                               <p className="text-sm text-ink2 mt-1">{f.description}</p>
                             </div>
                           </div>
@@ -235,12 +232,17 @@ export default function ConfiguratorNomadicPage() {
                 )}
 
                 {step === 1 && (
-                  <ConfigSection title="Motor. Pure Power">
+                  <ConfigSection title="Engine. Pure Power">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.engines.map(e => (
                         <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => setSelectedEngine(e.id)}>
                           <p className="font-bold uppercase text-ink">{e.name}</p>
                           <p className="text-sm text-ink2 mt-1">{e.power} — +${e.basePrice.toLocaleString()}</p>
+                          {selectedEngine === e.id && e.image && (
+                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
+                              <OptionThumb src={e.image} alt={e.name} />
+                            </div>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -252,7 +254,7 @@ export default function ConfiguratorNomadicPage() {
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => (
                         <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => setSelectedPropeller(p.id)}>
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-center pr-8">
                             <p className="font-bold uppercase text-ink">{p.name}</p>
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
@@ -264,13 +266,13 @@ export default function ConfiguratorNomadicPage() {
                 )}
 
                 {step === 3 && (
-                  <ConfigSection title="Accesorios. Enhance Adventure">
+                  <ConfigSection title="Accessories. Enhance Adventure">
                     <div className="space-y-3">
                       {accessories.map(a => {
                         const isSelected = selectedUpgrades.includes(a.id)
                         return (
                           <OptionCard key={a.id} selected={isSelected} onClick={() => toggleUpgrade(a.id)}>
-                            <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center pr-8">
                               <p className="font-bold uppercase text-ink">{a.name}</p>
                               <p className="font-semibold text-ink2">
                                 +${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}
@@ -278,7 +280,7 @@ export default function ConfiguratorNomadicPage() {
                             </div>
                             {isSelected && (
                               <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                                <AccessoryThumb src={a.image} alt={a.name} />
+                                <OptionThumb src={a.image} alt={a.name} />
                                 <p className="text-sm text-ink2 text-left">{a.description}</p>
                               </div>
                             )}
@@ -296,12 +298,12 @@ export default function ConfiguratorNomadicPage() {
                 {step === 4 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
-                      <SummaryRow label="Chassis" value={finish?.name} price={finish?.price} />
+                      <SummaryRow label="Chassis" value={finish?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
-                          <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accesorios</p>
+                          <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>
                           {selectedAccessoryItems.map(a => <SummaryRow key={a.id} label={a.name} price={a.price} />)}
                         </div>
                       )}
@@ -406,15 +408,15 @@ function SummaryRow({ label, value, price }) {
   )
 }
 
-function AccessoryThumb({ src, alt }) {
+function OptionThumb({ src, alt }) {
   const [imgError, setImgError] = useState(false)
   return (
-    <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-bg2">
+    <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
       {!imgError ? (
         <Image src={src} alt={alt} fill className="object-cover" onError={() => setImgError(true)} />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <Package className="w-6 h-6 text-ink2/40" />
+          <Package className="w-8 h-8 text-ink2/40" />
         </div>
       )}
     </div>

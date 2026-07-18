@@ -10,7 +10,7 @@ import { getStoredUser } from '@/lib/auth'
 const navItems = [
   { label: 'Paramotors', href: '/paramotors' },
   { label: 'Paratrike', href: '/paratrike' },
-  { label: 'Parts', href: '/parts' },
+  { label: 'Parts and Accessories', href: '/parts' },
   {
     label: 'Adventure',
     children: [
@@ -19,11 +19,11 @@ const navItems = [
       { label: 'W.C Events', href: '/events' },
     ],
   },
+  { label: 'Tourist Flight', href: '/tourist-flight' },
   {
     label: 'More',
     children: [
       { label: 'About Us', href: '/about' },
-      { label: 'Induction Course', href: '/induction-course' },
       { label: 'Contact', href: '/contact' },
     ],
   },
