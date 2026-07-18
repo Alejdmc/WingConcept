@@ -80,14 +80,6 @@ export default function ParaTrikeSelectionPage() {
               Choose Your Adventure
             </p>
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-ink2 max-w-2xl mx-auto mt-8">
-            Two exceptional trike platforms designed for different flying styles. Whether you seek precision performance or rugged expedition capability, we have your perfect match.
-          </motion.p>
         </div>
       </section>
 
@@ -171,6 +163,14 @@ export default function ParaTrikeSelectionPage() {
               </motion.div>
             ))}
           </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xl text-ink2 max-w-2xl mx-auto mt-16 text-center">
+            Two exceptional trike platforms designed for different flying styles. Whether you seek precision performance or rugged expedition capability, we have your perfect match.
+          </motion.p>
         </div>
       </section>
 

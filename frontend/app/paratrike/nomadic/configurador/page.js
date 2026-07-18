@@ -290,7 +290,7 @@ export default function ConfiguratorNomadicPage() {
                     </div>
                     <p className="text-sm text-ink2 mt-4">
                       Looking for individual parts (axles, harnesses, forks...)? Visit{' '}
-                      <Link href="/parts" className="text-brand font-bold hover:underline">/parts</Link>.
+                      <Link href="/parts" className="text-brand font-bold hover:underline">parts</Link>.
                     </p>
                   </ConfigSection>
                 )}
