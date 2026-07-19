@@ -1,8 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { UserPlus } from 'lucide-react'
 import { api } from '@/lib/api'
-import { getStoredUser } from '@/lib/auth'
-import { persistAuthSession } from '@/lib/auth'
+import { getStoredUser, persistAuthSession } from '@/lib/auth'
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -162,6 +163,22 @@ export default function AdminSettingsPage() {
           {savingProfile ? 'Saving...' : 'Save profile'}
         </button>
       </form>
+
+      <Link
+        href="/admin/users"
+        className="flex items-center justify-between gap-4 bg-white border border-borderline rounded-lg p-6 mb-8 hover:border-brand transition group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-lg bg-brand-soft flex items-center justify-center shrink-0">
+            <UserPlus className="w-5 h-5 text-brand" />
+          </div>
+          <div>
+            <h2 className="font-black text-lg text-ink">Manage users &amp; admin invitations</h2>
+            <p className="text-sm text-ink2">Change roles, activate accounts and invite new admins.</p>
+          </div>
+        </div>
+        <span className="text-sm font-bold text-brand group-hover:underline shrink-0">Go to Users →</span>
+      </Link>
 
       <form onSubmit={savePassword} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
         <h2 className="font-black text-lg text-ink">Change password</h2>

@@ -10,7 +10,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Mismo origen: el navegador usa /api/v1 relativo (sin NEXT_PUBLIC_API_URL)
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx next build
+RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app

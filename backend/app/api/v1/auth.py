@@ -8,6 +8,8 @@ POST /api/v1/auth/reset-password
 """
 import asyncio
 import logging
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,15 +26,48 @@ from app.schemas.auth import (
     TokenResponse,
     VerifyEmailRequest,
 )
+from app.schemas.invitacion import AcceptAdminInviteRequest
 from app.schemas.usuario import UsuarioResponse
 from app.services.auth_service import auth_service
 from app.services.email_service import email_service
+from app.services.invitation_service import invitation_service
 from app.utils.redis_client import check_rate_limit
 from app.core.exceptions import CredencialesInvalidasError, PermisosDenegadosError
 from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = logging.getLogger(__name__)
+
+
+def _cookie_flags() -> dict:
+    return {
+        "httponly": True,
+        "secure": settings.is_production,
+        "samesite": "strict" if settings.is_production else "lax",
+        "path": "/",
+    }
+
+
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: Optional[str] = None) -> None:
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_flags(),
+    )
+    if refresh_token:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+            **_cookie_flags(),
+        )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    flags = _cookie_flags()
+    response.delete_cookie(key="access_token", **flags)
+    response.delete_cookie(key="refresh_token", **flags)
 
 
 @router.post("/register", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
@@ -50,12 +85,31 @@ async def register(
     usuario = await auth_service.registrar(db, data)
 
     # Enviar emails (no bloquear registro si fallan)
-    verify_token = auth_service.generar_token_verificacion(usuario)
-    await email_service.enviar_verificacion_email(
-        usuario.email, usuario.nombre, verify_token, settings.FRONTEND_URL
-    )
+    if usuario.rol != "admin":
+        verify_token = auth_service.generar_token_verificacion(usuario)
+        await email_service.enviar_verificacion_email(
+            usuario.email, usuario.nombre, verify_token, settings.FRONTEND_URL
+        )
     await email_service.enviar_bienvenida(usuario.email, usuario.nombre)
 
+    return usuario
+
+
+@router.post("/accept-admin-invite", response_model=UsuarioResponse)
+async def accept_admin_invite(
+    data: AcceptAdminInviteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Usuario autenticado acepta invitación de admin enviada a su email.
+    """
+    from app.services.admin_policy import assert_invite_flow_allowed
+
+    assert_invite_flow_allowed(hide_endpoint=True)
+    usuario = await invitation_service.aceptar_invitacion_usuario_existente(
+        db, data.token, current_user
+    )
     return usuario
 
 
@@ -79,41 +133,27 @@ async def login(
         raise PermisosDenegadosError("Demasiados intentos fallidos. Espera 15 minutos.")
 
     login_data = await auth_service.login(db, data)
-
-    # Establecer cookie para el middleware del frontend (Next.js)
-    response.set_cookie(
-        key="access_token",
-        value=login_data.access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    _set_auth_cookies(response, login_data.access_token, login_data.refresh_token)
 
     return login_data
 
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
-    data: RefreshRequest,
+    request: Request,
     response: Response,
-    db: AsyncSession = Depends(get_db)
+    data: RefreshRequest,
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Renueva el access token usando el refresh token.
-    También actualiza la cookie 'access_token'.
+    Renueva el access token usando el refresh token (body o cookie HttpOnly).
     """
-    token_data = await auth_service.refresh(db, data.refresh_token)
+    refresh_token = data.refresh_token or request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise CredencialesInvalidasError("Refresh token requerido")
 
-    # Actualizar cookie
-    response.set_cookie(
-        key="access_token",
-        value=token_data.access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    token_data = await auth_service.refresh(db, refresh_token)
+    _set_auth_cookies(response, token_data.access_token, token_data.refresh_token)
 
     return token_data
 
@@ -127,26 +167,40 @@ async def recuperar_password(
     """
     Solicita recuperación de contraseña.
     Siempre retorna 200 aunque el email no exista (seguridad).
-    Rate limit: 3 intentos/hora por IP.
+    Rate limit: 5 intentos/hora por IP.
     """
+    from app.core.exceptions import ServicioNoDisponibleError
+
     client_ip = request.client.host if request.client else "unknown"
-    permitido, _ = await check_rate_limit(client_ip, limit=3, window_seconds=3600, prefix="rl:recuperar")
+    permitido, _ = await check_rate_limit(
+        f"{client_ip}:{data.email.lower()}",
+        limit=5,
+        window_seconds=3600,
+        prefix="rl:recuperar",
+    )
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos. Espera 1 hora.")
 
-    token_data = await auth_service.solicitar_recuperacion(db, data.email)
+    try:
+        token_data = await auth_service.solicitar_recuperacion(db, data.email)
 
-    if token_data:
-        token, nombre = token_data
-        await email_service.enviar_recuperacion_password(
-            email=data.email,
-            nombre=nombre,
-            token=token,
-            frontend_url=settings.FRONTEND_URL,
+        if token_data:
+            token, nombre = token_data
+            await email_service.enviar_recuperacion_password(
+                email=data.email,
+                nombre=nombre,
+                token=token,
+                frontend_url=settings.FRONTEND_URL,
+            )
+        else:
+            await asyncio.sleep(0.5)
+    except ServicioNoDisponibleError:
+        raise
+    except Exception as exc:
+        logger.error(f"Error en recuperación de contraseña: {exc}")
+        raise ServicioNoDisponibleError(
+            "Servicio temporalmente no disponible. Intenta de nuevo en unos minutos."
         )
-    else:
-        # Mitigar email enumeration por timing
-        await asyncio.sleep(0.5)
 
     return {"message": "Si el email existe, recibirás las instrucciones en breve."}
 
@@ -214,15 +268,8 @@ async def resend_verification(
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(response: Response):
-    """
-    Limpia la cookie de acceso del lado del servidor.
-    """
-    response.delete_cookie(
-        key="access_token",
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-    )
+    """Limpia cookies de sesión del lado del servidor."""
+    _clear_auth_cookies(response)
     return {"message": "Sesión cerrada correctamente"}
 
 

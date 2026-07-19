@@ -84,6 +84,11 @@ class Settings(BaseSettings):
     # ── Frontend URL (links en emails) ───────────────────────
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # ── Admin invitaciones ───────────────────────────────────
+    ADMIN_INVITE_EXPIRE_DAYS: int = 7
+    # false = solo admins ya existentes; bloquea invitaciones, scripts y promociones
+    ALLOW_NEW_ADMINS: bool = False
+
     # ── Hosts confiables (TrustedHostMiddleware) ──────────────
     # En producción: "wingconcept.com,www.wingconcept.com"
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
@@ -160,6 +165,7 @@ class Settings(BaseSettings):
                 raise ValueError("DEBUG debe ser False en producción.")
             if not self.REQUIRE_EMAIL_VERIFIED:
                 object.__setattr__(self, "REQUIRE_EMAIL_VERIFIED", True)
+            object.__setattr__(self, "ALLOW_NEW_ADMINS", False)
             if not self.DATABASE_URL:
                 raise ValueError("DATABASE_URL es requerido en producción.")
             if not self.REDIS_PASSWORD:

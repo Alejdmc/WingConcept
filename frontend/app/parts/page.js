@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShoppingCart, Check, Package } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
 import { PARTS } from '@/lib/parts'
+import { ACCESSORIES } from '@/lib/accessories'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
@@ -27,15 +28,27 @@ export default function PartsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts</h1>
-          <p className="text-xl text-ink2 mt-2">Repuestos y componentes estructurales para Vanguard y Nomadic</p>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
+          <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PARTS.map((part) => (
-            <PartCard key={part.id} part={part} />
-          ))}
-        </div>
+        <section className="mb-16">
+          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {PARTS.map((part) => (
+              <PartCard key={part.id} part={part} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {ACCESSORIES.map((accessory) => (
+              <PartCard key={accessory.id} part={accessory} />
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )
@@ -70,33 +83,37 @@ function PartCard({ part }) {
             src={part.image}
             alt={part.name}
             fill
-            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+            className="object-contain p-3"
             onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-12 h-12 text-ink2/40" />
+            <Package className="w-10 h-10 text-ink2/40" />
           </div>
         )}
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex flex-wrap gap-2 mb-3">
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {part.compatibleWith.map((m) => (
-            <span key={m} className="text-[11px] font-bold uppercase tracking-wide text-brand bg-brand-soft px-2 py-1 rounded-full">
+            <span key={m} className="text-[10px] font-bold uppercase tracking-wide text-brand bg-brand-soft px-2 py-0.5 rounded-full">
               {MODEL_LABEL[m] || m}
             </span>
           ))}
         </div>
 
-        <p className="font-bold uppercase text-ink flex-1">{part.name}</p>
-        <p className="text-2xl font-black text-brand mt-3 mb-4">${part.price.toLocaleString()}</p>
+        <p className="text-sm font-bold uppercase text-ink">{part.name}</p>
+        {part.description && (
+          <p className="text-xs text-ink2 mt-1.5 line-clamp-3 flex-1">{part.description}</p>
+        )}
+        <p className="text-xl font-black text-brand mt-2 mb-3">${part.price.toLocaleString()}</p>
 
         <button
           type="button"
           onClick={handleAdd}
           disabled={status === 'loading'}
-          className="inline-flex items-center justify-center gap-2 py-3 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-sm hover:bg-brand/90 disabled:opacity-50 transition-all">
+          className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all">
           {status === 'added' ? (
             <>
               <Check className="w-4 h-4" /> Added

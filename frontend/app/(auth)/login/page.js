@@ -42,8 +42,6 @@ function LoginForm() {
   }
 
   const completeLogin = async (res) => {
-    persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
-
     try {
       await api.carrito.merge()
       await refetch()
@@ -57,6 +55,7 @@ function LoginForm() {
     window.location.assign(destination.startsWith('/') ? destination : '/')
   }
 
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -64,9 +63,10 @@ function LoginForm() {
 
     try {
       const res = await api.auth.login(formData)
+      persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
       await completeLogin(res)
     } catch (err) {
-      setError(err.detail || 'Login failed')
+      setError(err.detail || err.message || 'Login failed. Check that the backend is running.')
     } finally {
       setLoading(false)
     }

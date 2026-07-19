@@ -154,7 +154,8 @@ function RegisterForm() {
         router.push(pendingUrl)
       }, 2000)
     } catch (err) {
-      setError(err.detail || 'Error creating account. Please try again.')
+      const detail = err.detail || 'Error creating account. Please try again.'
+      setError(detail)
     } finally {
       setLoading(false)
     }

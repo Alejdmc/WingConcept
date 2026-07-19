@@ -4,7 +4,9 @@ WingConcept Backend — Schemas Carrito (Pydantic V2)
 import uuid
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
+
+from app.utils.validators import sanitizar_configuracion
 
 
 class AgregarItemRequest(BaseModel):
@@ -24,6 +26,13 @@ class AgregarItemRequest(BaseModel):
         if not self.variante_id and not self.producto_id:
             raise ValueError("Se requiere variante_id o producto_id")
         return self
+
+    @field_validator("configuracion")
+    @classmethod
+    def sanitizar_config(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        if v is None:
+            return None
+        return sanitizar_configuracion(v)
 
 
 class ActualizarCantidadRequest(BaseModel):

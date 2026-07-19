@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
-import { getStoredUser } from '@/lib/auth'
+import { getStoredUser, ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import { api } from '@/lib/api'
 
@@ -22,15 +22,14 @@ function couponErrorEn(message) {
 }
 
 const CHECKOUT_STEPS = [
-  { id: 1, name: 'Cart', path: '/checkout' },
-  { id: 2, name: 'Shipping', path: '/checkout/shipping' },
-  { id: 3, name: 'Payment', path: '/checkout/payment' },
-  { id: 4, name: 'Confirmation', path: '/checkout/confirmation' },
+  { id: 1, name: 'Cart' },
+  { id: 2, name: 'Shipping' },
+  { id: 3, name: 'Payment' },
 ]
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, total: cartTotal, updateQuantity: updateCartQty, removeFromCart, refetch } = useCart()
+  const { items, total: cartTotal, updateQuantity: updateCartQty, removeFromCart, refetch, error: cartContextError } = useCart()
   const [cartError, setCartError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
   const [ready, setReady] = useState(false)
@@ -40,15 +39,17 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false)
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    const user = getStoredUser()
-    if (!token || !user) {
-      saveAuthNext('/checkout')
-      router.replace('/login?next=/checkout')
-      return
+    const verify = async () => {
+      const ok = await ensureValidSession()
+      if (!ok) {
+        saveAuthNext('/checkout')
+        router.replace('/login?next=/checkout')
+        return
+      }
+      setReady(true)
+      refetch()
     }
-    setReady(true)
-    refetch()
+    verify()
   }, [router, refetch])
 
   if (!ready) {
@@ -165,9 +166,9 @@ export default function CheckoutPage() {
           
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {cartError && (
+            {(cartError || cartContextError) && (
               <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-sm font-semibold">
-                {cartError}
+                {cartError || cartContextError}
               </div>
             )}
             {currentStep === 1 && <CartStep cart={cart} updateQuantity={updateQuantity} removeItem={removeItem} setStep={setCurrentStep} />}
@@ -176,10 +177,10 @@ export default function CheckoutPage() {
                 setStep={setCurrentStep}
                 appliedCoupon={appliedCoupon}
                 setCartError={setCartError}
+                onOrderCreated={refetch}
               />
             )}
             {currentStep === 3 && <PaymentStep setStep={setCurrentStep} />}
-            {currentStep === 4 && <ConfirmationStep />}
           </div>
 
           {/* Order Summary Sidebar */}
@@ -356,7 +357,25 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
 const PHONE_REGEX = /^\+?[\d\s\-()]{7,20}$/
 const POSTAL_CODE_REGEX = /^[a-zA-Z0-9\s-]{3,10}$/
 
-function ShippingStep({ setStep, appliedCoupon, setCartError }) {
+const COUNTRY_OPTIONS = [
+  { code: 'CO', name: 'Colombia' },
+  { code: 'US', name: 'United States' },
+  { code: 'MX', name: 'Mexico' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'AR', name: 'Argentina' },
+  { code: 'BR', name: 'Brazil' },
+  { code: 'CL', name: 'Chile' },
+  { code: 'PE', name: 'Peru' },
+  { code: 'EC', name: 'Ecuador' },
+  { code: 'PA', name: 'Panama' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'IT', name: 'Italy' },
+]
+
+function ShippingStep({ setStep, appliedCoupon, setCartError, onOrderCreated }) {
   const [formData, setFormData] = useState({
     nombre_destinatario: '',
     telefono: '',
@@ -364,7 +383,7 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
     linea2: '',
     departamento_estado: '',
     ciudad: '',
-    pais: '',
+    pais: 'CO',
     codigo_postal: '',
     notas: ''
   })
@@ -418,6 +437,7 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
       })
 
       sessionStorage.setItem('current_order_id', res.id)
+      await onOrderCreated?.()
       setStep(3)
     } catch (err) {
       console.error('Error creating order:', err)
@@ -517,14 +537,17 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-ink mb-2">Country</label>
-              <input
-                type="text"
+              <select
                 name="pais"
                 value={formData.pais}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand"
-              />
+                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-white"
+              >
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-ink mb-2">Postal Code</label>
@@ -556,7 +579,7 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
           <div className="flex gap-4 pt-4">
             <button
               type="button"
-              onClick={() => window.history.back()}
+              onClick={() => setStep(1)}
               className="flex-1 px-6 py-3 border-2 border-borderline text-ink rounded-lg font-bold uppercase hover:border-brand transition">
               Back
             </button>
@@ -576,13 +599,14 @@ function ShippingStep({ setStep, appliedCoupon, setCartError }) {
 function PaymentStep({ setStep }) {
   const [paymentMethod, setPaymentMethod] = useState('wompi')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handlePayment = async () => {
     setLoading(true)
+    setError('')
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
       if (!token) {
-        // require login
         window.location.href = '/login'
         return
       }
@@ -590,21 +614,14 @@ function PaymentStep({ setStep }) {
       if (!ordenId) throw new Error('Orden ID missing')
 
       const res = await api.pagos.checkout({ orden_id: ordenId })
-      // If Stripe returned a checkout redirect URL, go there
       if (res && res.checkout_url) {
         window.location.href = res.checkout_url
         return
       }
-      // If immediate success
-      if (res && res.estado === 'approved') {
-        window.location.href = '/checkout/exito'
-        return
-      }
-      // fallback to result page
       window.location.href = '/checkout/resultado'
     } catch (err) {
       console.error('Payment error:', err)
-      alert('Payment failed. Please try again.')
+      setError(err.detail || 'Payment failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -624,6 +641,7 @@ function PaymentStep({ setStep }) {
           ].map(method => (
             <button
               key={method.id}
+              type="button"
               onClick={() => setPaymentMethod(method.id)}
               className={`w-full p-6 rounded-lg border-2 transition-all text-left
                 ${paymentMethod === method.id
@@ -646,17 +664,23 @@ function PaymentStep({ setStep }) {
 
         {/* Payment Info */}
         <div className="bg-bg2 rounded-lg p-6 mb-8">
-          <p className="text-sm text-ink2 mb-4">
+          <p className="text-sm text-ink2">
             {paymentMethod === 'wompi'
-              ? 'You will be redirected to Wompi to complete your payment securely.'
+              ? 'You will be redirected to complete your payment securely. Your order is already saved and will be updated automatically once payment is confirmed.'
               : 'Bank transfer details will be provided after order confirmation.'}
           </p>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-sm font-semibold">
+            {error}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-4">
           <button
-            onClick={() => window.history.back()}
+            onClick={() => setStep(2)}
             className="flex-1 px-6 py-3 border-2 border-borderline text-ink rounded-lg font-bold uppercase hover:border-brand transition">
             Back
           </button>
@@ -667,63 +691,6 @@ function PaymentStep({ setStep }) {
             {loading ? 'Processing...' : 'Confirm & Pay'}
             <ChevronRight className="w-4 h-4" />
           </button>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function ConfirmationStep() {
-  const [orderNumber, setOrderNumber] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const orderId = typeof window !== 'undefined' ? sessionStorage.getItem('current_order_id') : null
-    if (!orderId) {
-      setLoading(false)
-      return
-    }
-    api.ordenes.detalle(orderId)
-      .then((orden) => {
-        setOrderNumber(orden?.numero_orden || orden?.id || orderId)
-      })
-      .catch((err) => {
-        console.error('Error fetching order:', err)
-        setOrderNumber(orderId)
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}>
-      <div className="bg-white rounded-xl border border-borderline p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-          </svg>
-        </div>
-
-        <h2 className="text-3xl font-black text-ink mb-2">Order Confirmed!</h2>
-        <p className="text-ink2 mb-6">Thank you for your purchase. Your order has been received.</p>
-
-        <div className="bg-bg2 rounded-lg p-6 mb-8">
-          <p className="text-sm text-ink2 mb-2">Order Number</p>
-          <p className="text-3xl font-black text-brand">{loading ? '...' : (orderNumber || 'N/A')}</p>
-        </div>
-
-        <p className="text-sm text-ink2 mb-8">
-          A confirmation email has been sent to your email address with tracking information and estimated delivery date.
-        </p>
-
-        <div className="flex gap-4">
-          <Link href="/" className="flex-1 px-6 py-3 border-2 border-borderline text-ink rounded-lg font-bold uppercase hover:border-brand transition">
-            Continue Shopping
-          </Link>
-          <Link href="/orders" className="flex-1 px-6 py-3 bg-brand text-white rounded-lg font-bold uppercase hover:bg-brand/90 transition">
-            View Orders
-          </Link>
         </div>
       </div>
     </motion.div>

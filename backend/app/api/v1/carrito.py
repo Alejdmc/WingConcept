@@ -94,6 +94,7 @@ async def agregar_item(
             else ""
         ),
         configuracion=data.configuracion,
+        stock_disponible=variante.stock,
     )
 
 
@@ -111,8 +112,21 @@ async def actualizar_item(
             db, current_user.id, item_id, data.cantidad
         )
 
+    from sqlalchemy import select
+    from app.models.variante import Variante
+
+    anon_data = await carrito_service.obtener_anonimo(session_id)
+    anon_item = next((i for i in anon_data.items if str(i.id) == str(item_id)), None)
+    stock = None
+    if anon_item:
+        v_result = await db.execute(
+            select(Variante).where(Variante.id == anon_item.variante_id)
+        )
+        variante = v_result.scalar_one_or_none()
+        stock = variante.stock if variante else None
+
     return await carrito_service.actualizar_cantidad_anonimo(
-        session_id, str(item_id), data.cantidad
+        session_id, str(item_id), data.cantidad, stock_disponible=stock
     )
 
 

@@ -6,7 +6,7 @@ import { X } from 'lucide-react'
 
 const DEFAULT_IMAGES = [
   { src: '/images/vanguard/1.png', alt: 'Vanguard V8.0' },
-  { src: '/images/nomadic1.png', alt: 'Nomadic Trike' },
+  { src: '/images/nomadic/1.jpg', alt: 'Nomadic Trike' },
   { src: '/images/vanguard/2.png', alt: 'Vanguard V8.0' },
   { src: '/images/vanguard/3.png', alt: 'Vanguard V8.0' },
   { src: '/images/vanguard/4.png', alt: 'Vanguard V8.0' },

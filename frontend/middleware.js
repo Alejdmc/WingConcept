@@ -33,7 +33,7 @@ async function fetchAuthUser(token, origin) {
 
 export async function middleware(request) {
   const token = request.cookies.get('access_token')?.value
-  const isAdminPath = adminPaths.some(path => request.nextUrl.pathname.startsWith(path))
+  const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
   if (isAdminPath) {
     if (!token) {
@@ -54,5 +54,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ['/admin/:path*'],
 }

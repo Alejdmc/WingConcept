@@ -117,7 +117,12 @@ class ConfiguradorService:
                 if key in configuracion and configuracion[key] is not None:
                     merged[key] = configuracion[key]
             return merged
-        return configuracion
+
+        merged = dict(configuracion)
+        # Ignorar campos visuales del frontend que no afectan precio
+        for key in ("chassisType", "propeller", "chassisColor", "accentColor", "peripheralColor", "totalPrice"):
+            merged.pop(key, None)
+        return merged
 
     async def _precio_base_chasis(
         self, db: AsyncSession, producto_id: uuid.UUID, fallback: float

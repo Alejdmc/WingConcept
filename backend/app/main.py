@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
 from app.core.middleware import global_rate_limit_middleware, validate_session_id_middleware
@@ -65,6 +66,11 @@ async def lifespan(app: FastAPI):
             logger.warning(
                 f"⚠️  Redis no disponible: {e} (el rate limiting y caché estarán desactivados)"
             )
+
+    if settings.ALLOW_NEW_ADMINS:
+        logger.warning("⚠️  ALLOW_NEW_ADMINS=true — se pueden crear nuevos administradores")
+    else:
+        logger.info("🔒 Creación de administradores bloqueada (ALLOW_NEW_ADMINS=false)")
 
     yield
 
@@ -220,9 +226,34 @@ from app.api.router import api_router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.error(f"Error de base de datos en {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Servicio temporalmente no disponible. Intenta de nuevo en unos minutos."},
+    )
+
+
+@app.exception_handler(OSError)
+async def network_exception_handler(request: Request, exc: OSError):
+    logger.error(f"Error de red en {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={
+            "detail": (
+                "No se pudo conectar a la base de datos. "
+                "Verifica DATABASE_URL en .env (usa el Session pooler de Supabase si la conexión directa falla)."
+            )
+        },
+    )
+
+
 # ── Endpoints base ────────────────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
 async def root():
+    if settings.is_production:
+        return {"status": "ok"}
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
@@ -246,8 +277,8 @@ async def health_check():
             checks["database"] = "ok"
         else:
             checks["database"] = "not_configured"
-    except Exception as e:
-        checks["database"] = f"error: {str(e)[:50]}"
+    except Exception:
+        checks["database"] = "error" if settings.is_production else "error"
 
     # Check Redis
     try:

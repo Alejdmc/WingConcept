@@ -27,20 +27,20 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 
 
-async def get_current_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Extrae y valida el usuario del JWT Bearer token.
-    Retorna el objeto Usuario de la DB.
-    """
+def _extract_access_token(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials],
+) -> Optional[str]:
+    """Bearer header primero; cookie HttpOnly como respaldo (mismo origen en producción)."""
+    if credentials is not None:
+        return credentials.credentials
+    return request.cookies.get("access_token")
+
+
+async def _user_from_access_token(token: str, db: AsyncSession):
     from app.models.usuario import Usuario
 
-    if credentials is None:
-        raise CredencialesInvalidasError("Token de autenticación requerido")
-
-    payload = decode_token(credentials.credentials)
+    payload = decode_token(token)
     if payload is None:
         raise TokenExpiradoError()
 
@@ -63,6 +63,22 @@ async def get_current_user(
     return user
 
 
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Extrae y valida el usuario del JWT (Authorization Bearer o cookie access_token).
+    Retorna el objeto Usuario de la DB.
+    """
+    token = _extract_access_token(request, credentials)
+    if not token:
+        raise CredencialesInvalidasError("Token de autenticación requerido")
+
+    return await _user_from_access_token(token, db)
+
+
 async def get_current_active_user(
     current_user=Depends(get_current_user),
 ):
@@ -80,6 +96,7 @@ async def get_current_admin(
 
 
 async def get_optional_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
     db: AsyncSession = Depends(get_db),
 ):
@@ -87,22 +104,12 @@ async def get_optional_user(
     Usuario opcional — no lanza error si no hay token.
     Útil para endpoints públicos que mejoran con autenticación (carrito).
     """
-    from app.models.usuario import Usuario
-
-    if credentials is None:
-        return None
-
-    payload = decode_token(credentials.credentials)
-    if payload is None or payload.get("type") != "access":
-        return None
-
-    user_id = payload.get("sub")
-    if not user_id:
+    token = _extract_access_token(request, credentials)
+    if not token:
         return None
 
     try:
-        result = await db.execute(select(Usuario).where(Usuario.id == UUID(user_id)))
-        return result.scalar_one_or_none()
+        return await _user_from_access_token(token, db)
     except Exception:
         return None
 

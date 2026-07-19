@@ -19,7 +19,14 @@ export default function ForgotPasswordPage() {
       await api.auth.forgotPassword(email)
       setSuccess(true)
     } catch (err) {
-      setError(err?.detail || 'Error sending recovery email. Please try again.')
+      const detail = err?.detail
+      if (err?.status === 403) {
+        setError(detail || 'Too many attempts. Please wait an hour and try again.')
+      } else if (err?.status === 503 || err?.status === 500) {
+        setError('Service temporarily unavailable. Please try again in a few minutes.')
+      } else {
+        setError(detail || 'Error sending recovery email. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

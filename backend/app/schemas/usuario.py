@@ -8,12 +8,24 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 ROLES_VALIDOS = frozenset({"client", "admin"})
 
+from app.utils.validators import sanitizar_texto, sanitizar_telefono
+
 
 class UsuarioBase(BaseModel):
     email: EmailStr
     nombre: str = Field(..., min_length=2, max_length=100)
     apellido: str = Field(..., min_length=2, max_length=100)
     telefono: Optional[str] = Field(None, max_length=20)
+
+    @field_validator("nombre", "apellido")
+    @classmethod
+    def sanitizar_nombre(cls, v: str) -> str:
+        return sanitizar_texto(v, max_length=100)
+
+    @field_validator("telefono")
+    @classmethod
+    def validar_tel(cls, v: Optional[str]) -> Optional[str]:
+        return sanitizar_telefono(v)
 
 
 class UsuarioResponse(UsuarioBase):
@@ -30,6 +42,18 @@ class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=100)
     apellido: Optional[str] = Field(None, min_length=2, max_length=100)
     telefono: Optional[str] = Field(None, max_length=20)
+
+    @field_validator("nombre", "apellido")
+    @classmethod
+    def sanitizar_nombre(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return sanitizar_texto(v, max_length=100)
+
+    @field_validator("telefono")
+    @classmethod
+    def validar_tel(cls, v: Optional[str]) -> Optional[str]:
+        return sanitizar_telefono(v)
 
 
 class CambiarPasswordRequest(BaseModel):
@@ -73,6 +97,43 @@ class DireccionEnvioCreate(BaseModel):
     codigo_postal: Optional[str] = Field(None, max_length=20)
     pais: str = Field("CO", max_length=2)
     es_principal: bool = False
+
+    @field_validator("nombre_destinatario")
+    @classmethod
+    def sanitizar_nombre_dest(cls, v: str) -> str:
+        return sanitizar_texto(v, max_length=200)
+
+    @field_validator("linea1", "linea2")
+    @classmethod
+    def sanitizar_linea(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return sanitizar_texto(v, max_length=300)
+
+    @field_validator("ciudad", "departamento_estado")
+    @classmethod
+    def sanitizar_ciudad(cls, v: str) -> str:
+        return sanitizar_texto(v, max_length=100)
+
+    @field_validator("codigo_postal")
+    @classmethod
+    def sanitizar_postal(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return sanitizar_texto(v, max_length=20)
+
+    @field_validator("pais")
+    @classmethod
+    def sanitizar_pais(cls, v: str) -> str:
+        cleaned = sanitizar_texto(v, max_length=2).upper()
+        if len(cleaned) != 2 or not cleaned.isalpha():
+            raise ValueError("Código de país inválido (ISO 3166-1 alpha-2)")
+        return cleaned
+
+    @field_validator("telefono")
+    @classmethod
+    def validar_tel(cls, v: Optional[str]) -> Optional[str]:
+        return sanitizar_telefono(v)
 
 
 class DireccionEnvioResponse(DireccionEnvioCreate):

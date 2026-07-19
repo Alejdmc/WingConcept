@@ -12,9 +12,11 @@ Buckets (settings):
 """
 import logging
 import uuid
+from io import BytesIO
 from typing import Optional
 
 import httpx
+from PIL import Image
 
 from app.config import settings
 from app.core.exceptions import ServicioExternoError, ValidacionError
@@ -46,6 +48,22 @@ def _validar_tamano(content: bytes, max_mb: int) -> None:
             f"Archivo demasiado grande ({len(content) / 1024 / 1024:.1f} MB). "
             f"Máximo permitido: {max_mb} MB."
         )
+
+
+def _validar_contenido_imagen(content: bytes) -> None:
+    """Verifica magic bytes reales — no confiar solo en Content-Type del cliente."""
+    try:
+        with Image.open(BytesIO(content)) as img:
+            img.verify()
+        # Reabrir tras verify() — verify() deja el stream en estado inconsistente
+        with Image.open(BytesIO(content)) as img:
+            if img.format not in ("JPEG", "PNG", "WEBP"):
+                raise ValidacionError("Formato de imagen no permitido")
+    except ValidacionError:
+        raise
+    except Exception as exc:
+        logger.warning(f"Imagen rechazada por validación binaria: {exc}")
+        raise ValidacionError("El archivo no es una imagen válida (JPEG, PNG o WebP)")
 
 
 class StorageService:
@@ -134,6 +152,7 @@ class StorageService:
     ) -> str:
         """Sube una imagen de producto al bucket configurado."""
         _validar_extension(filename, EXTENSIONES_IMAGEN)
+        _validar_contenido_imagen(content)
 
         if content_type not in settings.get_allowed_image_types():
             raise ValidacionError(

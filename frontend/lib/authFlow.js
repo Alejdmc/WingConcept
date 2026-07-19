@@ -22,8 +22,16 @@ export function clearAuthNext() {
   }
 }
 
-export function buildAuthUrl(path, nextUrl) {
+export function buildAuthUrl(path, nextUrl, inviteToken = '') {
+  const params = new URLSearchParams()
   const next = getAuthNext(nextUrl, '')
-  if (!next) return path
-  return `${path}?next=${encodeURIComponent(next)}`
+  if (next) params.set('next', next)
+  if (inviteToken) params.set('invite', inviteToken)
+  const q = params.toString()
+  return q ? `${path}?${q}` : path
+}
+
+export function getInviteToken(searchParams) {
+  const token = searchParams?.get?.('invite') || ''
+  return typeof token === 'string' ? token.trim() : ''
 }

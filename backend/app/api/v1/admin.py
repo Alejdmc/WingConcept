@@ -33,12 +33,17 @@ from app.schemas.producto import (
     VarianteUpdate,
 )
 from app.schemas.usuario import CambiarRolRequest, UsuarioAdminUpdate, UsuarioResponse
+from app.schemas.invitacion import CrearInvitacionRequest, InvitacionResponse
 from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
 from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
 from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
+from app.services.invitation_service import invitation_service
+from app.services.email_service import email_service
+from app.services.admin_policy import assert_invite_flow_allowed
+from app.config import settings
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 logger = logging.getLogger(__name__)
@@ -102,13 +107,14 @@ async def listar_usuarios(
     query = select(Usuario)
     if buscar:
         from sqlalchemy import or_
-        term = f"%{buscar.strip()}%"
+        from app.utils.validators import escapar_like, sanitizar_texto
+        term = f"%{escapar_like(sanitizar_texto(buscar.strip(), max_length=100))}%"
         query = query.where(
             or_(
-                Usuario.email.ilike(term),
-                Usuario.nombre.ilike(term),
-                Usuario.apellido.ilike(term),
-                func.concat(Usuario.nombre, " ", Usuario.apellido).ilike(term),
+                Usuario.email.ilike(term, escape="\\"),
+                Usuario.nombre.ilike(term, escape="\\"),
+                Usuario.apellido.ilike(term, escape="\\"),
+                func.concat(Usuario.nombre, " ", Usuario.apellido).ilike(term, escape="\\"),
             )
         )
     if rol:
@@ -161,11 +167,16 @@ async def cambiar_rol_usuario(
     db: AsyncSession = Depends(get_db),
     admin=Depends(get_current_admin),
 ):
-    """Cambia el rol de un usuario — endpoint separado con auditoría."""
+    """Cambia el rol de un usuario — solo se permite degradar a client."""
     from app.core.exceptions import RecursoNoEncontradoError, ValidacionError
 
     if usuario_id == admin.id:
         raise ValidacionError("No puedes cambiar tu propio rol")
+
+    if data.rol == "admin":
+        raise ValidacionError(
+            "No se puede promover a admin. La creación de administradores está deshabilitada."
+        )
 
     result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
     usuario = result.scalar_one_or_none()
@@ -180,6 +191,52 @@ async def cambiar_rol_usuario(
     usuario.rol = data.rol
     await db.flush()
     return UsuarioResponse.model_validate(usuario)
+
+
+# ── Invitaciones admin ────────────────────────────────────────────────────────
+
+@router.post("/invitaciones", response_model=InvitacionResponse, status_code=status.HTTP_201_CREATED)
+async def crear_invitacion_admin(
+    data: CrearInvitacionRequest,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    assert_invite_flow_allowed(hide_endpoint=True)
+    invitacion, token = await invitation_service.crear_invitacion(
+        db, data.email, admin.id
+    )
+    await email_service.enviar_invitacion_admin(
+        email=data.email,
+        token=token,
+        frontend_url=settings.FRONTEND_URL,
+        invited_by=admin.nombre,
+    )
+    return InvitacionResponse.model_validate(invitacion)
+
+
+@router.get("/invitaciones")
+async def listar_invitaciones_admin(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    assert_invite_flow_allowed(hide_endpoint=True)
+    data = await invitation_service.listar_invitaciones(db, pagina, por_pagina)
+    return {
+        **data,
+        "items": [InvitacionResponse.model_validate(i) for i in data["items"]],
+    }
+
+
+@router.delete("/invitaciones/{invitacion_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def revocar_invitacion_admin(
+    invitacion_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    assert_invite_flow_allowed(hide_endpoint=True)
+    await invitation_service.revocar_invitacion(db, invitacion_id)
 
 
 # ── Productos Admin ───────────────────────────────────────────────────────────

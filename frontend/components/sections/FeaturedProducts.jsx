@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import SafeImage from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { Settings, Zap } from 'lucide-react'
@@ -20,7 +21,7 @@ const fallbackProducts = [
   { 
     id: 2,
     name: 'Nomadic Trike', 
-    image: '/images/nomadic1.png', 
+    image: '/images/nomadic/1.jpg',
     price: '$8,950', 
     desc: 'The Ultimate Off-Grid Adventure Machine', 
     specs: 'Stainless Steel | All-Terrain Capability',
@@ -152,10 +153,11 @@ export default function FeaturedProducts() {
 
                 {/* Image */}
                 <div className="relative h-72 w-full bg-gradient-to-b from-neutral-800 to-neutral-900 overflow-hidden">
-                  <Image 
-                    src={product.image} 
-                    alt={product.name} 
-                    fill 
+                  <SafeImage
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

@@ -4,13 +4,19 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronDown, ArrowLeft, Zap, Shield, Gauge } from 'lucide-react'
+import Gallery from '@/components/sections/Gallery'
+
+const NOMADIC_GALLERY = Array.from({ length: 6 }, (_, i) => ({
+  src: `/images/nomadic/${i + 1}.jpg`,
+  alt: `Nomadic Trike ${i + 1}`,
+}))
 
 const nomadic = {
   id: 2,
   name: 'Nomadic Trike',
   tagline: 'The Ultimate Off-Grid Adventure Machine',
   description: 'The Nomadic is a high-strength trike designed for pilots who demand versatility in extreme conditions. Built with high-grade stainless steel, its adjustable geometry and robust design make it the perfect platform for remote expeditions and off-grid adventures.',
-  image: '/images/nomadic1.png',
+  image: '/images/nomadic/1.jpg',
   price: 'Contact for pricing',
   year: 2026,
   brand: 'Limitless',
@@ -160,6 +166,9 @@ export default function NomadicPage() {
           </div>
         </div>
       </section>
+
+      {/* Gallery */}
+      <Gallery images={NOMADIC_GALLERY} eyebrow="Nomadic Trike" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engines Section */}
       <section className="py-24 px-6 bg-white">

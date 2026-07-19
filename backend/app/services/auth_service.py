@@ -41,6 +41,14 @@ class AuthService:
         if existe.scalar_one_or_none():
             raise RecursoDuplicadoError("El email ya está registrado")
 
+        if data.invite_token:
+            from app.services.admin_policy import assert_invite_flow_allowed
+            assert_invite_flow_allowed()
+            from app.services.invitation_service import invitation_service
+            await invitation_service._obtener_invitacion_valida(
+                db, data.invite_token, data.email
+            )
+
         usuario = Usuario(
             email=data.email.lower(),
             nombre=data.nombre.strip(),
@@ -53,7 +61,16 @@ class AuthService:
         )
         db.add(usuario)
         await db.flush()
-        logger.info(f"Nuevo usuario registrado: {usuario.email}")
+
+        if data.invite_token:
+            from app.services.admin_policy import assert_invite_flow_allowed
+            assert_invite_flow_allowed()
+            from app.services.invitation_service import invitation_service
+            await invitation_service.consumir_invitacion_registro(
+                db, data.invite_token, data.email, usuario.id
+            )
+
+        logger.info(f"Nuevo usuario registrado: {usuario.email} (rol={usuario.rol})")
         return usuario
 
     async def login(self, db: AsyncSession, data: LoginRequest) -> LoginResponse:

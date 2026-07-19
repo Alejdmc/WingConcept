@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import { clearAuthSession, getStoredUser, isAdminUser, persistAuthSession } from '@/lib/auth'
+import { clearAuthSession, ensureValidSession, getStoredUser, isAdminUser, persistAuthSession } from '@/lib/auth'
 
 export default function CuentaPage() {
   const router = useRouter()
@@ -28,17 +28,17 @@ export default function CuentaPage() {
   })
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (!token) {
-      router.replace('/login?next=/cuenta')
-      return
-    }
-    if (isAdminUser()) {
-      router.replace('/admin/settings')
-      return
-    }
+    const init = async () => {
+      const ok = await ensureValidSession()
+      if (!ok) {
+        router.replace('/login?next=/cuenta')
+        return
+      }
+      if (isAdminUser()) {
+        router.replace('/admin/settings')
+        return
+      }
 
-    const load = async () => {
       try {
         const [data, misCupones] = await Promise.all([
           api.usuarios.perfil(),
@@ -57,7 +57,7 @@ export default function CuentaPage() {
         setLoading(false)
       }
     }
-    load()
+    init()
   }, [router])
 
   const handleProfileChange = (e) => {
@@ -219,8 +219,11 @@ export default function CuentaPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        <Link href="/cart" className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90">
+      <div className="flex flex-wrap gap-4">
+        <Link href="/orders" className="px-6 py-3 bg-brand text-white rounded font-bold hover:bg-brand/90">
+          My orders
+        </Link>
+        <Link href="/cart" className="px-6 py-3 border border-borderline rounded font-bold text-ink hover:border-brand">
           View cart
         </Link>
         <button onClick={handleLogout} className="px-6 py-3 border border-borderline rounded font-bold text-ink hover:border-brand">
