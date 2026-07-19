@@ -28,16 +28,6 @@ const fallbackProducts = [
     badge: 'Expedition Ready',
     href: '/paratrike/nomadic'
   },
-  { 
-    id: 3,
-    name: 'I-Pro', 
-    image: '/images/ipro_ejemplo.PNG', 
-    price: '$5,950', 
-    desc: 'Next-gen lightweight design', 
-    specs: '26kg | 90kg thrust',
-    badge: 'New',
-    href: '/paramotors'
-  },
 ]
 
 const containerVariants = {
@@ -119,7 +109,7 @@ export default function FeaturedProducts() {
         
         {/* Grid */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10"
+          className="flex flex-wrap justify-center gap-8 lg:gap-10"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -130,7 +120,7 @@ export default function FeaturedProducts() {
               key={product.id}
               variants={itemVariants}
               whileHover={{ y: -8 }}
-              className={`relative group cursor-pointer transition-all duration-500`}
+              className={`relative group cursor-pointer transition-all duration-500 w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1.8rem)] max-w-sm`}
               onClick={() => setSelectedId(selectedId === product.id ? null : product.id)}
             >
               {/* Card Container */}
