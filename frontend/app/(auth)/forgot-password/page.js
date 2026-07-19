@@ -33,9 +33,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg via-bg2 to-bg3 flex items-center justify-center px-4">
-      <Link href="/login" className="absolute top-8 left-8 flex items-center gap-2 text-ink hover:text-brand transition">
-        <ArrowLeft className="w-4 h-4" /> Back to Login
+    <div className="relative min-h-screen bg-gradient-to-br from-bg via-bg2 to-bg3 flex items-center justify-center px-4">
+      <Link
+        href="/login"
+        className="group absolute top-8 left-8 inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
+        <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
+          <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
+        </span>
+        Back to Login
       </Link>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-white p-10 rounded-lg shadow-xl border border-borderline">
