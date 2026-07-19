@@ -79,7 +79,7 @@ class LoginResponse(TokenResponse):
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: Optional[str] = None
 
 
 class RecuperarPasswordRequest(BaseModel):

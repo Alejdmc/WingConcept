@@ -252,6 +252,8 @@ async def network_exception_handler(request: Request, exc: OSError):
 # ── Endpoints base ────────────────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
 async def root():
+    if settings.is_production:
+        return {"status": "ok"}
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
@@ -275,8 +277,8 @@ async def health_check():
             checks["database"] = "ok"
         else:
             checks["database"] = "not_configured"
-    except Exception as e:
-        checks["database"] = f"error: {str(e)[:50]}"
+    except Exception:
+        checks["database"] = "error" if settings.is_production else "error"
 
     # Check Redis
     try:

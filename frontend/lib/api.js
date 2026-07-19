@@ -1,4 +1,14 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+function getApiBase() {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')
+  }
+  if (typeof window !== 'undefined') {
+    return '' // Producción: mismo origen vía nginx (/api → backend)
+  }
+  return process.env.INTERNAL_API_URL || 'http://localhost:8000'
+}
+
+const BASE = getApiBase()
 const API = `${BASE}/api/v1`
 
 const PUBLIC_PATHS = new Set([
@@ -31,6 +41,7 @@ function clearSessionAndRedirect() {
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
   document.cookie = 'access_token=; path=/; max-age=0'
+  document.cookie = 'refresh_token=; path=/; max-age=0'
   document.cookie = 'user=; path=/; max-age=0'
   const path = window.location.pathname
   if (!path.startsWith('/login') && !path.startsWith('/register') && !path.includes('forgot-password')) {
@@ -74,6 +85,7 @@ async function request(path, options = {}) {
   let res
   try {
     res = await fetch(`${API}${path}`, {
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -91,12 +103,13 @@ async function request(path, options = {}) {
 
   if (res.status === 401 && !isPublic && typeof window !== 'undefined') {
     const refreshToken = localStorage.getItem('refresh_token')
-    if (refreshToken && path !== '/auth/refresh') {
+    if (path !== '/auth/refresh') {
       try {
         const refreshRes = await fetch(`${API}/auth/refresh`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh_token: refreshToken }),
+          body: JSON.stringify(refreshToken ? { refresh_token: refreshToken } : {}),
         })
         if (refreshRes.ok) {
           const r = await refreshRes.json()
@@ -104,6 +117,7 @@ async function request(path, options = {}) {
             localStorage.setItem('access_token', r.access_token)
             if (r.refresh_token) localStorage.setItem('refresh_token', r.refresh_token)
             const retry = await fetch(`${API}${path}`, {
+              credentials: 'include',
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${r.access_token}`,

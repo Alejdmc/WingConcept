@@ -8,6 +8,8 @@ POST /api/v1/auth/reset-password
 """
 import asyncio
 import logging
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +37,37 @@ from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = logging.getLogger(__name__)
+
+
+def _cookie_flags() -> dict:
+    return {
+        "httponly": True,
+        "secure": settings.is_production,
+        "samesite": "strict" if settings.is_production else "lax",
+        "path": "/",
+    }
+
+
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: Optional[str] = None) -> None:
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_flags(),
+    )
+    if refresh_token:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+            **_cookie_flags(),
+        )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    flags = _cookie_flags()
+    response.delete_cookie(key="access_token", **flags)
+    response.delete_cookie(key="refresh_token", **flags)
 
 
 @router.post("/register", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
@@ -100,41 +133,27 @@ async def login(
         raise PermisosDenegadosError("Demasiados intentos fallidos. Espera 15 minutos.")
 
     login_data = await auth_service.login(db, data)
-
-    # Establecer cookie para el middleware del frontend (Next.js)
-    response.set_cookie(
-        key="access_token",
-        value=login_data.access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    _set_auth_cookies(response, login_data.access_token, login_data.refresh_token)
 
     return login_data
 
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
-    data: RefreshRequest,
+    request: Request,
     response: Response,
-    db: AsyncSession = Depends(get_db)
+    data: RefreshRequest,
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Renueva el access token usando el refresh token.
-    También actualiza la cookie 'access_token'.
+    Renueva el access token usando el refresh token (body o cookie HttpOnly).
     """
-    token_data = await auth_service.refresh(db, data.refresh_token)
+    refresh_token = data.refresh_token or request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise CredencialesInvalidasError("Refresh token requerido")
 
-    # Actualizar cookie
-    response.set_cookie(
-        key="access_token",
-        value=token_data.access_token,
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    token_data = await auth_service.refresh(db, refresh_token)
+    _set_auth_cookies(response, token_data.access_token, token_data.refresh_token)
 
     return token_data
 
@@ -249,15 +268,8 @@ async def resend_verification(
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(response: Response):
-    """
-    Limpia la cookie de acceso del lado del servidor.
-    """
-    response.delete_cookie(
-        key="access_token",
-        httponly=True,
-        secure=settings.ENVIRONMENT == "production",
-        samesite="lax",
-    )
+    """Limpia cookies de sesión del lado del servidor."""
+    _clear_auth_cookies(response)
     return {"message": "Sesión cerrada correctamente"}
 
 

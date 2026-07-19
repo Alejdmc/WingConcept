@@ -7,7 +7,6 @@ export function persistAuthSession(data) {
 
   const accessTtl = Number(data?.expires_in || 60 * 15)
   const cookieMaxAge = Math.max(REFRESH_TTL_SECONDS, accessTtl, 60)
-  const secureFlag = window.location.protocol === 'https:' ? '; Secure' : ''
 
   localStorage.setItem('access_token', data.access_token)
   if (data.refresh_token) {
@@ -15,8 +14,11 @@ export function persistAuthSession(data) {
   }
   localStorage.setItem('user', JSON.stringify({ nombre: data.nombre, rol: data.rol }))
 
-  document.cookie = `access_token=${data.access_token}; path=/; max-age=${cookieMaxAge}; SameSite=Lax${secureFlag}`
-  document.cookie = `user=${encodeURIComponent(JSON.stringify({ nombre: data.nombre, rol: data.rol }))}; path=/; max-age=${cookieMaxAge}; SameSite=Lax${secureFlag}`
+  // Cookie HttpOnly la establece el backend; solo sincronizamos access para dev cross-origin
+  if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
+    const secureFlag = window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `access_token=${data.access_token}; path=/; max-age=${cookieMaxAge}; SameSite=Lax${secureFlag}`
+  }
   window.dispatchEvent(new Event('auth-changed'))
 }
 
@@ -27,7 +29,7 @@ export function clearAuthSession() {
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
   document.cookie = 'access_token=; path=/; max-age=0'
-  document.cookie = 'user=; path=/; max-age=0'
+  document.cookie = 'refresh_token=; path=/; max-age=0'
   window.dispatchEvent(new Event('auth-changed'))
 }
 
@@ -60,25 +62,17 @@ export function hasStoredSession() {
 export async function ensureValidSession() {
   if (typeof window === 'undefined') return false
 
-  const accessToken = localStorage.getItem('access_token')
   const refreshToken = localStorage.getItem('refresh_token')
 
-  if (accessToken) {
-    try {
-      await api.auth.me()
-      return true
-    } catch (err) {
-      if (err?.status !== 401 || !refreshToken) {
-        if (err?.status === 401) clearAuthSession()
-        return false
-      }
-    }
+  try {
+    await api.auth.me()
+    return true
+  } catch (err) {
+    if (err?.status !== 401) return false
   }
 
-  if (!refreshToken) return false
-
   try {
-    const res = await api.auth.refresh({ refresh_token: refreshToken })
+    const res = await api.auth.refresh(refreshToken ? { refresh_token: refreshToken } : {})
     let nombre = getStoredUser()?.nombre || ''
     let rol = getStoredUser()?.rol || 'client'
     try {

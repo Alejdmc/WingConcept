@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake } from 'lucide-react'
-import { isAdminUser, clearAuthSession, getStoredUser } from '@/lib/auth'
+import { clearAuthSession } from '@/lib/auth'
 import { api } from '@/lib/api'
 
 export default function AdminLayout({ children }) {
@@ -11,7 +11,7 @@ export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [ready, setReady] = useState(false)
-  const user = getStoredUser()
+  const [user, setUser] = useState(null)
 
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
@@ -25,12 +25,20 @@ export default function AdminLayout({ children }) {
   ]
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (!token || !isAdminUser()) {
-      router.replace('/login')
-      return
+    const verify = async () => {
+      try {
+        const me = await api.auth.me()
+        if (me.rol !== 'admin') {
+          router.replace('/')
+          return
+        }
+        setUser(me)
+        setReady(true)
+      } catch {
+        router.replace('/login')
+      }
     }
-    setReady(true)
+    verify()
   }, [router])
 
   const handleLogout = async () => {

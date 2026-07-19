@@ -116,7 +116,9 @@ async def check_rate_limit(
         return count <= limit, remaining
     except Exception as e:
         logger.warning(f"Redis rate_limit error [{identifier}]: {e}")
-        return True, limit  # En caso de error Redis, permitir la request
+        if settings.is_production:
+            return False, 0
+        return True, limit  # En desarrollo, permitir si Redis no está disponible
 
 
 # ── Refresh Token Blacklist (rotation) ────────────────────────────────────────
@@ -143,6 +145,8 @@ async def refresh_token_fue_usado(jti: str) -> bool:
         return await r.exists(f"{REFRESH_TOKEN_PREFIX}:{jti}") > 0
     except Exception as e:
         logger.warning(f"Redis refresh_token_fue_usado error [{jti}]: {e}")
+        if settings.is_production:
+            return True  # Fail-closed: rechazar refresh si no se puede verificar blacklist
         return False
 
 
