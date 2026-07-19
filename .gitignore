@@ -17,6 +17,7 @@ dist/
 
 # Documentación interna (no publicar)
 *.md
+*.html
 
 # Variables de entorno (no publicar)
 .env*
