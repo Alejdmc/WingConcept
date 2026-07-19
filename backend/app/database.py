@@ -4,6 +4,7 @@ PostgreSQL via Supabase usando SQLAlchemy 2.0 async
 """
 import logging
 import os
+import ssl
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -34,8 +35,7 @@ def get_async_connect_args(url: str) -> dict:
     if not url:
         return {}
     lower = url.lower()
-    if "sslmode=require" in lower or "ssl=require" in lower:
-        return {"ssl": True}
+    needs_ssl = "sslmode=require" in lower or "ssl=require" in lower
     managed_hosts = (
         "supabase.co",
         "pooler.supabase.com",
@@ -43,9 +43,15 @@ def get_async_connect_args(url: str) -> dict:
         "render.com",
         "aws.amazon.com/rds",
     )
-    if any(host in lower for host in managed_hosts):
-        return {"ssl": True}
-    return {}
+    if not needs_ssl and not any(host in lower for host in managed_hosts):
+        return {}
+
+    ctx = ssl.create_default_context()
+    # Pooler Supabase: TLS activo; la cadena no siempre pasa verify en slim images
+    if "supabase" in lower:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    return {"ssl": ctx}
 
 
 ASYNC_DATABASE_URL = _build_async_url(settings.DATABASE_URL) if settings.DATABASE_URL else ""

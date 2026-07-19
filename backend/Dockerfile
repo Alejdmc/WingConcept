@@ -19,6 +19,7 @@ WORKDIR /app
 
 # ── Dependencias del sistema ──────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
     gcc \
     libpq-dev \
     curl \
