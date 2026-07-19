@@ -199,11 +199,20 @@ export const api = {
       request(`/admin/invitaciones/${invitacionId}`, { method: 'DELETE' }),
     cupones: (params = {}) => request(`/admin/cupones${buildQuery(params)}`),
     crearCupon: (data) => request('/admin/cupones', { method: 'POST', body: JSON.stringify(data) }),
+    dealers: (params = {}) => request(`/admin/dealers${buildQuery(params)}`),
+    obtenerDealer: (dealerId) => request(`/admin/dealers/${dealerId}`),
+    crearDealer: (data) => request('/admin/dealers', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarDealer: (dealerId, data) => request(`/admin/dealers/${dealerId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarDealer: (dealerId, permanente = false) =>
+      request(`/admin/dealers/${dealerId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure'),
     shows: () => request('/contenidos/shows'),
     events: () => request('/contenidos/events'),
+  },
+  dealers: {
+    list: () => request('/dealers'),
   },
   ordenes: {
     crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),

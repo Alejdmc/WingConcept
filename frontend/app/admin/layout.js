@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users } from 'lucide-react'
+import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake } from 'lucide-react'
 import { isAdminUser, clearAuthSession, getStoredUser } from '@/lib/auth'
 import { api } from '@/lib/api'
 
@@ -19,6 +19,7 @@ export default function AdminLayout({ children }) {
     { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Users', href: '/admin/users', icon: Users },
     { label: 'Content', href: '/admin/contenido', icon: Compass },
+    { label: 'Dealers', href: '/admin/dealers', icon: Handshake },
     { label: 'Discounts', href: '/admin/descuentos', icon: Tag },
     { label: 'Settings', href: '/admin/settings', icon: Settings },
   ]

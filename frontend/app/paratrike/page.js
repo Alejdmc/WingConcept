@@ -1,9 +1,8 @@
 'use client'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 const TRIKES = [
   {
@@ -51,40 +50,54 @@ export default function ParaTrikeSelectionPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="border-b border-borderline py-6 px-6 sticky top-0 z-40 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border border-borderline bg-white text-ink text-sm font-bold uppercase tracking-wide hover:border-brand hover:text-brand hover:bg-brand-soft transition-all">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-bg2 group-hover:bg-brand transition-colors">
-              <ArrowLeft className="w-4 h-4 text-ink2 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
-            </span>
-            Back
-          </Link>
+      {/* Hero Section - Con imagen de fondo tipo Parajet */}
+      <section className="relative h-[70vh] min-h-[540px] flex items-center justify-center overflow-hidden">
+        {/* Imagen de fondo */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/front1.jpg"
+            alt="WINGCONCEPT Paratrikes"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay oscuro para mejorar legibilidad */}
+          <div className="absolute inset-0 bg-black/40" />
         </div>
-      </div>
 
-      {/* Hero Section */}
-      <section className="py-12 px-6 bg-gradient-to-b from-bg2 to-white">
-        <div className="max-w-7xl mx-auto text-center">
+        {/* Contenido sobre la imagen */}
+        <div className="relative z-10 max-w-7xl mx-auto text-center px-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink tracking-tighter mb-4">
+            <div className="mb-8 flex justify-center">
+              <Image
+                src="/images/logo.png"
+                alt="Wing Concept"
+                width={500}
+                height={200}
+                className="drop-shadow-lg brightness-0 invert"
+              />
+            </div>
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               Paratrikes
             </h1>
-            <div className="h-2 w-24 bg-brand mx-auto mb-8" />
-            <p className="text-3xl font-black text-ink max-w-3xl mx-auto">
-              Choose Your Adventure
-            </p>
+            <div className="h-2 w-24 bg-brand mx-auto" />
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-2xl md:text-4xl font-black text-white max-w-3xl mx-auto leading-tight mt-8 drop-shadow-xl">
+            Choose Your Adventure
+          </motion.p>
         </div>
       </section>
 
       {/* Trikes Selection */}
-      <section className="py-8 px-6 bg-white">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {TRIKES.map((trike, i) => (
@@ -98,12 +111,12 @@ export default function ParaTrikeSelectionPage() {
                 <div className="relative rounded-2xl overflow-hidden shadow-lg border border-borderline hover:shadow-2xl hover:border-brand transition-all h-full flex flex-col">
                   
                   {/* Image Section */}
-                  <div className="relative h-72 overflow-hidden bg-bg2 cursor-pointer" onClick={() => router.push(trike.href)}>
+                  <div className="relative h-96 overflow-hidden bg-white cursor-pointer" onClick={() => router.push(trike.href)}>
                     <Image
                       src={trike.image}
                       alt={trike.name}
                       fill
-                      className="object-cover hover:scale-110 transition-transform duration-500"
+                      className="object-contain p-6 hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
