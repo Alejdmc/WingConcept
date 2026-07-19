@@ -277,8 +277,9 @@ async def health_check():
             checks["database"] = "ok"
         else:
             checks["database"] = "not_configured"
-    except Exception:
-        checks["database"] = "error" if settings.is_production else "error"
+    except Exception as exc:
+        checks["database"] = "error"
+        logger.error("Health check DB falló: %s", exc)
 
     # Check Redis
     try:

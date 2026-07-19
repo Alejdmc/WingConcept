@@ -18,7 +18,7 @@ if not os.environ.get("DATABASE_URL"):
     load_dotenv()
 
 # ── Importar todos los modelos para autogenerate ──────────────────────────────
-from app.database import Base
+from app.database import Base, get_async_connect_args
 from app.models import (  # noqa: F401
     usuario, producto, variante, configuracion, carrito, orden, pago,
     direccion_envio, admin_invitation,
@@ -87,6 +87,7 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=get_async_connect_args(database_url),
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

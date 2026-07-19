@@ -26,7 +26,30 @@ def _build_async_url(url: str) -> str:
     return url
 
 
+def get_async_connect_args(url: str) -> dict:
+    """
+    asyncpg no interpreta sslmode= en la URL (a diferencia de psycopg2).
+    Supabase y otros PG managed exigen TLS.
+    """
+    if not url:
+        return {}
+    lower = url.lower()
+    if "sslmode=require" in lower or "ssl=require" in lower:
+        return {"ssl": True}
+    managed_hosts = (
+        "supabase.co",
+        "pooler.supabase.com",
+        "neon.tech",
+        "render.com",
+        "aws.amazon.com/rds",
+    )
+    if any(host in lower for host in managed_hosts):
+        return {"ssl": True}
+    return {}
+
+
 ASYNC_DATABASE_URL = _build_async_url(settings.DATABASE_URL) if settings.DATABASE_URL else ""
+ASYNC_CONNECT_ARGS = get_async_connect_args(ASYNC_DATABASE_URL)
 
 # En pytest evitar pool persistente — previene "Future attached to a different loop"
 _engine_kwargs = {
@@ -41,6 +64,7 @@ else:
 # ── Engine ────────────────────────────────────────────────────────────────────
 engine = create_async_engine(
     ASYNC_DATABASE_URL,
+    connect_args=ASYNC_CONNECT_ARGS,
     **_engine_kwargs,
 ) if ASYNC_DATABASE_URL else None
 
