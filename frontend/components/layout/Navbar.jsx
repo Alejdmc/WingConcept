@@ -26,7 +26,7 @@ const navItems = [
       { label: 'About Us', href: '/about' },
       { label: 'Contact', href: '/contact' },
       { label: 'Dealers', href: '/dealers' },
-      { label: 'Download Manuals', href: '#' },
+      { label: 'Download Manuals', href: '/manuals' },
     ],
   },
 ]
