@@ -286,7 +286,11 @@ class ProductoService:
         result = await db.execute(
             select(Producto)
             .options(selectinload(Producto.variantes))
-            .where(Producto.activo == True, Producto.destacado == True)
+            .where(
+                Producto.activo == True,
+                Producto.destacado == True,
+                Producto.slug != "i-pro",
+            )
             .order_by(Producto.orden_display, Producto.created_at.desc())
             .limit(limite)
         )

@@ -116,6 +116,7 @@ def main() -> None:
     # Desactivar productos que aún no están en catálogo
     cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'paramotor-trike'")
     cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'disruptor'")
+    cur.execute("UPDATE productos SET destacado = false WHERE slug = 'i-pro'")
 
     # ── Paramotors ────────────────────────────────────────────────────
     # Disruptor: omitido — producto aún no disponible
@@ -123,7 +124,7 @@ def main() -> None:
         cur, IPRO_ID, "I-Pro", "i-pro",
         "El I-Pro redefine lo que significa volar ligero.",
         "Next-gen lightweight design", "paramotor", "lightweight",
-        ["/images/ipro_ejemplo.PNG"], 2,
+        ["/images/ipro_ejemplo.PNG"], 2, False,
     )
     _upsert_variante(cur, _vid("ipro-standard"), ipro_id, "I-Pro Standard", "IPRO-STD-001", 5950.00, 3,
                      '{"motor": "Vittorazi Moster 185 Plus", "peso_kg": 26, "empuje_kg": 90}')

@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import { Settings, Zap } from 'lucide-react'
 
+const EXCLUDED_FEATURED_SLUGS = ['i-pro']
+
 const fallbackProducts = [
   { 
     id: 1,
@@ -61,7 +63,9 @@ export default function FeaturedProducts() {
       try {
         const featured = await api.productos.destacados()
         if (featured && featured.length > 0) {
-          setProducts(featured)
+          setProducts(
+            featured.filter((p) => !EXCLUDED_FEATURED_SLUGS.includes(p.slug))
+          )
         }
       } catch (err) {
         console.error('Error loading featured products:', err)
