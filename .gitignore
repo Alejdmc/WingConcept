@@ -19,9 +19,18 @@ dist/
 *.md
 *.html
 
-# Variables de entorno (no publicar)
-.env*
+# Variables de entorno (secrets — no commitear)
+.env
+backend/.env
+frontend/.env.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Plantillas sí van al repo
 !.env.example
+!.env.production.example
+!**/.env.example
 !**/.env.production.example
 
 # Debug
