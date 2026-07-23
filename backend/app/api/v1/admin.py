@@ -36,10 +36,12 @@ from app.schemas.usuario import CambiarRolRequest, UsuarioAdminUpdate, UsuarioRe
 from app.schemas.invitacion import CrearInvitacionRequest, InvitacionResponse
 from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
 from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
+from app.schemas.dealer import DealerCreate, DealerResponse, DealerUpdate
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
 from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
+from app.services.dealer_service import dealer_service
 from app.services.invitation_service import invitation_service
 from app.services.email_service import email_service
 from app.services.admin_policy import assert_invite_flow_allowed
@@ -450,6 +452,62 @@ async def eliminar_contenido_admin(
 ):
     """Desactiva o elimina permanentemente un bloque de contenido."""
     await contenido_service.eliminar(db, contenido_id, permanente=permanente)
+
+
+# ── Dealers (admin) ────────────────────────────────────────────────────────────
+
+@router.get("/dealers")
+async def listar_dealers_admin(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista distribuidores editables."""
+    return await dealer_service.listar_admin(db, pagina, por_pagina)
+
+
+@router.get("/dealers/{dealer_id}", response_model=DealerResponse)
+async def obtener_dealer_admin(
+    dealer_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Obtiene un distribuidor por ID."""
+    dealer = await dealer_service.obtener_por_id(db, dealer_id)
+    return DealerResponse.model_validate(dealer)
+
+
+@router.post("/dealers", response_model=DealerResponse, status_code=status.HTTP_201_CREATED)
+async def crear_dealer_admin(
+    data: DealerCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Crea un distribuidor."""
+    return await dealer_service.crear(db, data)
+
+
+@router.put("/dealers/{dealer_id}", response_model=DealerResponse)
+async def actualizar_dealer_admin(
+    dealer_id: uuid.UUID,
+    data: DealerUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza un distribuidor."""
+    return await dealer_service.actualizar(db, dealer_id, data)
+
+
+@router.delete("/dealers/{dealer_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_dealer_admin(
+    dealer_id: uuid.UUID,
+    permanente: bool = Query(False),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Desactiva o elimina permanentemente un distribuidor."""
+    await dealer_service.eliminar(db, dealer_id, permanente=permanente)
 
 
 # ── Cupones / Descuentos (admin) ──────────────────────────────────────────────
