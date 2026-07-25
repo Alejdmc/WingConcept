@@ -219,6 +219,12 @@ export const api = {
     actualizarDealer: (dealerId, data) => request(`/admin/dealers/${dealerId}`, { method: 'PUT', body: JSON.stringify(data) }),
     eliminarDealer: (dealerId, permanente = false) =>
       request(`/admin/dealers/${dealerId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
+    manuals: (params = {}) => request(`/admin/manuals${buildQuery(params)}`),
+    obtenerManual: (manualId) => request(`/admin/manuals/${manualId}`),
+    crearManual: (data) => request('/admin/manuals', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarManual: (manualId, data) => request(`/admin/manuals/${manualId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarManual: (manualId, permanente = false) =>
+      request(`/admin/manuals/${manualId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure'),
@@ -227,6 +233,9 @@ export const api = {
   },
   dealers: {
     list: () => request('/dealers'),
+  },
+  manuals: {
+    list: () => request('/manuals'),
   },
   ordenes: {
     crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),

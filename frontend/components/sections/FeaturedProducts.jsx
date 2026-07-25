@@ -5,7 +5,7 @@ import Image from 'next/image'
 import SafeImage from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import { Settings, Zap } from 'lucide-react'
+import { ArrowRight, Zap } from 'lucide-react'
 
 const EXCLUDED_FEATURED_SLUGS = ['i-pro']
 
@@ -199,11 +199,11 @@ export default function FeaturedProducts() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.1 }}>
                           <Link
-                            href={product.href ? `${product.href}/configuration` : '#'}
+                            href={product.href || '#'}
                             onClick={(e) => e.stopPropagation()}
                             className="w-full py-3 bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-black uppercase tracking-widest text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-300 group/btn hover:shadow-[0_0_20px_rgba(192,57,43,0.5)]">
-                            <Settings className="w-4 h-4" />
-                            Configure
+                            Discover More
+                            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                           </Link>
                         </motion.div>
                       </div>

@@ -1,15 +1,27 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { FileText } from 'lucide-react'
+import { api } from '@/lib/api'
 
-const MANUALS = [
-  { id: 'nomadic', nombre: 'Nomadic Paratrike', descripcion: 'Owner and maintenance manual for the Nomadic paratrike.', href: null },
-  { id: 'vanguard', nombre: 'Vanguard Paratrike', descripcion: 'Owner and maintenance manual for the Vanguard paratrike.', href: null },
-  { id: 'paramotors', nombre: 'Paramotors', descripcion: 'Owner and maintenance manual for Wing Concept paramotors.', href: null },
+const FALLBACK = [
+  { id: 'nomadic', nombre: 'Nomadic Paratrike', descripcion: 'Owner and maintenance manual for the Nomadic paratrike.', archivo_url: null },
+  { id: 'vanguard', nombre: 'Vanguard Paratrike', descripcion: 'Owner and maintenance manual for the Vanguard paratrike.', archivo_url: null },
+  { id: 'paramotors', nombre: 'Paramotors', descripcion: 'Owner and maintenance manual for Wing Concept paramotors.', archivo_url: null },
 ]
 
 export default function ManualsPage() {
+  const [manuals, setManuals] = useState(FALLBACK)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.manuals.list()
+      .then((data) => setManuals(data?.length ? data : FALLBACK))
+      .catch(() => setManuals(FALLBACK))
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -58,40 +70,48 @@ export default function ManualsPage() {
       {/* Manuals List */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {MANUALS.map((manual, i) => (
-              <motion.div
-                key={manual.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="bg-bg2 rounded-2xl border border-borderline p-8 flex flex-col hover:shadow-lg hover:border-brand transition-all">
-                <div className="flex items-center gap-2 text-brand font-bold uppercase tracking-widest text-sm mb-4">
-                  <FileText className="w-4 h-4" />
-                  Manual
-                </div>
-
-                <h2 className="text-2xl font-black uppercase text-ink mb-1">{manual.nombre}</h2>
-                <p className="text-ink leading-relaxed flex-grow mt-2">{manual.descripcion}</p>
-
-                {manual.href ? (
-                  <a
-                    href={manual.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 mt-6 text-brand font-bold uppercase tracking-widest text-sm hover:underline">
+          {loading ? (
+            <p className="text-center text-ink2">Loading manuals...</p>
+          ) : manuals.length === 0 ? (
+            <p className="text-center text-ink2">New manuals coming soon.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {manuals.map((manual, i) => (
+                <motion.div
+                  key={manual.id || manual.nombre}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className="bg-bg2 rounded-2xl border border-borderline p-8 flex flex-col hover:shadow-lg hover:border-brand transition-all">
+                  <div className="flex items-center gap-2 text-brand font-bold uppercase tracking-widest text-sm mb-4">
                     <FileText className="w-4 h-4" />
-                    Download PDF
-                  </a>
-                ) : (
-                  <span className="inline-flex items-center gap-2 mt-6 text-ink2 font-bold uppercase tracking-widest text-sm">
-                    Coming soon
-                  </span>
-                )}
-              </motion.div>
-            ))}
-          </div>
+                    Manual
+                  </div>
+
+                  <h2 className="text-2xl font-black uppercase text-ink mb-1">{manual.nombre}</h2>
+                  {manual.descripcion && (
+                    <p className="text-ink leading-relaxed flex-grow mt-2">{manual.descripcion}</p>
+                  )}
+
+                  {manual.archivo_url ? (
+                    <a
+                      href={manual.archivo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 mt-6 text-brand font-bold uppercase tracking-widest text-sm hover:underline">
+                      <FileText className="w-4 h-4" />
+                      Download PDF
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 mt-6 text-ink2 font-bold uppercase tracking-widest text-sm">
+                      Coming soon
+                    </span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
