@@ -227,10 +227,9 @@ class Settings(BaseSettings):
                     "STRIPE_SECRET_KEY es requerido en producción."
                 )
             if not self.STRIPE_WEBHOOK_SECRET:
-                raise ValueError(
-                    "STRIPE_WEBHOOK_SECRET es requerido en producción — "
-                    "sin él los webhooks de Stripe no pueden validarse."
-                )
+                # Permitir arrancar sin webhook hasta configurar Stripe Dashboard.
+                # El endpoint /webhooks/stripe responde 503 hasta que exista whsec_...
+                pass
             if not self.STRIPE_SUCCESS_URL or not self.STRIPE_CANCEL_URL:
                 raise ValueError(
                     "STRIPE_SUCCESS_URL y STRIPE_CANCEL_URL son requeridos en producción."

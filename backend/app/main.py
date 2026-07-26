@@ -74,6 +74,12 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("🔒 Creación de administradores bloqueada (ALLOW_NEW_ADMINS=false)")
 
+    if settings.is_production and not settings.STRIPE_WEBHOOK_SECRET:
+        logger.warning(
+            "⚠️  STRIPE_WEBHOOK_SECRET vacío — checkout Stripe funciona, "
+            "pero los webhooks (confirmación de pago) estarán deshabilitados hasta configurarlo."
+        )
+
     yield
 
     # Shutdown
