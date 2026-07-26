@@ -10,8 +10,6 @@
 # Configurar DATABASE_URL en .env con la URL de Supabase.
 # ============================================================
 
-version: "3.9"
-
 services:
 
   # ── Backend FastAPI ─────────────────────────────────────────────────────────

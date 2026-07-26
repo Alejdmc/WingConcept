@@ -43,11 +43,13 @@ cp "$ENV_BACKUP" backend/.env
 rm -f "$ENV_BACKUP"
 echo "==> .env restaurado"
 
-cd docker
-export NGINX_CONF=nginx.conf
-
 echo "==> Reconstruyendo y levantando servicios..."
+export NGINX_CONF=nginx.conf
 $COMPOSE up -d --build
+
+echo ""
+echo "==> Migraciones (si RUN_MIGRATIONS=true en backend/.env)..."
+$COMPOSE exec -T backend alembic upgrade head 2>/dev/null || echo "    (omitido o backend aún iniciando — ejecuta manualmente si hace falta)"
 
 echo ""
 echo "✅ Update completado"
