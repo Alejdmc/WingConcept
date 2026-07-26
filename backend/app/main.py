@@ -25,8 +25,10 @@ logger = logging.getLogger(__name__)
 # ── Límite de tamaño del body (anti-DoS) ─────────────────────────────────────
 # Los webhooks de Stripe son JSONs pequeños (<50 KB).
 # Las cargas de imágenes van por Supabase Storage, no por FastAPI.
-# 2 MB es suficiente para cualquier payload legítimo de la API.
+# 2 MB para JSON general; uploads multipart permiten hasta 30 MB.
 MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MB
+MAX_UPLOAD_BODY_BYTES = 30 * 1024 * 1024    # 30 MB
+UPLOAD_PATH_PREFIX = "/api/v1/admin/uploads/"
 
 
 # ── Lifecycle: startup / shutdown ─────────────────────────────────────────────
@@ -140,16 +142,22 @@ async def limit_request_body_size(request: Request, call_next):
     """
     content_length = request.headers.get("content-length")
     if content_length:
+        max_bytes = (
+            MAX_UPLOAD_BODY_BYTES
+            if request.url.path.startswith(UPLOAD_PATH_PREFIX)
+            else MAX_REQUEST_BODY_BYTES
+        )
         try:
-            if int(content_length) > MAX_REQUEST_BODY_BYTES:
+            if int(content_length) > max_bytes:
                 logger.warning(
                     f"Request rechazado: body demasiado grande "
-                    f"({content_length} bytes > {MAX_REQUEST_BODY_BYTES}) "
+                    f"({content_length} bytes > {max_bytes}) "
                     f"desde {request.client.host if request.client else 'unknown'}"
                 )
+                limit_mb = max_bytes // (1024 * 1024)
                 return JSONResponse(
                     status_code=413,
-                    content={"detail": "El cuerpo de la solicitud supera el límite permitido (2 MB)."},
+                    content={"detail": f"El cuerpo de la solicitud supera el límite permitido ({limit_mb} MB)."},
                 )
         except ValueError:
             return JSONResponse(

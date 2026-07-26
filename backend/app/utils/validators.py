@@ -6,8 +6,38 @@ import json
 import re
 from typing import Any, Dict, List, Optional
 
+from email_validator import EmailNotValidError, validate_email
+
+from app.config import settings
+
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _HTML_TAG = re.compile(r"<[^>]*>")
+_RELATIVE_PATH = re.compile(r"^/[a-zA-Z0-9/_.\-]+$")
+_ABSOLUTE_URL = re.compile(r"^https?://[^\s<>\"'{}|\\^`\[\]]+$")
+
+_PATRONES_PELIGROSOS = re.compile(
+    r"(<script|javascript:|on\w+\s*=|<iframe|data:text/html|<\?php|"
+    r"union\s+select|drop\s+table|';\s*--|\$\(|`|\.\./|\.\.\\)",
+    re.IGNORECASE,
+)
+
+_DOMINIOS_DESECHABLES = frozenset({
+    "mailinator.com",
+    "guerrillamail.com",
+    "guerrillamail.net",
+    "tempmail.com",
+    "throwaway.email",
+    "yopmail.com",
+    "10minutemail.com",
+    "trashmail.com",
+    "fakeinbox.com",
+    "maildrop.cc",
+    "getnada.com",
+    "dispostable.com",
+    "sharklasers.com",
+    "grr.la",
+    "mailnesia.com",
+})
 
 CONFIGURACION_KEYS_PERMITIDAS = frozenset({
     "engine", "finish", "upgrades", "chassisType", "propeller",
@@ -71,6 +101,92 @@ def es_uuid_valido(value: str) -> bool:
     return bool(re.match(patron, value.lower()))
 
 
+def detectar_contenido_peligroso(texto: str) -> Optional[str]:
+    """Detecta patrones XSS/SQLi/command injection obvios en texto libre."""
+    if not texto:
+        return None
+    if _PATRONES_PELIGROSOS.search(texto):
+        return "Contenido no permitido detectado en el texto ingresado"
+    return None
+
+
+def validar_email(email: str) -> str:
+    """
+    Valida y normaliza un email real.
+    Usa email-validator (RFC) y bloquea dominios desechables conocidos.
+    """
+    if not email or not str(email).strip():
+        raise ValueError("Email inválido")
+
+    normalized = str(email).strip().lower()
+    if len(normalized) > 254:
+        raise ValueError("Email demasiado largo")
+
+    check_deliverability = (
+        settings.EMAIL_CHECK_DELIVERABILITY and settings.is_production
+    )
+
+    try:
+        result = validate_email(
+            normalized,
+            check_deliverability=check_deliverability,
+        )
+    except EmailNotValidError as exc:
+        raise ValueError("Email inválido. Verifica el formato e intenta de nuevo.") from exc
+
+    domain = result.domain
+    if domain in _DOMINIOS_DESECHABLES:
+        raise ValueError("No se permiten emails temporales o desechables")
+
+    return result.normalized
+
+
+def validar_url_usuario(
+    url: Optional[str],
+    *,
+    permitir_relativa: bool = True,
+    max_length: int = 500,
+) -> Optional[str]:
+    """Valida URLs de usuario (imágenes, PDFs, enlaces). Bloquea javascript:, data:, path traversal."""
+    if url is None or not str(url).strip():
+        return None
+
+    cleaned = sanitizar_texto(str(url).strip(), max_length=max_length)
+    lower = cleaned.lower()
+
+    blocked = ("javascript:", "data:", "vbscript:", "file:", "blob:")
+    if any(lower.startswith(prefix) for prefix in blocked):
+        raise ValueError("URL no permitida")
+
+    if ".." in cleaned or "\\" in cleaned:
+        raise ValueError("Ruta de URL inválida")
+
+    if permitir_relativa and cleaned.startswith("/"):
+        if not _RELATIVE_PATH.match(cleaned):
+            raise ValueError("Ruta relativa inválida")
+        return cleaned
+
+    if _ABSOLUTE_URL.match(cleaned):
+        return cleaned
+
+    raise ValueError("URL debe ser relativa (/ruta) o comenzar con http:// o https://")
+
+
+def sanitizar_nombre_archivo(filename: str) -> str:
+    """Elimina path traversal y caracteres peligrosos del nombre de archivo subido."""
+    if not filename or not str(filename).strip():
+        raise ValueError("El archivo debe tener un nombre")
+
+    base = str(filename).replace("\\", "/").split("/")[-1]
+    base = _CONTROL_CHARS.sub("", base)
+    base = re.sub(r"[^a-zA-Z0-9._-]", "_", base).strip("._")
+
+    if not base or base in (".", ".."):
+        raise ValueError("Nombre de archivo inválido")
+
+    return base[:200]
+
+
 def sanitizar_texto(texto: str, max_length: int = 500) -> str:
     """
     Limpia texto de usuario: quita HTML, caracteres de control y normaliza espacios.
@@ -82,6 +198,9 @@ def sanitizar_texto(texto: str, max_length: int = 500) -> str:
     cleaned = _HTML_TAG.sub("", cleaned)
     cleaned = html.unescape(cleaned).strip()
     cleaned = re.sub(r"\s+", " ", cleaned)
+    peligro = detectar_contenido_peligroso(cleaned)
+    if peligro:
+        raise ValueError(peligro)
     if len(cleaned) > max_length:
         cleaned = cleaned[:max_length]
     return cleaned

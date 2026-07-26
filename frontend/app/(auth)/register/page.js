@@ -3,13 +3,10 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Globe, MapPin, AlertCircle, CheckCircle, Phone } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle, Phone } from 'lucide-react'
 import { api } from '@/lib/api'
-import { persistAuthSession } from '@/lib/auth'
-import { useCart } from '@/hooks/useCart'
-import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
-
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/
+import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, getInviteToken, saveInviteToken } from '@/lib/authFlow'
+import { isValidEmail, buildVerifyPendingUrl } from '@/lib/validation'
 
 export default function RegisterPage() {
   return (
@@ -22,8 +19,8 @@ export default function RegisterPage() {
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { refetch } = useCart()
   const nextUrl = getAuthNext(searchParams.get('next'), '/')
+  const inviteToken = getInviteToken(searchParams)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -32,9 +29,10 @@ function RegisterForm() {
 
   useEffect(() => {
     saveAuthNext(nextUrl)
-  }, [nextUrl])
+    if (inviteToken) saveInviteToken(inviteToken)
+  }, [nextUrl, inviteToken])
 
-  const loginHref = buildAuthUrl('/login', nextUrl)
+  const loginHref = buildAuthUrl('/login', nextUrl, inviteToken)
   const isCheckoutFlow = nextUrl === '/checkout'
 
   const [formData, setFormData] = useState({
@@ -44,11 +42,6 @@ function RegisterForm() {
     telefono: '',
     password: '',
     confirmPassword: '',
-    country: '',
-    address: '',
-    state: '',
-    city: '',
-    zipCode: ''
   })
 
   const handleChange = (e) => {
@@ -66,7 +59,7 @@ function RegisterForm() {
       return
     }
 
-    if (!EMAIL_REGEX.test(formData.email)) {
+    if (!isValidEmail(formData.email)) {
       setError('Please enter a valid email address.')
       return
     }
@@ -87,72 +80,18 @@ function RegisterForm() {
       await api.auth.register({
         nombre: formData.nombre,
         apellido: formData.apellido,
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono,
         password: formData.password,
       })
 
-      // Auto-login para continuar la compra con el carrito anónimo fusionado
-      try {
-        const loginRes = await api.auth.login({
-          email: formData.email,
-          password: formData.password,
-        })
-        persistAuthSession({ ...loginRes, expires_in: loginRes.expires_in || 60 * 60 * 24 * 7 })
-
-        try {
-          await api.carrito.merge()
-          await refetch()
-        } catch (mergeErr) {
-          console.warn('Cart merge after register failed:', mergeErr)
-        }
-
-        if (formData.address && formData.city) {
-          try {
-            await api.usuarios.crearDireccion({
-              nombre_destinatario: `${formData.nombre} ${formData.apellido}`,
-              telefono: formData.telefono || null,
-              linea1: formData.address,
-              ciudad: formData.city,
-              departamento_estado: formData.state,
-              pais: formData.country || 'US',
-              codigo_postal: formData.zipCode || null,
-              es_principal: true,
-            })
-          } catch (addrErr) {
-            console.warn('Saving address after register failed:', addrErr)
-          }
-        }
-
-        clearAuthNext()
-        const destination = loginRes.rol === 'admin' ? '/admin/dashboard' : nextUrl
-        router.push(destination.startsWith('/') ? destination : '/')
-        return
-      } catch (loginErr) {
-        console.warn('Auto-login after register failed:', loginErr)
-      }
-
       setSuccess('Account created! Check your email to verify your address.')
+      clearAuthNext()
 
-      const userEmail = formData.email
-      setFormData({
-        nombre: '',
-        apellido: '',
-        email: '',
-        telefono: '',
-        password: '',
-        confirmPassword: '',
-        country: '',
-        address: '',
-        state: '',
-        city: '',
-        zipCode: ''
-      })
-
+      const pendingUrl = buildVerifyPendingUrl(formData.email.trim().toLowerCase(), nextUrl)
       setTimeout(() => {
-        const pendingUrl = `/verify-email-pending?email=${encodeURIComponent(userEmail)}&next=${encodeURIComponent(nextUrl)}`
         router.push(pendingUrl)
-      }, 2000)
+      }, 1500)
     } catch (err) {
       const detail = err.detail || 'Error creating account. Please try again.'
       setError(detail)
@@ -187,6 +126,11 @@ function RegisterForm() {
             </p>
           )}
           {!isCheckoutFlow && <div className="mb-6" />}
+          {inviteToken && (
+            <p className="text-center text-brand text-sm font-semibold mb-4">
+              You have been invited as an administrator. Register with the invited email, then sign in to activate access.
+            </p>
+          )}
 
           {/* Error Alert */}
           {error && (
@@ -271,69 +215,6 @@ function RegisterForm() {
                   placeholder="+1 (555) 000-0000" 
                   onChange={handleChange} 
                   value={formData.telefono}
-                  className="w-full pl-10 pr-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2" 
-                />
-              </div>
-            </div>
-
-            {/* Country & State */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-ink mb-2">Country</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-3.5 w-4 h-4 text-ink2 pointer-events-none" />
-                  <select 
-                    name="country" 
-                    onChange={handleChange} 
-                    value={formData.country}
-                    className="w-full pl-10 pr-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2 appearance-none">
-                    <option value="">Select Country</option>
-                    <option value="USA">USA</option>
-                    <option value="Colombia">Colombia</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-ink mb-2">State/Dept</label>
-                <input 
-                  name="state" 
-                  placeholder={formData.country === 'USA' ? 'State' : 'Dept'} 
-                  onChange={handleChange} 
-                  value={formData.state}
-                  className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2" 
-                />
-              </div>
-            </div>
-
-            {/* City & Zip */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input 
-                name="city" 
-                placeholder="City" 
-                onChange={handleChange} 
-                value={formData.city}
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2" 
-              />
-              <input 
-                name="zipCode" 
-                placeholder={formData.country === 'USA' ? 'Zip Code' : 'Postal Code'} 
-                onChange={handleChange} 
-                value={formData.zipCode}
-                className="w-full px-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2" 
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-ink mb-2">Street Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3.5 w-4 h-4 text-ink2 pointer-events-none" />
-                <input 
-                  name="address" 
-                  placeholder="123 Main Street" 
-                  onChange={handleChange} 
-                  value={formData.address}
                   className="w-full pl-10 pr-4 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-bg2" 
                 />
               </div>

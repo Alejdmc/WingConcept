@@ -7,7 +7,8 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { persistAuthSession } from '@/lib/auth'
 import { useCart } from '@/hooks/useCart'
-import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl } from '@/lib/authFlow'
+import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, resolveInviteToken, saveInviteToken, clearInviteToken } from '@/lib/authFlow'
+import { isValidEmail, buildVerifyPendingUrl, shouldRequireEmailVerification } from '@/lib/validation'
 
 export default function LoginPage() {
   return (
@@ -22,6 +23,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const { refetch } = useCart()
   const nextUrl = getAuthNext(searchParams.get('next'), '/')
+  const inviteToken = resolveInviteToken(searchParams)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -29,7 +31,8 @@ function LoginForm() {
 
   useEffect(() => {
     saveAuthNext(nextUrl)
-  }, [nextUrl])
+    if (inviteToken) saveInviteToken(inviteToken)
+  }, [nextUrl, inviteToken])
 
   useEffect(() => {
     if (searchParams.get('session_expired') === 'true') {
@@ -42,6 +45,12 @@ function LoginForm() {
   }
 
   const completeLogin = async (res) => {
+    if (shouldRequireEmailVerification(res)) {
+      clearAuthNext()
+      window.location.assign(buildVerifyPendingUrl(res.email, nextUrl))
+      return
+    }
+
     try {
       await api.carrito.merge()
       await refetch()
@@ -49,9 +58,23 @@ function LoginForm() {
       console.warn('Cart merge failed:', err)
     }
 
-    const destination = res.rol === 'admin' ? '/admin/dashboard' : nextUrl
+    const activeInvite = resolveInviteToken(searchParams)
+    if (activeInvite) {
+      try {
+        await api.auth.acceptAdminInvite({ token: activeInvite })
+        clearInviteToken()
+        clearAuthNext()
+        window.location.assign('/admin/dashboard')
+        return
+      } catch (err) {
+        console.warn('Admin invite acceptance failed:', err)
+      }
+    }
+
+    const destination = res.rol === 'admin'
+      ? (nextUrl.startsWith('/admin') ? nextUrl : '/admin/dashboard')
+      : nextUrl
     clearAuthNext()
-    // Navegación completa para que middleware reciba cookies recién guardadas
     window.location.assign(destination.startsWith('/') ? destination : '/')
   }
 
@@ -61,8 +84,17 @@ function LoginForm() {
     setError('')
     setLoading(true)
 
+    if (!isValidEmail(formData.email)) {
+      setError('Please enter a valid email address.')
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await api.auth.login(formData)
+      const res = await api.auth.login({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      })
       persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
       await completeLogin(res)
     } catch (err) {
@@ -72,7 +104,7 @@ function LoginForm() {
     }
   }
 
-  const registerHref = buildAuthUrl('/register', nextUrl)
+  const registerHref = buildAuthUrl('/register', nextUrl, inviteToken)
   const isCheckoutFlow = nextUrl === '/checkout'
 
   return (
@@ -99,6 +131,11 @@ function LoginForm() {
             {isCheckoutFlow && (
               <p className="text-sm text-brand font-semibold mt-3">
                 Sign in to continue your purchase
+              </p>
+            )}
+            {inviteToken && (
+              <p className="text-sm text-brand font-semibold mt-3">
+                Sign in to accept your admin invitation
               </p>
             )}
             <div className="w-12 h-1 bg-brand mx-auto mt-4" />

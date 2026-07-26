@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.utils.validators import sanitizar_texto
+from app.utils.validators import sanitizar_texto, validar_url_usuario
 
 
 class DealerCreate(BaseModel):
@@ -33,6 +33,11 @@ class DealerCreate(BaseModel):
             return v
         return sanitizar_texto(v, max_length=5000)
 
+    @field_validator("instagram")
+    @classmethod
+    def validar_instagram(cls, v: Optional[str]) -> Optional[str]:
+        return validar_url_usuario(v, permitir_relativa=False)
+
 
 class DealerUpdate(BaseModel):
     nombre: Optional[str] = Field(None, min_length=2, max_length=255)
@@ -42,6 +47,13 @@ class DealerUpdate(BaseModel):
     instagram: Optional[str] = Field(None, max_length=500)
     orden: Optional[int] = None
     activo: Optional[bool] = None
+
+    @field_validator("instagram")
+    @classmethod
+    def validar_instagram(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return validar_url_usuario(v, permitir_relativa=False)
 
 
 class DealerResponse(BaseModel):

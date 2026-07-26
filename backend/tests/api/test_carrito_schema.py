@@ -18,7 +18,8 @@ def test_agregar_item_con_producto_id():
     pid = uuid.uuid4()
     data = AgregarItemRequest(producto_id=pid, configuracion={"engine": "rotax-912", "totalPrice": 15000})
     assert data.producto_id == pid
-    assert data.configuracion["totalPrice"] == 15000
+    assert "totalPrice" not in data.configuracion
+    assert data.configuracion.get("engine") == "rotax-912"
 
 
 @pytest.mark.anyio

@@ -8,6 +8,7 @@ import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-rea
 import { useCart } from '@/hooks/useCart'
 import { getStoredUser, ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
+import { buildVerifyPendingUrl, shouldRequireEmailVerification } from '@/lib/validation'
 import { api } from '@/lib/api'
 
 const COUPON_ERROR_EN = {
@@ -46,6 +47,19 @@ export default function CheckoutPage() {
         router.replace('/login?next=/checkout')
         return
       }
+
+      try {
+        const me = await api.auth.me()
+        if (shouldRequireEmailVerification(me)) {
+          router.replace(buildVerifyPendingUrl(me.email, '/checkout'))
+          return
+        }
+      } catch {
+        saveAuthNext('/checkout')
+        router.replace('/login?next=/checkout')
+        return
+      }
+
       setReady(true)
       refetch()
     }
@@ -597,7 +611,6 @@ function ShippingStep({ setStep, appliedCoupon, setCartError, onOrderCreated }) 
 }
 
 function PaymentStep({ setStep }) {
-  const [paymentMethod, setPaymentMethod] = useState('wompi')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -632,42 +645,23 @@ function PaymentStep({ setStep }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}>
       <div className="bg-white rounded-xl border border-borderline p-6">
-        <h2 className="text-2xl font-black text-ink mb-6">Payment Method</h2>
+        <h2 className="text-2xl font-black text-ink mb-6">Payment</h2>
 
-        <div className="space-y-4 mb-8">
-          {[
-            { id: 'wompi', name: 'Wompi', desc: 'Credit/Debit Card' },
-            { id: 'transfer', name: 'Bank Transfer', desc: 'Direct transfer' },
-          ].map(method => (
-            <button
-              key={method.id}
-              type="button"
-              onClick={() => setPaymentMethod(method.id)}
-              className={`w-full p-6 rounded-lg border-2 transition-all text-left
-                ${paymentMethod === method.id
-                  ? 'border-brand bg-brand-soft'
-                  : 'border-borderline hover:border-brand/50'
-                }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-ink">{method.name}</p>
-                  <p className="text-sm text-ink2">{method.desc}</p>
-                </div>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center
-                  ${paymentMethod === method.id ? 'border-brand bg-brand' : 'border-borderline'}`}>
-                  {paymentMethod === method.id && <div className="w-2 h-2 bg-white rounded-full" />}
-                </div>
-              </div>
-            </button>
-          ))}
+        <div className="border-2 border-brand bg-brand-soft rounded-lg p-6 mb-8">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-bold text-ink">Stripe Checkout</p>
+              <p className="text-sm text-ink2">Secure payment with credit or debit card</p>
+            </div>
+            <div className="w-5 h-5 rounded-full border-2 border-brand bg-brand flex items-center justify-center shrink-0">
+              <div className="w-2 h-2 bg-white rounded-full" />
+            </div>
+          </div>
         </div>
 
-        {/* Payment Info */}
         <div className="bg-bg2 rounded-lg p-6 mb-8">
           <p className="text-sm text-ink2">
-            {paymentMethod === 'wompi'
-              ? 'You will be redirected to complete your payment securely. Your order is already saved and will be updated automatically once payment is confirmed.'
-              : 'Bank transfer details will be provided after order confirmation.'}
+            You will be redirected to Stripe to complete your payment securely. Your order is already saved and will be updated automatically once payment is confirmed.
           </p>
         </div>
 

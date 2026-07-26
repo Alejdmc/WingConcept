@@ -43,8 +43,14 @@ export default function SuccessPage() {
           <CheckCircle2 className="w-8 h-8 text-green-600" />
         </div>
 
-        <h1 className="text-3xl font-black text-ink mb-2">Purchase Successful</h1>
-        <p className="text-ink2 mb-6">Thank you! Your payment was processed successfully.</p>
+        <h1 className="text-3xl font-black text-ink mb-2">
+          {order?.estado === 'pagado' ? 'Purchase Successful' : 'Payment Received'}
+        </h1>
+        <p className="text-ink2 mb-6">
+          {order?.estado === 'pagado'
+            ? 'Thank you! Your payment was processed successfully.'
+            : 'Thank you! We received your payment session. Your order will update shortly once Stripe confirms the payment.'}
+        </p>
 
         <div className="bg-bg2 rounded-lg p-6 mb-8">
           <p className="text-sm text-ink2 mb-2">Order Number</p>

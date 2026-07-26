@@ -343,5 +343,27 @@ class EmailService:
             "html": self._wrap(body, preheader="You've been invited to admin WingConcept."),
         }, "invitacion_admin", email)
 
+    async def enviar_contacto(
+        self, nombre: str, email: str, asunto: str, mensaje: str
+    ) -> bool:
+        """Reenvía mensaje del formulario de contacto al equipo."""
+        from html import escape
+
+        destino = (settings.CONTACT_EMAIL or settings.FROM_EMAIL).strip()
+        body = f"""
+        {self._heading("New contact message")}
+        <p><strong>From:</strong> {escape(nombre)} &lt;{escape(email)}&gt;</p>
+        <p><strong>Subject:</strong> {escape(asunto)}</p>
+        <p style="white-space:pre-wrap;">{escape(mensaje)}</p>
+        """
+        payload = {
+            "from": self._from_address(),
+            "to": [destino],
+            "reply_to": email,
+            "subject": f"[Contact] {asunto}",
+            "html": self._wrap(body, preheader=f"Message from {nombre}"),
+        }
+        return self._enviar(payload, "contacto", destino)
+
 
 email_service = EmailService()

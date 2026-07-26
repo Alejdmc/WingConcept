@@ -18,6 +18,7 @@ from app.schemas.contenido import (
     ContenidoResponse,
     ContenidoUpdate,
     EventsPageResponse,
+    ManualsPageResponse,
     SeccionPageResponse,
     ShowsPageResponse,
 )
@@ -66,6 +67,10 @@ class ContenidoService:
     async def obtener_events(self, db: AsyncSession) -> EventsPageResponse:
         data = await self.obtener_seccion_page(db, "events")
         return EventsPageResponse.from_seccion(data)
+
+    async def obtener_manuals(self, db: AsyncSession) -> ManualsPageResponse:
+        data = await self.obtener_seccion_page(db, "manuals")
+        return ManualsPageResponse.from_seccion(data)
 
     async def listar_admin(
         self,

@@ -14,6 +14,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.core.exceptions import (
     CredencialesInvalidasError,
+    EmailVerificadoRequeridoError,
     PermisosDenegadosError,
     TokenExpiradoError,
 )
@@ -92,6 +93,17 @@ async def get_current_admin(
     """Requiere que el usuario tenga rol admin."""
     if current_user.rol != "admin":
         raise PermisosDenegadosError("Se requiere rol de administrador")
+    return current_user
+
+
+async def require_verified_email(
+    current_user=Depends(get_current_user),
+):
+    """Bloquea acciones sensibles si el cliente no verificó su email."""
+    if not settings.REQUIRE_EMAIL_VERIFIED:
+        return current_user
+    if current_user.rol != "admin" and not current_user.email_verificado:
+        raise EmailVerificadoRequeridoError()
     return current_user
 
 
