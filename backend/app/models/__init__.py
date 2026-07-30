@@ -16,6 +16,7 @@ from app.models.cupon import Cupon              # noqa: F401
 from app.models.webhook_event import WebhookEvent  # noqa: F401
 from app.models.admin_invitation import AdminInvitation  # noqa: F401
 from app.models.dealer import Dealer            # noqa: F401
+from app.models.manual import Manual            # noqa: F401
 
 __all__ = [
     "Usuario",
@@ -33,5 +34,6 @@ __all__ = [
     "WebhookEvent",
     "AdminInvitation",
     "Dealer",
+    "Manual",
 ]
 

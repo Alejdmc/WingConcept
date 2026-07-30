@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_verified_email
 from app.core.exceptions import PermisosDenegadosError, RecursoNoEncontradoError
 from app.database import get_db
 from app.models.orden import Orden
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def iniciar_checkout(
     data: CheckoutRequest,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_verified_email),
 ):
     """
     Inicia Stripe Checkout para una orden pendiente en USD.

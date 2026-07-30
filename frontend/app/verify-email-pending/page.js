@@ -75,6 +75,7 @@ function VerifyEmailPendingContent() {
           {/* Instructions */}
           <div className="bg-bg2 rounded-lg p-6 mb-8 text-left space-y-4">
             <p className="text-ink font-bold">We've sent a verification link to your email.</p>
+            <p className="text-ink2 text-sm">You must verify your email before checkout and placing orders.</p>
             <ol className="text-ink2 space-y-3 text-sm list-decimal list-inside">
               <li>Open your email inbox</li>
               <li>Find the email from Wing Concept</li>

@@ -1,15 +1,25 @@
 function getApiBase() {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')
-  }
   if (typeof window !== 'undefined') {
-    return '' // Producción: mismo origen vía nginx (/api → backend)
+    // Dev: mismo origen vía rewrite de Next.js (uploads multipart sin CORS)
+    if (process.env.NODE_ENV === 'development') {
+      return ''
+    }
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')
+    }
+    return ''
   }
-  return process.env.INTERNAL_API_URL || 'http://localhost:8000'
+  return (
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ||
+    'http://localhost:8000'
+  )
 }
 
-const BASE = getApiBase()
-const API = `${BASE}/api/v1`
+function apiUrl(path = '') {
+  const base = getApiBase()
+  return `${base}/api/v1${path}`
+}
 
 const PUBLIC_PATHS = new Set([
   '/auth/login',
@@ -18,6 +28,13 @@ const PUBLIC_PATHS = new Set([
   '/auth/reset-password',
   '/auth/refresh',
   '/auth/resend-verification',
+  '/manuals',
+  '/contenidos/adventure',
+  '/contenidos/shows',
+  '/contenidos/events',
+  '/contenidos/manuals',
+  '/dealers',
+  '/contact',
 ])
 
 function isPublicPath(path) {
@@ -84,7 +101,7 @@ async function request(path, options = {}) {
 
   let res
   try {
-    res = await fetch(`${API}${path}`, {
+    res = await fetch(apiUrl(path), {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +114,7 @@ async function request(path, options = {}) {
   } catch {
     throw {
       status: 0,
-      detail: `Cannot reach the API at ${BASE}. Make sure the backend is running on port 8000.`,
+      detail: `Cannot reach the API${getApiBase() ? ` at ${getApiBase()}` : ''}. Make sure the backend is running on port 8000.`,
     }
   }
 
@@ -105,7 +122,7 @@ async function request(path, options = {}) {
     const refreshToken = localStorage.getItem('refresh_token')
     if (path !== '/auth/refresh') {
       try {
-        const refreshRes = await fetch(`${API}/auth/refresh`, {
+        const refreshRes = await fetch(apiUrl('/auth/refresh'), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -116,7 +133,7 @@ async function request(path, options = {}) {
           if (r.access_token) {
             localStorage.setItem('access_token', r.access_token)
             if (r.refresh_token) localStorage.setItem('refresh_token', r.refresh_token)
-            const retry = await fetch(`${API}${path}`, {
+            const retry = await fetch(apiUrl(path), {
               credentials: 'include',
               headers: {
                 'Content-Type': 'application/json',
@@ -148,6 +165,62 @@ async function request(path, options = {}) {
   return res.status === 204 ? null : res.json()
 }
 
+async function uploadRequest(path, file) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const sessionId = getSessionId()
+
+  const doUpload = async (authToken) => fetch(apiUrl(path), {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
+      ...(sessionId && { 'X-Session-ID': sessionId }),
+    },
+    body: (() => {
+      const formData = new FormData()
+      formData.append('file', file)
+      return formData
+    })(),
+  })
+
+  let res
+  try {
+    res = await doUpload(token)
+  } catch {
+    throw {
+      status: 0,
+      detail: `Cannot reach the API${getApiBase() ? ` at ${getApiBase()}` : ''}. Make sure the backend is running on port 8000.`,
+    }
+  }
+
+  if (res.status === 401 && typeof window !== 'undefined') {
+    const refreshToken = localStorage.getItem('refresh_token')
+    try {
+      const refreshRes = await fetch(apiUrl('/auth/refresh'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(refreshToken ? { refresh_token: refreshToken } : {}),
+      })
+      if (refreshRes.ok) {
+        const r = await refreshRes.json()
+        if (r.access_token) {
+          localStorage.setItem('access_token', r.access_token)
+          if (r.refresh_token) localStorage.setItem('refresh_token', r.refresh_token)
+          res = await doUpload(r.access_token)
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  if (!res.ok) {
+    throw { status: res.status, detail: await parseErrorResponse(res) }
+  }
+  return res.json()
+}
+
 export const api = {
   auth: {
     login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
@@ -163,6 +236,13 @@ export const api = {
       request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
     resetPassword: (data) =>
       request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
+    acceptAdminInvite: (data) =>
+      request('/auth/accept-admin-invite', { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  contact: {
+    send: (data) =>
+      request('/contact', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
   },
 
   carrito: {
@@ -225,17 +305,20 @@ export const api = {
     actualizarManual: (manualId, data) => request(`/admin/manuals/${manualId}`, { method: 'PUT', body: JSON.stringify(data) }),
     eliminarManual: (manualId, permanente = false) =>
       request(`/admin/manuals/${manualId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
+    uploadManual: (file) => uploadRequest('/admin/uploads/manual', file),
   },
   contenidos: {
-    adventure: () => request('/contenidos/adventure'),
-    shows: () => request('/contenidos/shows'),
-    events: () => request('/contenidos/events'),
+    adventure: () => request('/contenidos/adventure', { skipAuth: true }),
+    shows: () => request('/contenidos/shows', { skipAuth: true }),
+    events: () => request('/contenidos/events', { skipAuth: true }),
+    manuals: () => request('/contenidos/manuals', { skipAuth: true }),
   },
   dealers: {
-    list: () => request('/dealers'),
+    list: () => request('/dealers', { skipAuth: true }),
   },
   manuals: {
-    list: () => request('/manuals'),
+    list: () => request('/manuals', { skipAuth: true }),
+    downloadUrl: (manualId) => apiUrl(`/manuals/${manualId}/download`),
   },
   ordenes: {
     crear: (data) => request('/ordenes', { method: 'POST', body: JSON.stringify(data) }),

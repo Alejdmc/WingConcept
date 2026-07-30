@@ -35,3 +35,26 @@ export function getInviteToken(searchParams) {
   const token = searchParams?.get?.('invite') || ''
   return typeof token === 'string' ? token.trim() : ''
 }
+
+const INVITE_KEY = 'admin_invite_token'
+
+export function saveInviteToken(token) {
+  if (typeof window === 'undefined' || !token) return
+  sessionStorage.setItem(INVITE_KEY, token)
+}
+
+export function getStoredInviteToken() {
+  if (typeof window === 'undefined') return ''
+  return sessionStorage.getItem(INVITE_KEY) || ''
+}
+
+export function clearInviteToken() {
+  if (typeof window === 'undefined') return
+  sessionStorage.removeItem(INVITE_KEY)
+}
+
+export function resolveInviteToken(searchParams) {
+  const fromQuery = getInviteToken(searchParams)
+  if (fromQuery) return fromQuery
+  return getStoredInviteToken()
+}

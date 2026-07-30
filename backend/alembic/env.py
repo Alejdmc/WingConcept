@@ -19,10 +19,7 @@ if not os.environ.get("DATABASE_URL"):
 
 # ── Importar todos los modelos para autogenerate ──────────────────────────────
 from app.database import Base, get_async_connect_args
-from app.models import (  # noqa: F401
-    usuario, producto, variante, configuracion, carrito, orden, pago,
-    direccion_envio, admin_invitation,
-)
+import app.models  # noqa: F401 — registra todos los modelos para autogenerate
 
 # ── Config Alembic ────────────────────────────────────────────────────────────
 config = context.config

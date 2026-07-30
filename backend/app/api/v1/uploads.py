@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 
 from app.core.dependencies import get_current_admin
 from app.core.exceptions import ValidacionError
+from app.utils.validators import sanitizar_nombre_archivo
 from app.services.storage_service import storage_service
 
 router = APIRouter(prefix="/admin/uploads", tags=["Uploads"])
@@ -27,7 +28,12 @@ async def _leer_archivo(file: UploadFile) -> tuple[bytes, str, str]:
     if not file.filename:
         raise ValidacionError("El archivo debe tener un nombre")
 
-    if len(file.filename) > MAX_FILENAME_LENGTH:
+    try:
+        safe_name = sanitizar_nombre_archivo(file.filename)
+    except ValueError as exc:
+        raise ValidacionError(str(exc)) from exc
+
+    if len(safe_name) > MAX_FILENAME_LENGTH:
         raise ValidacionError("Nombre de archivo demasiado largo")
 
     content = await file.read()
@@ -35,7 +41,7 @@ async def _leer_archivo(file: UploadFile) -> tuple[bytes, str, str]:
         raise ValidacionError("El archivo está vacío")
 
     content_type = file.content_type or "application/octet-stream"
-    return content, file.filename, content_type
+    return content, safe_name, content_type
 
 
 @router.post("/imagen", status_code=status.HTTP_201_CREATED)
@@ -76,3 +82,22 @@ async def subir_modelo_3d(
         producto_id=str(producto_id) if producto_id else None,
     )
     return {"url": url, "tipo": "modelo_3d"}
+
+
+@router.post("/manual", status_code=status.HTTP_201_CREATED)
+async def subir_manual(
+    file: UploadFile = File(...),
+    _admin=Depends(get_current_admin),
+):
+    """
+    Sube un manual PDF a Supabase Storage.
+    Retorna referencia interna (p. ej. manuals/pdfs/uuid.pdf) para `archivo_url`.
+    La descarga pública va por GET /manuals/{id}/download, no por URL de Supabase.
+    """
+    content, filename, content_type = await _leer_archivo(file)
+    url = await storage_service.subir_manual(
+        content=content,
+        filename=filename,
+        content_type=content_type,
+    )
+    return {"url": url, "tipo": "manual"}

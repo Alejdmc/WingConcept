@@ -8,7 +8,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 ROLES_VALIDOS = frozenset({"client", "admin"})
 
-from app.utils.validators import sanitizar_texto, sanitizar_telefono
+from app.utils.validators import sanitizar_texto, sanitizar_telefono, validar_email
 
 
 class UsuarioBase(BaseModel):
@@ -16,6 +16,11 @@ class UsuarioBase(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=100)
     apellido: str = Field(..., min_length=2, max_length=100)
     telefono: Optional[str] = Field(None, max_length=20)
+
+    @field_validator("email")
+    @classmethod
+    def validar_email_usuario(cls, v: str) -> str:
+        return validar_email(v)
 
     @field_validator("nombre", "apellido")
     @classmethod

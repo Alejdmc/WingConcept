@@ -103,6 +103,7 @@ class AuthService:
             nombre=usuario.nombre,
             apellido=usuario.apellido,
             rol=usuario.rol,
+            email_verificado=usuario.email_verificado,
         )
 
     async def refresh(self, db: AsyncSession, refresh_token: str) -> TokenResponse:

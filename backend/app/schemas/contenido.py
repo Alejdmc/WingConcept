@@ -7,9 +7,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.utils.validators import sanitizar_texto
+from app.utils.validators import sanitizar_texto, validar_url_usuario
 
-SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows"})
+SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows", "manuals"})
 TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion", "show", "evento"})
 
 
@@ -63,6 +63,11 @@ class ContenidoCreate(BaseModel):
             return v
         return sanitizar_texto(v, max_length=5000)
 
+    @field_validator("imagen")
+    @classmethod
+    def validar_imagen(cls, v: Optional[str]) -> Optional[str]:
+        return validar_url_usuario(v)
+
     @field_validator("highlights")
     @classmethod
     def sanitizar_highlights(cls, v: Optional[List[str]]) -> Optional[List[str]]:
@@ -98,6 +103,11 @@ class ContenidoUpdate(BaseModel):
         if v_lower not in TIPOS_VALIDOS:
             raise ValueError(f"Tipo '{v}' no válido.")
         return v_lower
+
+    @field_validator("imagen")
+    @classmethod
+    def validar_imagen(cls, v: Optional[str]) -> Optional[str]:
+        return validar_url_usuario(v)
 
 
 class ContenidoResponse(BaseModel):
@@ -158,3 +168,9 @@ class EventsPageResponse(SeccionPageResponse):
     @classmethod
     def from_seccion(cls, data: SeccionPageResponse) -> "EventsPageResponse":
         return cls(hero=data.hero, intro=data.intro, items=data.items, eventos=data.items)
+
+
+class ManualsPageResponse(SeccionPageResponse):
+    @classmethod
+    def from_seccion(cls, data: SeccionPageResponse) -> "ManualsPageResponse":
+        return cls(hero=data.hero, intro=data.intro, items=[])

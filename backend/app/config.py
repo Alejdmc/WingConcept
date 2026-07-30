@@ -3,10 +3,27 @@ WingConcept Backend — Configuración central
 Usa pydantic-settings para cargar variables desde .env
 """
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _jwt_role(token: str) -> Optional[str]:
+    """Lee el claim 'role' de un JWT Supabase sin verificar firma."""
+    if not token or token.count(".") < 2:
+        return None
+    try:
+        import base64
+        import json
+
+        payload_b64 = token.split(".")[1]
+        padding = "=" * (-len(payload_b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64 + padding))
+        role = payload.get("role")
+        return str(role) if role else None
+    except Exception:
+        return None
 
 
 class Settings(BaseSettings):
@@ -39,6 +56,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""        # anon key
     SUPABASE_BUCKET_PRODUCTOS: str = "productos"
     SUPABASE_BUCKET_MODELOS_3D: str = "modelos3d"
+    SUPABASE_BUCKET_MANUALS: str = "manuals"
 
     # ── Redis ────────────────────────────────────────────────
     # Usado para: caché, rate limiting, carrito anónimo, sesiones
@@ -59,6 +77,8 @@ class Settings(BaseSettings):
     EMAIL_VERIFY_EXPIRE_HOURS: int = 24
     # Si True, bloquea crear órdenes sin email_verificado=True
     REQUIRE_EMAIL_VERIFIED: bool = False
+    # Verificar DNS/MX del dominio del email (solo en producción si True)
+    EMAIL_CHECK_DELIVERABILITY: bool = False
 
     # ── Stripe — Pagos (USD) ─────────────────────────────────
     # Panel: https://dashboard.stripe.com
@@ -77,6 +97,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     FROM_EMAIL: str = "noreply@wingconcept.com"
     FROM_NAME: str = "WingConcept"
+    CONTACT_EMAIL: str = ""  # Destino del formulario de contacto; default = FROM_EMAIL
 
     # ── CORS ─────────────────────────────────────────────────
     ALLOWED_ORIGINS: str = "http://localhost:3000"
@@ -107,6 +128,8 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 10
     ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"
     ALLOWED_MODEL_TYPES: str = "model/gltf-binary,model/gltf+json,application/octet-stream"
+    ALLOWED_MANUAL_TYPES: str = "application/pdf"
+    MAX_MANUAL_UPLOAD_SIZE_MB: int = 25
 
     @field_validator("SUPABASE_URL", mode="before")
     @classmethod
@@ -160,6 +183,27 @@ class Settings(BaseSettings):
                 "SECRET_KEY debe tener al menos 32 caracteres para ser seguro."
             )
 
+        if self.SUPABASE_URL and self.SUPABASE_SERVICE_KEY:
+            sk = self.SUPABASE_SERVICE_KEY.strip()
+            if sk.startswith("sb_publishable_"):
+                raise ValueError(
+                    "SUPABASE_SERVICE_KEY tiene una clave publishable (pública). "
+                    "En Supabase → Settings → API copia la clave service_role (eyJ... "
+                    "o sb_secret_...) en SUPABASE_SERVICE_KEY, NO la publishable/anon."
+                )
+            service_jwt_role = _jwt_role(sk)
+            anon_jwt_role = _jwt_role(self.SUPABASE_ANON_KEY.strip()) if self.SUPABASE_ANON_KEY else None
+            if service_jwt_role == "anon":
+                raise ValueError(
+                    "SUPABASE_SERVICE_KEY contiene la clave anon (pública). "
+                    "Están intercambiadas: pon la service_role en SUPABASE_SERVICE_KEY "
+                    "y la anon en SUPABASE_ANON_KEY (Supabase → Settings → API)."
+                )
+            if anon_jwt_role == "service_role":
+                raise ValueError(
+                    "SUPABASE_ANON_KEY contiene la service_role (secreta). "
+                    "Intercambia SUPABASE_SERVICE_KEY y SUPABASE_ANON_KEY en .env."
+                )
         if self.ENVIRONMENT == "production":
             if self.DEBUG:
                 raise ValueError("DEBUG debe ser False en producción.")
@@ -212,6 +256,9 @@ class Settings(BaseSettings):
 
     def get_allowed_model_types(self) -> List[str]:
         return [t.strip() for t in self.ALLOWED_MODEL_TYPES.split(",")]
+
+    def get_allowed_manual_types(self) -> List[str]:
+        return [t.strip() for t in self.ALLOWED_MANUAL_TYPES.split(",")]
 
     @property
     def is_production(self) -> bool:

@@ -4,7 +4,7 @@ WingConcept Backend — Schemas Auth (Pydantic V2)
 import uuid
 from typing import Optional
 from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
-from app.utils.validators import sanitizar_texto, sanitizar_telefono, validar_password
+from app.utils.validators import sanitizar_texto, sanitizar_telefono, validar_email, validar_password
 
 
 class RegisterRequest(BaseModel):
@@ -26,6 +26,11 @@ class RegisterRequest(BaseModel):
     telefono: Optional[str] = Field(None, max_length=20)
     password: str = Field(..., min_length=8)
     invite_token: Optional[str] = Field(None, max_length=200, alias="inviteToken")
+
+    @field_validator("email")
+    @classmethod
+    def validar_email_registro(cls, v: str) -> str:
+        return validar_email(v)
 
     @field_validator("nombre", "apellido")
     @classmethod
@@ -60,6 +65,11 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+    @field_validator("email")
+    @classmethod
+    def validar_email_login(cls, v: str) -> str:
+        return validar_email(v)
+
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -76,6 +86,7 @@ class LoginResponse(TokenResponse):
     nombre: str
     apellido: str
     rol: str
+    email_verificado: bool
 
 
 class RefreshRequest(BaseModel):
@@ -84,6 +95,11 @@ class RefreshRequest(BaseModel):
 
 class RecuperarPasswordRequest(BaseModel):
     email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def validar_email_recuperar(cls, v: str) -> str:
+        return validar_email(v)
 
 
 class ResetPasswordRequest(BaseModel):
@@ -105,4 +121,9 @@ class VerifyEmailRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def validar_email_reenvio(cls, v: str) -> str:
+        return validar_email(v)
 

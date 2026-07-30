@@ -31,18 +31,24 @@ async function fetchAuthUser(token, origin) {
   return null
 }
 
+function loginRedirect(request) {
+  const loginUrl = new URL('/login', request.url)
+  loginUrl.searchParams.set('next', request.nextUrl.pathname)
+  return NextResponse.redirect(loginUrl)
+}
+
 export async function middleware(request) {
   const token = request.cookies.get('access_token')?.value
   const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
   if (isAdminPath) {
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return loginRedirect(request)
     }
 
     const user = await fetchAuthUser(token, request.nextUrl.origin)
     if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return loginRedirect(request)
     }
 
     if (user.rol !== 'admin') {
@@ -54,5 +60,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*'],
 }

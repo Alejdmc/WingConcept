@@ -5,30 +5,56 @@ import Image from 'next/image'
 import { FileText } from 'lucide-react'
 import { api } from '@/lib/api'
 
-const FALLBACK = [
-  { id: 'nomadic', nombre: 'Nomadic Paratrike', descripcion: 'Owner and maintenance manual for the Nomadic paratrike.', archivo_url: null },
-  { id: 'vanguard', nombre: 'Vanguard Paratrike', descripcion: 'Owner and maintenance manual for the Vanguard paratrike.', archivo_url: null },
-  { id: 'paramotors', nombre: 'Paramotors', descripcion: 'Owner and maintenance manual for Wing Concept paramotors.', archivo_url: null },
+const PAGE_FALLBACK = {
+  hero: {
+    titulo: 'Download Manuals',
+    descripcion: 'Owner and Maintenance Manuals',
+    imagen: '/images/front1.jpg',
+  },
+  intro: {
+    descripcion: 'Download owner and maintenance manuals for Wing Concept equipment.',
+  },
+}
+
+const MANUALS_FALLBACK = [
+  { id: 'nomadic', nombre: 'Nomadic Paratrike', descripcion: 'Owner and maintenance manual for the Nomadic paratrike.', disponible_descarga: false },
+  { id: 'vanguard', nombre: 'Vanguard Paratrike', descripcion: 'Owner and maintenance manual for the Vanguard paratrike.', disponible_descarga: false },
+  { id: 'paramotors', nombre: 'Paramotors', descripcion: 'Owner and maintenance manual for Wing Concept paramotors.', disponible_descarga: false },
 ]
 
 export default function ManualsPage() {
-  const [manuals, setManuals] = useState(FALLBACK)
+  const [pageContent, setPageContent] = useState(null)
+  const [manuals, setManuals] = useState(MANUALS_FALLBACK)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.manuals.list()
-      .then((data) => setManuals(data?.length ? data : FALLBACK))
-      .catch(() => setManuals(FALLBACK))
-      .finally(() => setLoading(false))
+    const load = async () => {
+      try {
+        const [pageData, manualsData] = await Promise.all([
+          api.contenidos.manuals(),
+          api.manuals.list(),
+        ])
+        setPageContent(pageData)
+        setManuals(manualsData?.length ? manualsData : MANUALS_FALLBACK)
+      } catch {
+        setPageContent(PAGE_FALLBACK)
+        setManuals(MANUALS_FALLBACK)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
+
+  const hero = pageContent?.hero || PAGE_FALLBACK.hero
+  const intro = pageContent?.intro || PAGE_FALLBACK.intro
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[540px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/front1.jpg"
+            src={hero.imagen || '/images/front1.jpg'}
             alt="WINGCONCEPT Manuals"
             fill
             className="object-cover"
@@ -52,7 +78,7 @@ export default function ManualsPage() {
               />
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
-              Download Manuals
+              {hero.titulo || PAGE_FALLBACK.hero.titulo}
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto" />
           </motion.div>
@@ -62,13 +88,20 @@ export default function ManualsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="text-2xl md:text-4xl font-black text-white max-w-3xl mx-auto leading-tight mt-8 drop-shadow-xl">
-            Owner and Maintenance Manuals
+            {hero.descripcion || PAGE_FALLBACK.hero.descripcion}
           </motion.p>
         </div>
       </section>
 
-      {/* Manuals List */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-lg text-ink leading-relaxed">
+            {intro.descripcion || PAGE_FALLBACK.intro.descripcion}
+          </p>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 bg-bg2">
         <div className="max-w-5xl mx-auto">
           {loading ? (
             <p className="text-center text-ink2">Loading manuals...</p>
@@ -83,7 +116,7 @@ export default function ManualsPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ delay: i * 0.1, duration: 0.5 }}
-                  className="bg-bg2 rounded-2xl border border-borderline p-8 flex flex-col hover:shadow-lg hover:border-brand transition-all">
+                  className="bg-white rounded-2xl border border-borderline p-8 flex flex-col hover:shadow-lg hover:border-brand transition-all">
                   <div className="flex items-center gap-2 text-brand font-bold uppercase tracking-widest text-sm mb-4">
                     <FileText className="w-4 h-4" />
                     Manual
@@ -94,11 +127,10 @@ export default function ManualsPage() {
                     <p className="text-ink leading-relaxed flex-grow mt-2">{manual.descripcion}</p>
                   )}
 
-                  {manual.archivo_url ? (
+                  {manual.disponible_descarga && manual.id ? (
                     <a
-                      href={manual.archivo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={api.manuals.downloadUrl(manual.id)}
+                      download
                       className="inline-flex items-center gap-2 mt-6 text-brand font-bold uppercase tracking-widest text-sm hover:underline">
                       <FileText className="w-4 h-4" />
                       Download PDF

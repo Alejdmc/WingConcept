@@ -12,7 +12,11 @@ export function persistAuthSession(data) {
   if (data.refresh_token) {
     localStorage.setItem('refresh_token', data.refresh_token)
   }
-  localStorage.setItem('user', JSON.stringify({ nombre: data.nombre, rol: data.rol }))
+  localStorage.setItem('user', JSON.stringify({
+    nombre: data.nombre,
+    rol: data.rol,
+    email_verificado: data.email_verificado ?? false,
+  }))
 
   // Cookie HttpOnly la establece el backend; solo sincronizamos access para dev cross-origin
   if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
@@ -65,7 +69,15 @@ export async function ensureValidSession() {
   const refreshToken = localStorage.getItem('refresh_token')
 
   try {
-    await api.auth.me()
+    const me = await api.auth.me()
+    persistAuthSession({
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token'),
+      nombre: me.nombre,
+      rol: me.rol,
+      email_verificado: me.email_verificado,
+      expires_in: 60 * 15,
+    })
     return true
   } catch (err) {
     if (err?.status !== 401) return false
@@ -75,10 +87,12 @@ export async function ensureValidSession() {
     const res = await api.auth.refresh(refreshToken ? { refresh_token: refreshToken } : {})
     let nombre = getStoredUser()?.nombre || ''
     let rol = getStoredUser()?.rol || 'client'
+    let email_verificado = getStoredUser()?.email_verificado ?? false
     try {
       const me = await api.auth.me()
       nombre = me.nombre
       rol = me.rol
+      email_verificado = me.email_verificado
     } catch {
       // keep stored user metadata
     }
@@ -86,6 +100,7 @@ export async function ensureValidSession() {
       ...res,
       nombre,
       rol,
+      email_verificado,
       expires_in: res.expires_in || 60 * 15,
     })
     return true

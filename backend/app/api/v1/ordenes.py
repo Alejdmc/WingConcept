@@ -8,9 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.core.dependencies import get_current_user
-from app.core.exceptions import EmailVerificadoRequeridoError
+from app.core.dependencies import get_current_user, require_verified_email
 from app.database import get_db
 from app.schemas.orden import OrdenCreate, OrdenResponse, PaginatedOrdenes
 from app.services.orden_service import orden_service
@@ -43,10 +41,8 @@ async def obtener_orden(
 async def crear_orden(
     data: OrdenCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_verified_email),
 ):
     """Crea una orden desde el carrito del usuario autenticado."""
-    if settings.REQUIRE_EMAIL_VERIFIED and not current_user.email_verificado:
-        raise EmailVerificadoRequeridoError()
     return await orden_service.crear_desde_carrito(db, current_user.id, data)
 

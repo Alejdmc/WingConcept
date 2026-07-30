@@ -1,13 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText } from 'lucide-react'
 import { clearAuthSession } from '@/lib/auth'
 import { api } from '@/lib/api'
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [ready, setReady] = useState(false)
@@ -36,7 +37,8 @@ export default function AdminLayout({ children }) {
         setUser(me)
         setReady(true)
       } catch {
-        router.replace('/login')
+        const next = pathname?.startsWith('/admin') ? pathname : '/admin/dashboard'
+        router.replace(`/login?next=${encodeURIComponent(next)}`)
       }
     }
     verify()
@@ -49,7 +51,7 @@ export default function AdminLayout({ children }) {
       // ignore
     }
     clearAuthSession()
-    router.replace('/login')
+    router.replace('/')
   }
 
   if (!ready) {

@@ -5,11 +5,18 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from app.utils.validators import validar_email
 
 
 class CrearInvitacionRequest(BaseModel):
     email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def validar_email_invitacion(cls, v: str) -> str:
+        return validar_email(v)
 
 
 class AcceptAdminInviteRequest(BaseModel):

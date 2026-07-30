@@ -122,10 +122,7 @@ async def init_db() -> None:
         return
 
     # Importar todos los modelos para que SQLAlchemy los registre
-    from app.models import (  # noqa: F401
-        usuario, producto, variante, configuracion,
-        carrito, orden, pago, direccion_envio, admin_invitation,
-    )
+    import app.models  # noqa: F401 — registra todos los modelos
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

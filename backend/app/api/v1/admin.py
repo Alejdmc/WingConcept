@@ -37,11 +37,13 @@ from app.schemas.invitacion import CrearInvitacionRequest, InvitacionResponse
 from app.schemas.contenido import ContenidoCreate, ContenidoResponse, ContenidoUpdate
 from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
 from app.schemas.dealer import DealerCreate, DealerResponse, DealerUpdate
+from app.schemas.manual import ManualCreate, ManualResponse, ManualUpdate
 from app.services.orden_service import orden_service
 from app.services.producto_service import producto_service
 from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
 from app.services.dealer_service import dealer_service
+from app.services.manual_service import manual_service
 from app.services.invitation_service import invitation_service
 from app.services.email_service import email_service
 from app.services.admin_policy import assert_invite_flow_allowed
@@ -508,6 +510,62 @@ async def eliminar_dealer_admin(
 ):
     """Desactiva o elimina permanentemente un distribuidor."""
     await dealer_service.eliminar(db, dealer_id, permanente=permanente)
+
+
+# ── Manuales (admin) ───────────────────────────────────────────────────────────
+
+@router.get("/manuals")
+async def listar_manuales_admin(
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista manuales descargables editables."""
+    return await manual_service.listar_admin(db, pagina, por_pagina)
+
+
+@router.get("/manuals/{manual_id}", response_model=ManualResponse)
+async def obtener_manual_admin(
+    manual_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Obtiene un manual por ID."""
+    manual = await manual_service.obtener_por_id(db, manual_id)
+    return ManualResponse.model_validate(manual)
+
+
+@router.post("/manuals", response_model=ManualResponse, status_code=status.HTTP_201_CREATED)
+async def crear_manual_admin(
+    data: ManualCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Crea un manual descargable."""
+    return await manual_service.crear(db, data)
+
+
+@router.put("/manuals/{manual_id}", response_model=ManualResponse)
+async def actualizar_manual_admin(
+    manual_id: uuid.UUID,
+    data: ManualUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Actualiza un manual."""
+    return await manual_service.actualizar(db, manual_id, data)
+
+
+@router.delete("/manuals/{manual_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_manual_admin(
+    manual_id: uuid.UUID,
+    permanente: bool = Query(False),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Desactiva o elimina permanentemente un manual."""
+    await manual_service.eliminar(db, manual_id, permanente=permanente)
 
 
 # ── Cupones / Descuentos (admin) ──────────────────────────────────────────────

@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, Instagram, Facebook, MessageCircle, Youtube } from 'lucide-react'
 import { useState } from 'react'
+import { api } from '@/lib/api'
 
 const contactInfo = [
   {
@@ -56,19 +57,33 @@ export default function ContactPage() {
     message: ''
   })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    setSubmitted(true)
-    setTimeout(() => {
+    setSubmitted(false)
+    setError('')
+    setLoading(true)
+    try {
+      await api.contact.send({
+        nombre: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        asunto: formData.subject.trim(),
+        mensaje: formData.message.trim(),
+      })
+      setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })
-      setSubmitted(false)
-    }, 3000)
+      setTimeout(() => setSubmitted(false), 5000)
+    } catch (err) {
+      setError(err.detail || 'Could not send your message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -187,6 +202,12 @@ export default function ContactPage() {
               className="bg-bg2 rounded-2xl p-12 border border-borderline">
               <h2 className="text-3xl font-black uppercase text-ink mb-8">Send us a Message</h2>
 
+              {error && (
+                <div className="p-4 bg-red-100 text-red-700 rounded-lg mb-6 font-semibold text-sm">
+                  {error}
+                </div>
+              )}
+
               {submitted && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -250,8 +271,9 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-brand text-white py-4 rounded-lg font-black uppercase tracking-widest hover:bg-brand/90 transition">
-                  Send Message
+                  disabled={loading}
+                  className="w-full bg-brand text-white py-4 rounded-lg font-black uppercase tracking-widest hover:bg-brand/90 transition disabled:opacity-50">
+                  {loading ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </motion.div>
