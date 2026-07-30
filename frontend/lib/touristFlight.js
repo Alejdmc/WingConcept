@@ -14,13 +14,32 @@ export const TOURISTIC_FLIGHT_SCHEDULE = [
   { label: '3:00 PM – 6:30 PM' },
 ]
 
-export const CLUB_AEROSPORT_LOCATION = {
-  name: 'Club AeroSport',
-  address: 'Aerosport, Flandes, Tolima',
-  lat: 4.2339081,
-  lng: -74.8359822,
-  mapsUrl: 'https://www.google.com/maps/place/Club+AeroSport/@4.2402671,-74.8392002,4611m/data=!3m1!1e3!4m6!3m5!1s0x8e3ed76f3bc99b1b:0xd35e72144e2b518d!8m2!3d4.2339081!4d-74.8359822!16s%2Fg%2F11t29tlbp5',
-  embedUrl: 'https://www.google.com/maps?q=Club+AeroSport,4.2339081,-74.8359822&z=15&output=embed',
+export const TOURIST_FLIGHT_LOCATIONS = {
+  colombia: [
+    {
+      id: 'club-aerosport',
+      name: 'Club AeroSport',
+      address: 'Aerosport, Flandes, Tolima',
+      mapsUrl: 'https://www.google.com/maps/place/Club+AeroSport/@4.2402671,-74.8392002,4611m/data=!3m1!1e3!4m6!3m5!1s0x8e3ed76f3bc99b1b:0xd35e72144e2b518d!8m2!3d4.2339081!4d-74.8359822!16s%2Fg%2F11t29tlbp5',
+      embedUrl: 'https://www.google.com/maps?q=Club+AeroSport,4.2339081,-74.8359822&z=15&output=embed',
+    },
+    {
+      id: 'la-cabana',
+      name: 'La Cabaña',
+      address: 'Casanare, Colombia',
+      mapsUrl: 'https://maps.app.goo.gl/fbRrxuz16Tu7miTr7',
+      embedUrl: 'https://www.google.com/maps?q=La+Caba%C3%B1a+Hacienda,+Casanare,+Colombia&output=embed',
+    },
+  ],
+  usa: [
+    {
+      id: 'miami',
+      name: 'Miami',
+      address: '451 S Airport Rd, Lake Wales, FL 33859, USA',
+      mapsUrl: 'https://share.google/3HDY7RI0iW5CEBTB5',
+      embedUrl: 'https://www.google.com/maps?q=451+S+Airport+Rd,+Lake+Wales,+FL+33859&output=embed',
+    },
+  ],
 }
 
 export const formatUSD = (cop) => (cop / COP_TO_USD_RATE).toLocaleString('en-US', { style: 'currency', currency: 'USD' })

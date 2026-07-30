@@ -107,24 +107,36 @@ function PartCard({ part }) {
         {part.description && (
           <p className="text-xs text-ink2 mt-1.5 line-clamp-3 flex-1">{part.description}</p>
         )}
-        <p className="text-xl font-black text-brand mt-2 mb-3">${part.price.toLocaleString()}</p>
+        {typeof part.price === 'number' ? (
+          <p className="text-xl font-black text-brand mt-2 mb-3">${part.price.toLocaleString()}</p>
+        ) : (
+          <p className="text-xl font-black text-ink2 mt-2 mb-3">Price on request</p>
+        )}
 
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={status === 'loading'}
-          className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all">
-          {status === 'added' ? (
-            <>
-              <Check className="w-4 h-4" /> Added
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-4 h-4" />
-              {status === 'loading' ? 'Adding...' : 'Add to Cart'}
-            </>
-          )}
-        </button>
+        {typeof part.price === 'number' ? (
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={status === 'loading'}
+            className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all">
+            {status === 'added' ? (
+              <>
+                <Check className="w-4 h-4" /> Added
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" />
+                {status === 'loading' ? 'Adding...' : 'Add to Cart'}
+              </>
+            )}
+          </button>
+        ) : (
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand text-brand font-black uppercase tracking-wide text-xs hover:bg-brand-soft transition-all">
+            Contact Us
+          </Link>
+        )}
 
         {status === 'error' && (
           <p className="text-red-600 text-xs font-semibold mt-2">Error adding to cart. Try again.</p>

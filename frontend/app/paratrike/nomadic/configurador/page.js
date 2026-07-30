@@ -22,8 +22,8 @@ const CONFIG_OPTIONS = {
     { id: 'titanium-finish', name: 'Titanium Finish', description: 'Titanium finish, lightweight with high structural strength.', swatch: '#8e8e8e' },
   ],
   propellers: [
-    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 0 },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 0 },
+    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
   ],
   colors: [
     { name: 'Candy Red', hex: '#e74c3c' },
@@ -33,13 +33,13 @@ const CONFIG_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Flight cruise control throttle module engineered for twin-cylinder aviation engines, strategically positioned for instant and safe manual deactivation.', image: '/images/accessories/cruise-control.jpg' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: "Crucial hydration system for pilots undertaking long cross-country flights. The bladder unit is engineered to fit into the dedicated instrument pocket on the backrest of the passenger seat.", image: '/images/accessories/camel-back.jpg' },
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'Overhead sunshade mesh netting that blocks harmful UV rays while remaining fully aerodynamic to eliminate flight drag.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built from durable materials, optimized for easy access to gear during exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
-    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Specialized protective storage cover that wraps the pilot and passenger cabin. Intended for open trailer transport, it shields sensitive flight equipment against wind and road grime without adding aerodynamic drag while towing.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 124.80, description: 'High-capacity under-carriage storage bag designed exclusively for the Nomadic trike to securely haul heavy travel gear.', image: '/images/parts/bottom-explorer-bag.png' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Flight management dashboard kit with a USB charging port and 3 precision TTO engine sensors monitoring Cylinder Head Temperature (CHT), RPM, and radiator water temperature. Compatible with all engine types (Rotax, Vittorazi, Polini, Sky, etc.).', image: '/images/parts/instrument-kit-nomadic.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.', image: '/images/accessories/cruise-control.jpg' },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/accessories/camel-back.jpg' },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built to hold additional gear during cross-country exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
+    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
+    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 124.80, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.', image: '/images/parts/instrument-kit-nomadic.png' },
   ]
 }
 
