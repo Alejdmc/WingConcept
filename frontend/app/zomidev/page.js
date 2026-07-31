@@ -91,8 +91,8 @@ export default function ZomiDevAboutPage() {
                 src="/images/ZomiDev.png"
                 alt="ZomiDev Logo"
                 width={300}
-                height={300}
-                className="drop-shadow-lg w-16 h-16 sm:w-20 sm:h-20 lg:w-[120px] lg:h-[120px] shrink-0"
+                height={200}
+                className="drop-shadow-lg h-16 sm:h-20 lg:h-[120px] w-auto object-contain shrink-0 mix-blend-multiply"
               />
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
             </div>

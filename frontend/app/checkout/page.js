@@ -66,6 +66,10 @@ export default function CheckoutPage() {
     verify()
   }, [router, refetch])
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
+
   if (!ready) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
