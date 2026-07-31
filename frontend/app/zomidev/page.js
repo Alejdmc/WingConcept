@@ -355,7 +355,7 @@ export default function ZomiDevAboutPage() {
                 Get In Touch
               </a>
               <a
-                href="tel:+573238125686"
+                href="https://wa.me/+573238125686"
                 className="inline-block border-2 border-white text-white px-8 sm:px-12 py-4 sm:py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
                 Contact Us
               </a>
