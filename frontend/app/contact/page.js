@@ -68,6 +68,12 @@ export default function ContactPage() {
     e.preventDefault()
     setSubmitted(false)
     setError('')
+
+    if (formData.message.trim().length < 10) {
+      setError('Message must be at least 10 characters long.')
+      return
+    }
+
     setLoading(true)
     try {
       await api.contact.send({

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { FileText } from 'lucide-react'
+import { FileText, Layers, Clock, Package, Ruler } from 'lucide-react'
 import { api } from '@/lib/api'
 
 const PAGE_FALLBACK = {
@@ -144,6 +144,73 @@ export default function ManualsPage() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Custom Parts Fabrication */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
+            <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Need a Custom or Replacement Part?</p>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Custom Parts Fabrication</h2>
+            <div className="h-1 w-16 bg-brand mx-auto mb-6" />
+            <p className="text-lg text-ink2 max-w-2xl mx-auto">
+              Wing Concept structural parts are simple sheet designs, so you can get replacements or custom brackets cut on demand through online fabrication services like <span className="text-brand font-bold">SendCutSend</span>.
+              Upload a file, pick a material, and have laser, waterjet, or CNC-routed parts shipped to your door.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              className="relative rounded-2xl overflow-hidden border border-borderline h-64 bg-bg2">
+              <img
+                src="https://sendcutsend.com/wp-content/uploads/2026/06/carbon-fiber-part-768x657.png"
+                alt="Carbon fiber sheet-cut part example"
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-contain p-4"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ delay: 0.1 }}
+              className="relative rounded-2xl overflow-hidden border border-borderline h-64 bg-bg2">
+              <img
+                src="https://sendcutsend.com/wp-content/uploads/2026/06/hardboard.png"
+                alt="Sheet-cut hardboard part example"
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-contain p-4"
+              />
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            {[
+              { icon: Layers, label: '175+ Materials', desc: 'Aluminum, steel, titanium, carbon fiber, acrylic & more' },
+              { icon: Ruler, label: '.015″ – 2.25″', desc: 'Thickness range across laser, waterjet & CNC routing' },
+              { icon: Package, label: 'No Minimum', desc: 'From a single part to 100,000+ units' },
+              { icon: Clock, label: '1–4 Day Turnaround', desc: 'Fast production with free U.S. shipping' },
+            ].map((item, i) => {
+              const Icon = item.icon
+              return (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-bg2 border border-borderline rounded-xl p-5 text-center">
+                  <Icon className="w-6 h-6 text-brand mx-auto mb-3" />
+                  <p className="font-black uppercase text-ink text-sm mb-1">{item.label}</p>
+                  <p className="text-ink2 text-xs leading-relaxed">{item.desc}</p>
+                </motion.div>
+              )
+            })}
+          </div>
         </div>
       </section>
     </div>

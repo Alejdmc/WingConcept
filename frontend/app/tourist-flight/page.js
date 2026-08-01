@@ -46,38 +46,8 @@ export default function TouristFlightPage() {
         </div>
       </section>
 
-      {/* Schedule & Rates */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Schedule & Rates</h2>
-            <div className="h-1 w-16 bg-brand mx-auto" />
-          </motion.div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-10 text-ink2">
-            <Clock className="w-5 h-5 text-brand shrink-0" />
-            {TOURISTIC_FLIGHT_SCHEDULE.map((slot, i) => (
-              <span key={slot.label} className="flex items-center gap-3">
-                <span className="font-bold">{slot.label}</span>
-                {i < TOURISTIC_FLIGHT_SCHEDULE.length - 1 && <span className="text-borderline">|</span>}
-              </span>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {TOURISTIC_FLIGHT_RATES.map((rate) => (
-              <div key={rate.duration} className="bg-bg2 border border-borderline rounded-xl p-6 text-center hover:border-brand transition">
-                <p className="font-black uppercase text-ink text-lg mb-2">{rate.duration}</p>
-                <p className="text-2xl font-black text-brand">{formatUSD(rate.cop)}</p>
-                <p className="text-ink2 text-sm mt-1">${rate.cop.toLocaleString('es-CO')} COP</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Locations */}
-      <section className="py-24 px-6 bg-bg2">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
             <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Locations</h2>
@@ -109,6 +79,40 @@ export default function TouristFlightPage() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Schedule & Rates */}
+      <section className="py-24 px-6 bg-bg2">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Schedule & Rates</h2>
+            <div className="h-1 w-16 bg-brand mx-auto" />
+          </motion.div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10 text-ink2">
+            <Clock className="w-5 h-5 text-brand shrink-0" />
+            {TOURISTIC_FLIGHT_SCHEDULE.map((slot, i) => (
+              <span key={slot.label} className="flex items-center gap-3">
+                <span className="font-bold">{slot.label}</span>
+                {i < TOURISTIC_FLIGHT_SCHEDULE.length - 1 && <span className="text-borderline">|</span>}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {TOURISTIC_FLIGHT_RATES.map((rate) => (
+              <Link
+                key={rate.duration}
+                href="/contact"
+                className="block bg-white border border-borderline rounded-xl p-6 text-center hover:border-brand hover:shadow-lg transition cursor-pointer">
+                <p className="font-black uppercase text-ink text-lg mb-2">{rate.duration}</p>
+                <p className="text-2xl font-black text-brand">{formatUSD(rate.cop)}</p>
+                <p className="text-ink2 text-sm mt-1">${rate.cop.toLocaleString('es-CO')} COP</p>
+              </Link>
+            ))}
+          </div>
+          <p className="text-center text-ink2 text-sm mt-6">Select a duration to get in touch and book your flight.</p>
         </div>
       </section>
 
