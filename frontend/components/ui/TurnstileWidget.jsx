@@ -14,10 +14,15 @@ export function isCaptchaEnabled() {
 export default function TurnstileWidget({ onToken, onExpire, resetKey = 0, className = '' }) {
   const containerRef = useRef(null)
   const widgetIdRef = useRef(null)
+  const onTokenRef = useRef(onToken)
+  const onExpireRef = useRef(onExpire)
+
+  onTokenRef.current = onToken
+  onExpireRef.current = onExpire
 
   useEffect(() => {
     if (!isCaptchaEnabled()) {
-      onToken?.('')
+      onTokenRef.current?.('')
       return undefined
     }
 
@@ -36,9 +41,9 @@ export default function TurnstileWidget({ onToken, onExpire, resetKey = 0, class
       containerRef.current.innerHTML = ''
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: SITE_KEY,
-        callback: (token) => onToken?.(token),
-        'expired-callback': () => onExpire?.(),
-        'error-callback': () => onToken?.(''),
+        callback: (token) => onTokenRef.current?.(token),
+        'expired-callback': () => onExpireRef.current?.(),
+        'error-callback': () => onTokenRef.current?.(''),
         theme: 'light',
       })
     }
@@ -62,12 +67,26 @@ export default function TurnstileWidget({ onToken, onExpire, resetKey = 0, class
 
     return () => {
       cancelled = true
+      if (widgetIdRef.current != null && window.turnstile) {
+        try {
+          window.turnstile.remove(widgetIdRef.current)
+        } catch {
+          // ignore
+        }
+        widgetIdRef.current = null
+      }
     }
-  }, [resetKey, onToken, onExpire])
+  }, [resetKey])
 
   if (!isCaptchaEnabled()) {
     return null
   }
 
-  return <div ref={containerRef} className={className} aria-label="Captcha verification" />
+  return (
+    <div
+      ref={containerRef}
+      className={`min-h-[65px] ${className}`.trim()}
+      aria-label="Captcha verification"
+    />
+  )
 }
