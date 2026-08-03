@@ -6,7 +6,7 @@ import { ArrowLeft, Clock, MapPin, Navigation } from 'lucide-react'
 import {
   TOURISTIC_FLIGHT_RATES,
   TOURISTIC_FLIGHT_SCHEDULE,
-  CLUB_AEROSPORT_LOCATION,
+  TOURIST_FLIGHT_LOCATIONS,
   formatUSD,
 } from '@/lib/touristFlight'
 import { INDUCTION_PILLARS, INDUCTION_PREFLIGHT_CHECKLIST } from '@/lib/inductionCourse'
@@ -46,8 +46,44 @@ export default function TouristFlightPage() {
         </div>
       </section>
 
-      {/* Schedule & Rates */}
+      {/* Locations */}
       <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Locations</h2>
+            <div className="h-1 w-16 bg-brand mx-auto" />
+          </motion.div>
+
+          {/* Colombia */}
+          <div className="mb-16">
+            <h3 className="text-xl font-black uppercase text-ink mb-6 tracking-wide">Colombia</h3>
+            <div className="flex flex-col gap-8">
+              {TOURIST_FLIGHT_LOCATIONS.colombia.map((location) => (
+                <LocationCard key={location.id} location={location} />
+              ))}
+            </div>
+          </div>
+
+          {/* United States */}
+          <div>
+            <h3 className="text-xl font-black uppercase text-ink mb-6 tracking-wide">United States</h3>
+            {TOURIST_FLIGHT_LOCATIONS.usa.length > 0 ? (
+              <div className="flex flex-col gap-8">
+                {TOURIST_FLIGHT_LOCATIONS.usa.map((location) => (
+                  <LocationCard key={location.id} location={location} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white border border-dashed border-borderline rounded-2xl p-8 text-center text-ink2">
+                More locations coming soon.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Schedule & Rates */}
+      <section className="py-24 px-6 bg-bg2">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
             <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Schedule & Rates</h2>
@@ -66,53 +102,17 @@ export default function TouristFlightPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {TOURISTIC_FLIGHT_RATES.map((rate) => (
-              <div key={rate.duration} className="bg-bg2 border border-borderline rounded-xl p-6 text-center hover:border-brand transition">
+              <Link
+                key={rate.duration}
+                href="/contact"
+                className="block bg-white border border-borderline rounded-xl p-6 text-center hover:border-brand hover:shadow-lg transition cursor-pointer">
                 <p className="font-black uppercase text-ink text-lg mb-2">{rate.duration}</p>
                 <p className="text-2xl font-black text-brand">{formatUSD(rate.cop)}</p>
                 <p className="text-ink2 text-sm mt-1">${rate.cop.toLocaleString('es-CO')} COP</p>
-              </div>
+              </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Location */}
-      <section className="py-24 px-6 bg-bg2">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">Location</h2>
-            <div className="h-1 w-16 bg-brand mx-auto" />
-          </motion.div>
-
-          <div className="bg-white border border-borderline rounded-2xl overflow-hidden">
-            <div className="relative w-full h-[380px]">
-              <iframe
-                src={CLUB_AEROSPORT_LOCATION.embedUrl}
-                title="Club AeroSport location"
-                className="absolute inset-0 w-full h-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-
-            <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-brand shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-black uppercase text-ink">{CLUB_AEROSPORT_LOCATION.name}</p>
-                  <p className="text-ink2 text-sm">{CLUB_AEROSPORT_LOCATION.address}</p>
-                </div>
-              </div>
-              <a
-                href={CLUB_AEROSPORT_LOCATION.mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand text-white font-bold uppercase tracking-wide text-sm hover:bg-brand/90 transition-all shrink-0">
-                <Navigation className="w-4 h-4" />
-                Get Directions
-              </a>
-            </div>
-          </div>
+          <p className="text-center text-ink2 text-sm mt-6">Select a duration to get in touch and book your flight.</p>
         </div>
       </section>
 
@@ -176,6 +176,40 @@ export default function TouristFlightPage() {
           </Link>
         </div>
       </section>
+    </div>
+  )
+}
+
+function LocationCard({ location }) {
+  return (
+    <div className="bg-white border border-borderline rounded-2xl overflow-hidden">
+      <div className="relative w-full h-[380px]">
+        <iframe
+          src={location.embedUrl}
+          title={`${location.name} location`}
+          className="absolute inset-0 w-full h-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      </div>
+
+      <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <MapPin className="w-5 h-5 text-brand shrink-0 mt-0.5" />
+          <div>
+            <p className="font-black uppercase text-ink">{location.name}</p>
+            <p className="text-ink2 text-sm">{location.address}</p>
+          </div>
+        </div>
+        <a
+          href={location.mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand text-white font-bold uppercase tracking-wide text-sm hover:bg-brand/90 transition-all shrink-0">
+          <Navigation className="w-4 h-4" />
+          Get Directions
+        </a>
+      </div>
     </div>
   )
 }

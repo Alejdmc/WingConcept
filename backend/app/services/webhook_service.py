@@ -13,7 +13,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook_event import WebhookEvent
-from app.services.email_service import email_service
 from app.services.pago_service import pago_service
 
 logger = logging.getLogger(__name__)
@@ -84,17 +83,7 @@ class WebhookService:
                         transaction_id=payment_intent,
                         respuesta_proveedor=data_object,
                     )
-                    if (
-                        pago.orden
-                        and pago.orden.usuario
-                        and pago.orden.estado == "pagado"
-                    ):
-                        await email_service.enviar_pago_confirmado(
-                            email=pago.orden.usuario.email,
-                            nombre=pago.orden.usuario.nombre,
-                            numero_orden=pago.orden.numero_orden,
-                            proveedor="stripe",
-                        )
+                    # Email enviado desde pago_service → orden_notification_service
 
             elif event_type == "checkout.session.expired":
                 await pago_service.procesar_pago_rechazado(

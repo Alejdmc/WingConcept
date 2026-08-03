@@ -10,6 +10,7 @@ from app.models.configuracion import Configuracion  # noqa: F401
 from app.models.direccion_envio import DireccionEnvio  # noqa: F401
 from app.models.carrito import Carrito, ItemCarrito  # noqa: F401
 from app.models.orden import Orden, ItemOrden   # noqa: F401
+from app.models.orden_evento import OrdenEvento  # noqa: F401
 from app.models.pago import Pago                # noqa: F401
 from app.models.contenido import Contenido      # noqa: F401
 from app.models.cupon import Cupon              # noqa: F401
@@ -28,6 +29,7 @@ __all__ = [
     "ItemCarrito",
     "Orden",
     "ItemOrden",
+    "OrdenEvento",
     "Pago",
     "Contenido",
     "Cupon",

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const CATEGORIAS = ['paramotor', 'vela', 'motor', 'accesorios', 'repuestos', 'paratrike']
 
@@ -24,6 +25,7 @@ export default function NewProductPage() {
     categoria: 'paramotor',
     activo: true,
     destacado: false,
+    imagenes: [],
   })
   const [variante, setVariante] = useState(emptyVariante())
   const [loading, setLoading] = useState(false)
@@ -106,6 +108,12 @@ export default function NewProductPage() {
             <label className="block text-sm font-semibold text-ink mb-1">Description</label>
             <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={4} className="w-full p-3 border border-borderline rounded" />
           </div>
+
+          <ImageUploadField
+            images={form.imagenes}
+            onChange={(imagenes) => setForm({ ...form, imagenes })}
+            label="Product images"
+          />
 
           <div className="flex gap-6">
             <label className="flex items-center gap-2 text-sm">

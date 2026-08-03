@@ -4,19 +4,26 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, AlertCircle } from 'lucide-react'
 import { api } from '@/lib/api'
+import TurnstileWidget, { isCaptchaEnabled } from '@/components/ui/TurnstileWidget'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (isCaptchaEnabled() && !captchaToken) {
+      setError('Please complete the captcha verification.')
+      return
+    }
     setLoading(true)
     try {
-      await api.auth.forgotPassword(email)
+      await api.auth.forgotPassword(email, captchaToken)
       setSuccess(true)
     } catch (err) {
       const detail = err?.detail
@@ -27,6 +34,8 @@ export default function ForgotPasswordPage() {
       } else {
         setError(detail || 'Error sending recovery email. Please try again.')
       }
+      setCaptchaKey((k) => k + 1)
+      setCaptchaToken('')
     } finally {
       setLoading(false)
     }
@@ -61,6 +70,12 @@ export default function ForgotPasswordPage() {
               <Mail className="absolute left-4 top-3.5 w-5 h-5 text-ink2" />
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required className="w-full pl-12 py-3 border border-borderline rounded bg-bg2 focus:ring-1 focus:ring-brand" />
             </div>
+            <TurnstileWidget
+              resetKey={captchaKey}
+              onToken={setCaptchaToken}
+              onExpire={() => setCaptchaToken('')}
+              className="flex justify-center"
+            />
             <button disabled={loading} className="w-full py-3 bg-brand text-white font-black uppercase tracking-widest rounded hover:bg-brand/90 transition disabled:opacity-50">
               {loading ? 'Sending...' : 'Send Instructions'}
             </button>

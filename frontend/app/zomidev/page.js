@@ -91,8 +91,8 @@ export default function ZomiDevAboutPage() {
                 src="/images/ZomiDev.png"
                 alt="ZomiDev Logo"
                 width={300}
-                height={300}
-                className="drop-shadow-lg w-16 h-16 sm:w-20 sm:h-20 lg:w-[120px] lg:h-[120px] shrink-0"
+                height={200}
+                className="drop-shadow-lg h-16 sm:h-20 lg:h-[120px] w-auto object-contain shrink-0 mix-blend-multiply"
               />
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-ink tracking-tight">ZomiDev</h1>
             </div>
@@ -355,7 +355,7 @@ export default function ZomiDevAboutPage() {
                 Get In Touch
               </a>
               <a
-                href="tel:+573238125686"
+                href="https://wa.me/573238125686"
                 className="inline-block border-2 border-white text-white px-8 sm:px-12 py-4 sm:py-5 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
                 Contact Us
               </a>

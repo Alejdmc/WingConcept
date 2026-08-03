@@ -124,6 +124,16 @@ class Settings(BaseSettings):
     SENTRY_ENVIRONMENT: str = ""  # Usa ENVIRONMENT si está vacío
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1  # 10% de traces en producción
 
+    # ── Inventario ───────────────────────────────────────────
+    # Alerta admin cuando stock <= este valor (partes/accesorios)
+    LOW_STOCK_THRESHOLD: int = 2
+
+    # ── Cloudflare Turnstile (CAPTCHA) ───────────────────────
+    # Panel: https://dash.cloudflare.com → Turnstile → Add site
+    # Site key → frontend NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    # Secret key → TURNSTILE_SECRET_KEY (solo backend)
+    TURNSTILE_SECRET_KEY: str = ""
+
     # ── Uploads / Storage ────────────────────────────────────
     MAX_UPLOAD_SIZE_MB: int = 10
     ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"

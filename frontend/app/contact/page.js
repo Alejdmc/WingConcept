@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Mail, Phone, MapPin, Instagram, Facebook, MessageCircle, Youtube } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import TurnstileWidget, { isCaptchaEnabled } from '@/components/ui/TurnstileWidget'
 
 const contactInfo = [
   {
@@ -59,6 +60,8 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -68,6 +71,17 @@ export default function ContactPage() {
     e.preventDefault()
     setSubmitted(false)
     setError('')
+
+    if (formData.message.trim().length < 10) {
+      setError('Message must be at least 10 characters long.')
+      return
+    }
+
+    if (isCaptchaEnabled() && !captchaToken) {
+      setError('Please complete the captcha verification.')
+      return
+    }
+
     setLoading(true)
     try {
       await api.contact.send({
@@ -75,12 +89,15 @@ export default function ContactPage() {
         email: formData.email.trim().toLowerCase(),
         asunto: formData.subject.trim(),
         mensaje: formData.message.trim(),
+        captchaToken,
       })
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })
       setTimeout(() => setSubmitted(false), 5000)
     } catch (err) {
       setError(err.detail || 'Could not send your message. Please try again.')
+      setCaptchaKey((k) => k + 1)
+      setCaptchaToken('')
     } finally {
       setLoading(false)
     }
@@ -268,6 +285,13 @@ export default function ContactPage() {
                     className="w-full px-6 py-3 border border-borderline rounded-lg focus:outline-none focus:border-brand bg-white resize-none"
                     placeholder="Your message..."></textarea>
                 </div>
+
+                <TurnstileWidget
+                  resetKey={captchaKey}
+                  onToken={setCaptchaToken}
+                  onExpire={() => setCaptchaToken('')}
+                  className="flex justify-center"
+                />
 
                 <button
                   type="submit"

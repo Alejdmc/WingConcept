@@ -20,6 +20,9 @@ from app.core.exceptions import PagoFallidoError, RecursoNoEncontradoError
 from app.models.orden import Orden
 from app.models.pago import Pago
 from app.schemas.pago import CheckoutResponse
+from app.services.stock_service import stock_service
+from app.services.orden_timeline_service import orden_timeline_service
+from app.services.orden_notification_service import orden_notification_service
 
 logger = logging.getLogger(__name__)
 
@@ -163,8 +166,8 @@ class PagoService:
         respuesta_proveedor: Optional[dict] = None,
     ) -> Pago:
         """
-        Marca el pago como aprobado y la orden como pagada.
-        El stock lo gestiona el admin desde el panel — no se descuenta aquí.
+        Marca el pago como aprobado, descuenta stock y actualiza la orden.
+        Si no hay stock suficiente tras el pago, la orden queda en error_stock.
         """
         pago = await self._obtener_pago(db, referencia=referencia)
 
@@ -181,7 +184,28 @@ class PagoService:
             pago.respuesta_proveedor = respuesta_proveedor
 
         if pago.orden and pago.orden.estado == "pendiente":
-            pago.orden.estado = "pagado"
+            estado_prev = pago.orden.estado
+            stock_ok = await stock_service.descontar_por_orden(db, pago.orden)
+            pago.orden.estado = "pagado" if stock_ok else "error_stock"
+            await orden_timeline_service.registrar_evento(
+                db,
+                pago.orden,
+                pago.orden.estado,
+                actor="payment",
+                mensaje=(
+                    "Payment received. We're checking inventory."
+                    if not stock_ok
+                    else "Payment received successfully."
+                ),
+            )
+            await orden_notification_service.notificar_estado(
+                db, pago.orden, estado_prev, proveedor_pago="stripe",
+            )
+            if not stock_ok:
+                logger.error(
+                    "Orden %s pagada pero sin stock — marcada error_stock",
+                    pago.orden.numero_orden,
+                )
 
         logger.info(
             f"Pago aprobado: {referencia} tx:{transaction_id} "
@@ -238,12 +262,22 @@ class PagoService:
             logger.warning(f"[IDEMPOTENCIA] Pago {pago.referencia} ya reembolsado.")
             return pago
 
+        was_approved = pago.estado == "approved"
         pago.estado = "refunded"
         if respuesta_proveedor:
             pago.respuesta_proveedor = respuesta_proveedor
 
         if pago.orden:
+            estado_prev = pago.orden.estado
+            if was_approved:
+                await stock_service.restaurar_por_orden(db, pago.orden)
             pago.orden.estado = "reembolsado"
+            await orden_timeline_service.registrar_evento(
+                db, pago.orden, "reembolsado", actor="payment",
+            )
+            await orden_notification_service.notificar_estado(
+                db, pago.orden, estado_prev,
+            )
 
         logger.info(f"Pago reembolsado: {pago.referencia}")
         return pago

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request, status
 from app.config import settings
 from app.core.exceptions import PermisosDenegadosError, ServicioNoDisponibleError
 from app.schemas.contact import ContactRequest
+from app.services.captcha_service import verify_turnstile
 from app.services.email_service import email_service
 from app.utils.redis_client import check_rate_limit
 
@@ -24,6 +25,8 @@ async def enviar_contacto(data: ContactRequest, request: Request):
     )
     if not permitido:
         raise PermisosDenegadosError("Too many messages. Please try again later.")
+
+    await verify_turnstile(data.captcha_token, client_ip)
 
     enviado = await email_service.enviar_contacto(
         nombre=data.nombre,

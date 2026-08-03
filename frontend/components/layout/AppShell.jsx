@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation'
 import TopBar from '@/components/layout/TopBar'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import CookieConsent from '@/components/legal/CookieConsent'
 
 const HIDE_SHELL_PREFIXES = ['/admin']
 
@@ -20,6 +21,7 @@ export default function AppShell({ children }) {
       <Navbar />
       {children}
       <Footer />
+      <CookieConsent />
     </>
   )
 }

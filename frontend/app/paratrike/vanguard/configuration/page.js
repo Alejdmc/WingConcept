@@ -13,7 +13,7 @@ import WizardProgress from '@/components/configurator/WizardProgress'
 const CONFIG_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', basePrice: 0 },
-    { id: 'rotax-912', name: 'Rotax 912 (80HP)', basePrice: 15000, image: '/images/engines/rotax-912.jpg' },
+    { id: 'rotax-912', name: 'Rotax 912 (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg' },
     { id: 'RMZ500', name: 'RMZ500', basePrice: 15000, image: '/images/engines/rmz500.jpg' },
     { id: 'simonini-v2', name: 'Simonini Victor 2 (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg' },
     { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg' },
@@ -24,8 +24,8 @@ const CONFIG_OPTIONS = {
     { id: 'reportage', name: 'Reportage', description: 'Stable platform tailored for aerial photography and video work, with extra mounting points for camera gear.', image: '/images/chassis/reportage.jpg' },
   ],
   propellers: [
-    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 0 },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 0 },
+    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
   ],
   colors: [
     { name: 'Candy Red', hex: '#e74c3c' },
@@ -35,12 +35,12 @@ const CONFIG_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Flight cruise control throttle module engineered for twin-cylinder aviation engines, strategically positioned for instant and safe manual deactivation.', image: '/images/accessories/cruise-control.jpg' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: "Crucial hydration system for pilots undertaking long cross-country flights. The bladder unit is engineered to fit into the dedicated instrument pocket on the backrest of the passenger seat.", image: '/images/accessories/camel-back.jpg' },
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'Overhead sunshade mesh netting that blocks harmful UV rays while remaining fully aerodynamic to eliminate flight drag.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90, description: 'Rugged side pannier bag tailored for long-distance trike touring, perfect for transporting camping equipment and beverages.', image: '/images/accessories/lateral-bag.jpg' },
-    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Specialized protective storage cover that wraps the pilot and passenger cabin. Intended for open trailer transport, it shields sensitive flight equipment against wind and road grime without adding aerodynamic drag while towing.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440, description: 'Flight management dashboard kit with a USB charging port and 3 precision TTO engine sensors monitoring Cylinder Head Temperature (CHT), RPM, and radiator water temperature, plus an exclusive integrated Fuel Gauge instrument. Compatible with all engine types (Rotax, Vittorazi, Polini, Sky, etc.).', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.', image: '/images/accessories/cruise-control.jpg' },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/accessories/camel-back.jpg' },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90, description: 'Side storage bag tailored for the Vanguard frame. Perfect for carrying beverages, camping gear, and supplies on long trips.', image: '/images/accessories/lateral-bag.jpg' },
+    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440, description: 'Features a built-in USB charger, an exclusive fuel gauge for the Vanguard model, and 3 TTO brand digital sensors (CHT, RPM, and radiator water temperature).', image: '/images/parts/instrument-kit-vanguard.png' },
   ]
 }
 

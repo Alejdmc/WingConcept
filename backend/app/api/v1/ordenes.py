@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, require_verified_email
 from app.database import get_db
-from app.schemas.orden import OrdenCreate, OrdenResponse, PaginatedOrdenes
+from app.schemas.orden import OrdenCreate, OrdenDetalleResponse, OrdenResponse, PaginatedOrdenes
 from app.services.orden_service import orden_service
 
 router = APIRouter(prefix="/ordenes", tags=["Órdenes"])
@@ -27,7 +27,7 @@ async def listar_ordenes(
     return await orden_service.listar_usuario(db, current_user.id, pagina, por_pagina)
 
 
-@router.get("/{orden_id}", response_model=OrdenResponse)
+@router.get("/{orden_id}", response_model=OrdenDetalleResponse)
 async def obtener_orden(
     orden_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
