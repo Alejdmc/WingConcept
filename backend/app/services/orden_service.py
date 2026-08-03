@@ -14,24 +14,62 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
+from app.services.stock_service import stock_service
 from app.models.carrito import Carrito
 from app.models.orden import ItemOrden, Orden
 from app.models.variante import Variante
 from app.schemas.orden import (
     AdminOrdenResponse,
+    DireccionEnvioResumen,
     ESTADO_DISPLAY_MAP,
     OrdenCreate,
+    OrdenDetalleResponse,
     OrdenResponse,
     OrdenUpdate,
     PaginatedAdminOrdenes,
     PaginatedOrdenes,
 )
+from app.services.orden_timeline_service import orden_timeline_service
+from app.services.orden_notification_service import orden_notification_service
 
 logger = logging.getLogger(__name__)
 
 UPDATABLE_ORDEN_FIELDS = frozenset({
     "estado", "notas_admin", "numero_guia", "transportadora",
 })
+
+
+def _build_orden_response(orden: Orden) -> OrdenResponse:
+    data = OrdenResponse.model_validate(orden)
+    data.estado_display = ESTADO_DISPLAY_MAP.get(orden.estado, orden.estado.capitalize())
+    return data
+
+
+async def _build_orden_detalle(
+    db: AsyncSession,
+    orden: Orden,
+    *,
+    include_admin_fields: bool = False,
+) -> OrdenDetalleResponse:
+    await orden_timeline_service.ensure_timeline(db, orden)
+    timeline = await orden_timeline_service.listar_eventos(db, orden.id)
+
+    base = _build_orden_response(orden)
+    detalle = OrdenDetalleResponse(
+        **base.model_dump(),
+        timeline=timeline,
+        direccion_envio=(
+            DireccionEnvioResumen.model_validate(orden.direccion_envio)
+            if orden.direccion_envio else None
+        ),
+    )
+
+    if include_admin_fields and orden.usuario:
+        detalle.cliente_nombre = f"{orden.usuario.nombre} {orden.usuario.apellido}".strip()
+        detalle.cliente_email = orden.usuario.email
+        detalle.notas_admin = orden.notas_admin
+
+    return detalle
 
 
 def _build_admin_orden_response(orden: Orden) -> AdminOrdenResponse:
@@ -89,7 +127,7 @@ class OrdenService:
     ) -> OrdenResponse:
         """
         Crea una orden a partir del carrito del usuario.
-        El stock lo gestiona el admin desde el panel.
+        Valida stock de partes/accesorios antes de confirmar.
         """
         # Obtener carrito con todos sus items
         carrito_result = await db.execute(
@@ -137,6 +175,8 @@ class OrdenService:
                 )
             )
 
+        await stock_service.validar_items_orden(db, items_orden)
+
         # Crear orden
         descuento = 0.0
         total = subtotal
@@ -176,13 +216,24 @@ class OrdenService:
         # Re-cargar orden con items (evita MissingGreenlet en model_validate)
         orden_result = await db.execute(
             select(Orden)
-            .options(selectinload(Orden.items))
+            .options(selectinload(Orden.items), selectinload(Orden.usuario))
             .where(Orden.id == orden_id)
         )
         orden = orden_result.scalar_one()
 
+        await orden_timeline_service.registrar_evento(
+            db,
+            orden,
+            "pendiente",
+            mensaje="Your order has been received.",
+            actor="system",
+            created_at=orden.created_at,
+        )
+
+        await orden_notification_service.notificar_estado(db, orden, None, forzar=True)
+
         logger.info(f"Orden creada: {orden.numero_orden} usuario:{usuario_id}")
-        return OrdenResponse.model_validate(orden)
+        return _build_orden_response(orden)
 
     async def obtener_por_id(
         self, db: AsyncSession, orden_id: UUID, usuario_id: Optional[UUID] = None
@@ -204,31 +255,35 @@ class OrdenService:
         if not orden:
             raise RecursoNoEncontradoError("Orden")
 
-        return OrdenResponse.model_validate(orden)
+        return _build_orden_response(orden)
 
     async def obtener_con_acceso(
         self,
         db: AsyncSession,
         orden_id: UUID,
         usuario,
-    ) -> OrdenResponse:
+    ) -> OrdenDetalleResponse:
         """
-        Obtiene orden verificando ownership explícito.
-        Admin puede ver cualquier orden; clientes solo las propias.
+        Obtiene orden con timeline. Admin ve datos extra del cliente.
         """
         result = await db.execute(
             select(Orden)
-            .options(selectinload(Orden.items))
+            .options(
+                selectinload(Orden.items),
+                selectinload(Orden.direccion_envio),
+                selectinload(Orden.usuario),
+            )
             .where(Orden.id == orden_id)
         )
         orden = result.scalar_one_or_none()
         if not orden:
             raise RecursoNoEncontradoError("Orden")
 
-        if getattr(usuario, "rol", "client") != "admin" and orden.usuario_id != usuario.id:
+        is_admin = getattr(usuario, "rol", "client") == "admin"
+        if not is_admin and orden.usuario_id != usuario.id:
             raise RecursoNoEncontradoError("Orden")
 
-        return OrdenResponse.model_validate(orden)
+        return await _build_orden_detalle(db, orden, include_admin_fields=is_admin)
 
     async def listar_usuario(
         self,
@@ -257,7 +312,7 @@ class OrdenService:
         ordenes = result.scalars().all()
 
         return PaginatedOrdenes(
-            items=[OrdenResponse.model_validate(o) for o in ordenes],
+            items=[_build_orden_response(o) for o in ordenes],
             total=total,
             pagina=pagina,
             por_pagina=por_pagina,
@@ -313,6 +368,7 @@ class OrdenService:
         if not orden:
             raise RecursoNoEncontradoError("Orden")
 
+        estado_anterior = orden.estado
         update_data = data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             if field in UPDATABLE_ORDEN_FIELDS:
@@ -323,6 +379,15 @@ class OrdenService:
                 )
 
         await db.flush()
+
+        if "estado" in update_data and orden.estado != estado_anterior:
+            await orden_timeline_service.registrar_cambio_estado(
+                db, orden, estado_anterior, actor="admin",
+            )
+            await orden_notification_service.notificar_estado(
+                db, orden, estado_anterior,
+            )
+
         logger.info(f"Orden {orden.numero_orden} actualizada: {update_data}")
         return _build_admin_orden_response(orden)
 

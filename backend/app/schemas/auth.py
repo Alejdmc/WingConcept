@@ -7,7 +7,14 @@ from pydantic import AliasChoices, BaseModel, EmailStr, Field, field_validator
 from app.utils.validators import sanitizar_texto, sanitizar_telefono, validar_email, validar_password
 
 
-class RegisterRequest(BaseModel):
+class CaptchaMixin(BaseModel):
+    """Token opcional de Cloudflare Turnstile (requerido si TURNSTILE_SECRET_KEY está configurado)."""
+    captcha_token: Optional[str] = Field(None, max_length=2048, alias="captchaToken")
+
+    model_config = {"populate_by_name": True}
+
+
+class RegisterRequest(CaptchaMixin):
     """
     Soporta tanto nombres en español (nombre/apellido) como en inglés
     (firstName/lastName) para compatibilidad con el formulario del frontend.
@@ -61,7 +68,7 @@ class RegisterRequest(BaseModel):
         return v
 
 
-class LoginRequest(BaseModel):
+class LoginRequest(CaptchaMixin):
     email: EmailStr
     password: str
 
@@ -93,7 +100,7 @@ class RefreshRequest(BaseModel):
     refresh_token: Optional[str] = None
 
 
-class RecuperarPasswordRequest(BaseModel):
+class RecuperarPasswordRequest(CaptchaMixin):
     email: EmailStr
 
     @field_validator("email")

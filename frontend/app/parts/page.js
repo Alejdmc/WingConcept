@@ -1,16 +1,61 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ShoppingCart, Check, Package } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
-import { PARTS } from '@/lib/parts'
-import { ACCESSORIES } from '@/lib/accessories'
+import { api } from '@/lib/api'
+import { PARTS as STATIC_PARTS } from '@/lib/parts'
+import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
+function mapApiItem(item) {
+  return {
+    id: item.slug || item.id,
+    productoId: item.id,
+    name: item.name || item.nombre,
+    price: item.precio_desde ?? null,
+    image: item.image || item.imagenes?.[0] || '/images/logo.png',
+    description: item.desc || item.descripcion_corta || item.descripcion || '',
+    compatibleWith: item.compatible_with?.length ? item.compatible_with : ['vanguard', 'nomadic'],
+  }
+}
+
+function mapStaticItem(item) {
+  return {
+    ...item,
+    productoId: item.productoId || null,
+  }
+}
+
 export default function PartsPage() {
+  const [parts, setParts] = useState(STATIC_PARTS.map(mapStaticItem))
+  const [accessories, setAccessories] = useState(STATIC_ACCESSORIES.map(mapStaticItem))
+  const [source, setSource] = useState('static')
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [partsRes, accRes] = await Promise.all([
+          api.productos.listar({ categoria: 'repuestos', por_pagina: 100 }),
+          api.productos.listar({ categoria: 'accesorios', por_pagina: 100 }),
+        ])
+        const apiParts = (partsRes.items || []).map(mapApiItem)
+        const apiAcc = (accRes.items || []).map(mapApiItem)
+        if (apiParts.length > 0 || apiAcc.length > 0) {
+          if (apiParts.length > 0) setParts(apiParts)
+          if (apiAcc.length > 0) setAccessories(apiAcc)
+          setSource('api')
+        }
+      } catch {
+        // keep static fallback
+      }
+    }
+    load()
+  }, [])
+
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
@@ -30,12 +75,15 @@ export default function PartsPage() {
         <div className="mb-12">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
           <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
+          {source === 'static' && (
+            <p className="text-sm text-amber-700 mt-2">Showing catalog preview. Add items in Admin → Parts &amp; Cart to enable checkout.</p>
+          )}
         </div>
 
         <section className="mb-16">
           <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {PARTS.map((part) => (
+            {parts.map((part) => (
               <PartCard key={part.id} part={part} />
             ))}
           </div>
@@ -44,7 +92,7 @@ export default function PartsPage() {
         <section>
           <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {ACCESSORIES.map((accessory) => (
+            {accessories.map((accessory) => (
               <PartCard key={accessory.id} part={accessory} />
             ))}
           </div>
@@ -56,16 +104,18 @@ export default function PartsPage() {
 
 function PartCard({ part }) {
   const { addToCart } = useCart()
-  const [status, setStatus] = useState('idle') // idle | loading | added | error
+  const [status, setStatus] = useState('idle')
   const [imgError, setImgError] = useState(false)
+  const canAddToCart = Boolean(part.productoId) && typeof part.price === 'number'
 
   const handleAdd = async () => {
+    if (!part.productoId) return
     setStatus('loading')
     try {
       await addToCart({ producto_id: part.productoId, cantidad: 1 })
       setStatus('added')
       setTimeout(() => setStatus('idle'), 2000)
-    } catch (err) {
+    } catch {
       setStatus('error')
     }
   }
@@ -86,6 +136,7 @@ function PartCard({ part }) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
             className="object-contain p-3"
             onError={() => setImgError(true)}
+            unoptimized={part.image?.startsWith('http')}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -96,7 +147,7 @@ function PartCard({ part }) {
 
       <div className="p-4 flex flex-col flex-1">
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {part.compatibleWith.map((m) => (
+          {(part.compatibleWith || []).map((m) => (
             <span key={m} className="text-[10px] font-bold uppercase tracking-wide text-brand bg-brand-soft px-2 py-0.5 rounded-full">
               {MODEL_LABEL[m] || m}
             </span>
@@ -113,7 +164,7 @@ function PartCard({ part }) {
           <p className="text-xl font-black text-ink2 mt-2 mb-3">Price on request</p>
         )}
 
-        {typeof part.price === 'number' ? (
+        {canAddToCart ? (
           <button
             type="button"
             onClick={handleAdd}
@@ -130,6 +181,8 @@ function PartCard({ part }) {
               </>
             )}
           </button>
+        ) : typeof part.price === 'number' ? (
+          <p className="text-xs text-ink2 font-semibold py-2">Coming soon to cart — add in Admin → Parts &amp; Cart</p>
         ) : (
           <Link
             href="/contact"

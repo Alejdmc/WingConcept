@@ -33,6 +33,7 @@ class VarianteUpdate(BaseModel):
     precio: Optional[float] = Field(None, gt=0)
     precio_anterior: Optional[float] = None
     stock: Optional[int] = Field(None, ge=0)
+    stock_minimo: Optional[int] = Field(None, ge=0)
     atributos: Optional[Dict[str, Any]] = None
     activo: Optional[bool] = None
 
@@ -156,12 +157,13 @@ class ProductoListResponse(BaseModel):
     destacado: bool
     precio_desde: Optional[float] = None  # Precio mínimo de variantes activas
 
-    # ── Campos amigables para el frontend ─────────────────────────────────────
+    # Campos amigables para el frontend
     name: Optional[str] = None    # = nombre
     image: Optional[str] = None   # primera imagen del array
     price: Optional[str] = None   # precio formateado "$5,000"
     desc: Optional[str] = None    # = descripcion_corta
     specs: Optional[str] = None   # e.g. "28kg | 95kg thrust"
+    compatible_with: Optional[List[str]] = None  # p. ej. ["vanguard", "nomadic"] para /parts
 
     model_config = {"from_attributes": True}
 

@@ -43,6 +43,30 @@ class ItemOrdenResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OrdenEventoResponse(BaseModel):
+    id: uuid.UUID
+    estado: str
+    titulo: str
+    mensaje: Optional[str] = None
+    actor: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class DireccionEnvioResumen(BaseModel):
+    nombre_destinatario: str
+    linea1: str
+    linea2: Optional[str] = None
+    ciudad: str
+    departamento_estado: str
+    codigo_postal: Optional[str] = None
+    pais: str
+    telefono: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 class OrdenCreate(BaseModel):
     direccion_envio_id: Optional[uuid.UUID] = None
     notas_cliente: Optional[str] = Field(None, max_length=1000)
@@ -66,6 +90,7 @@ class OrdenResponse(BaseModel):
     numero_orden: str
     usuario_id: uuid.UUID
     estado: str
+    estado_display: Optional[str] = None
     subtotal: float
     descuento: float
     costo_envio: float
@@ -80,6 +105,15 @@ class OrdenResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class OrdenDetalleResponse(OrdenResponse):
+    """Detalle completo con timeline y dirección — GET /ordenes/{id}."""
+    timeline: List[OrdenEventoResponse] = []
+    direccion_envio: Optional[DireccionEnvioResumen] = None
+    cliente_nombre: Optional[str] = None
+    cliente_email: Optional[str] = None
+    notas_admin: Optional[str] = None
 
 
 class PaginatedOrdenes(BaseModel):

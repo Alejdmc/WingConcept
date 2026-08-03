@@ -5,6 +5,17 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import { clearAuthSession, ensureValidSession, getStoredUser, isAdminUser, persistAuthSession } from '@/lib/auth'
 
+const ORDER_STATUS_COLORS = {
+  pendiente: 'bg-yellow-100 text-yellow-700',
+  pagado: 'bg-teal-100 text-teal-700',
+  procesando: 'bg-blue-100 text-blue-700',
+  enviado: 'bg-blue-100 text-blue-700',
+  entregado: 'bg-green-100 text-green-700',
+  cancelado: 'bg-red-100 text-red-700',
+  reembolsado: 'bg-purple-100 text-purple-700',
+  error_stock: 'bg-orange-100 text-orange-700',
+}
+
 export default function CuentaPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -13,6 +24,7 @@ export default function CuentaPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [cupones, setCupones] = useState([])
+  const [recentOrders, setRecentOrders] = useState([])
 
   const [profile, setProfile] = useState({
     nombre: '',
@@ -40,9 +52,10 @@ export default function CuentaPage() {
       }
 
       try {
-        const [data, misCupones] = await Promise.all([
+        const [data, misCupones, ordersData] = await Promise.all([
           api.usuarios.perfil(),
           api.usuarios.cupones().catch(() => []),
+          api.ordenes.listar({ pagina: 1, por_pagina: 3 }).catch(() => ({ items: [] })),
         ])
         setProfile({
           nombre: data.nombre || '',
@@ -51,6 +64,7 @@ export default function CuentaPage() {
           telefono: data.telefono || '',
         })
         setCupones(misCupones || [])
+        setRecentOrders(ordersData.items || [])
       } catch {
         setError('Could not load your profile.')
       } finally {
@@ -214,6 +228,28 @@ export default function CuentaPage() {
                   {cupon.usado ? 'Used' : 'Available'}
                 </span>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {recentOrders.length > 0 && (
+        <div className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
+          <div className="flex items-center justify-between">
+            <h2 className="font-black text-lg text-ink">Recent orders</h2>
+            <Link href="/orders" className="text-sm font-bold text-brand hover:underline">View all</Link>
+          </div>
+          <div className="divide-y divide-borderline">
+            {recentOrders.map((order) => (
+              <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between gap-4 py-4 hover:bg-bg2 -mx-2 px-2 rounded transition">
+                <div>
+                  <p className="font-bold text-ink">{order.numero_orden}</p>
+                  <p className="text-sm text-ink2 mt-0.5">${Number(order.total).toLocaleString()} · {order.items?.length || 0} items</p>
+                </div>
+                <span className={`px-3 py-1 rounded text-xs font-bold shrink-0 ${ORDER_STATUS_COLORS[order.estado] || 'bg-bg2 text-ink2'}`}>
+                  {order.estado_display || order.estado}
+                </span>
+              </Link>
             ))}
           </div>
         </div>

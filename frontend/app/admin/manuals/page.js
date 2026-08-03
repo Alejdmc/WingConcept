@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Eye, EyeOff, Upload } from 'lucide-react'
 import { api } from '@/lib/api'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const PAGE_FALLBACK = {
   hero: {
@@ -178,8 +179,13 @@ function PageBlockForm({ label, initial, onSave }) {
       </div>
       {form.tipo === 'hero' && (
         <div>
-          <label className="block text-sm font-semibold mb-1">Hero image (URL or path)</label>
-          <input name="imagen" value={form.imagen} onChange={handleChange} placeholder="/images/front1.jpg" className="w-full p-2 border rounded" />
+          <ImageUploadField
+            images={form.imagen ? [form.imagen] : []}
+            onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+            label="Hero image"
+            maxImages={1}
+          />
+          <input name="imagen" value={form.imagen} onChange={handleChange} placeholder="/images/front1.jpg or uploaded URL" className="w-full p-2 border rounded mt-2 text-sm" />
         </div>
       )}
       <button type="submit" disabled={saving} className="px-4 py-2 bg-brand text-white rounded font-semibold disabled:opacity-50">

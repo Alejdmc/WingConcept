@@ -102,7 +102,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     <span className={`px-3 py-1 rounded text-xs font-bold ${ESTADO_COLORS[order.estado] || 'bg-bg2 text-ink2'}`}>
-                      {ESTADO_LABELS[order.estado] || order.estado}
+                      {order.estado_display || ESTADO_LABELS[order.estado] || order.estado}
                     </span>
                     <span className="font-black text-brand text-lg">${Number(order.total).toLocaleString()}</span>
                   </div>

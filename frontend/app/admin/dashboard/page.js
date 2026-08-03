@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BarChart3, Package, ShoppingCart, TrendingUp, Users, Clock3 } from 'lucide-react'
+import { BarChart3, Package, ShoppingCart, TrendingUp, Users, Clock3, AlertTriangle } from 'lucide-react'
 import { api } from '@/lib/api'
 
 const STATUS_COLORS = {
@@ -111,6 +111,50 @@ export default function DashboardPage() {
 
       {error && (
         <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>
+      )}
+
+      {!loading && stats?.stock_bajo_total > 0 && (
+        <div className="mb-8 p-5 rounded-lg border-2 border-orange-300 bg-orange-50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-6 h-6 text-orange-600 shrink-0 mt-0.5" />
+              <div>
+                <h2 className="font-black text-lg text-orange-900">Low stock alert</h2>
+                <p className="text-sm text-orange-800 mt-1">
+                  {stats.stock_bajo_total} item{stats.stock_bajo_total !== 1 ? 's' : ''} at or below{' '}
+                  {stats.stock_bajo_umbral ?? 2} units in Parts &amp; Cart catalog.
+                </p>
+              </div>
+            </div>
+            <Link href="/admin/parts" className="shrink-0 px-4 py-2 bg-orange-600 text-white rounded font-semibold text-sm hover:bg-orange-700">
+              Manage inventory
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
+              <thead>
+                <tr className="text-left text-orange-900/80">
+                  <th className="py-2 pr-4 font-semibold">Product</th>
+                  <th className="py-2 pr-4 font-semibold">Category</th>
+                  <th className="py-2 font-semibold">Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats.alertas_stock || []).slice(0, 8).map((item) => (
+                  <tr key={item.variante_id} className="border-t border-orange-200/80">
+                    <td className="py-2 pr-4 font-semibold text-orange-950">{item.nombre}</td>
+                    <td className="py-2 pr-4 capitalize text-orange-900">{item.categoria}</td>
+                    <td className="py-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.stock === 0 ? 'bg-red-200 text-red-800' : 'bg-orange-200 text-orange-900'}`}>
+                        {item.stock} left
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">

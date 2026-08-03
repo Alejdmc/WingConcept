@@ -70,6 +70,11 @@ def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoLis
         variantes_activas[0] if variantes_activas else None,
     )
     specs = _format_specs(variante_principal.atributos if variante_principal else None)
+    compatible_with = None
+    if variante_principal and variante_principal.atributos:
+        raw = variante_principal.atributos.get("compatible_with")
+        if isinstance(raw, list):
+            compatible_with = [str(x) for x in raw if x]
 
     return ProductoListResponse(
         id=p.id,
@@ -88,6 +93,7 @@ def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoLis
         price=_format_price(precio_desde),
         desc=p.descripcion_corta,
         specs=specs,
+        compatible_with=compatible_with,
     )
 
 
@@ -310,6 +316,7 @@ class ProductoService:
         pagina: int = 1,
         por_pagina: int = 20,
         buscar: Optional[str] = None,
+        categoria: Optional[str] = None,
     ) -> PaginatedAdminProductos:
         """Lista productos para el panel de admin con stock total y ventas."""
         from app.models.variante import Variante
@@ -318,6 +325,8 @@ class ProductoService:
         query = select(Producto).options(selectinload(Producto.variantes))
         if buscar:
             query = query.where(Producto.nombre.ilike(f"%{buscar}%"))
+        if categoria:
+            query = query.where(Producto.categoria == categoria.lower().strip())
 
         count_result = await db.execute(
             select(func.count()).select_from(query.subquery())

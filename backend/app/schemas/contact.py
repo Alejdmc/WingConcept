@@ -1,16 +1,21 @@
 """
 WingConcept Backend — Contact form schema
 """
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 from app.utils.validators import sanitizar_texto, validar_email
 
 
 class ContactRequest(BaseModel):
+    model_config = {"populate_by_name": True}
+
     nombre: str = Field(..., min_length=2, max_length=120)
     email: str = Field(..., max_length=255)
     asunto: str = Field(..., min_length=3, max_length=200)
     mensaje: str = Field(..., min_length=10, max_length=5000)
+    captcha_token: Optional[str] = Field(None, max_length=2048, alias="captchaToken")
 
     @field_validator("nombre", "asunto", "mensaje")
     @classmethod

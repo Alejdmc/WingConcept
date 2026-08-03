@@ -9,6 +9,7 @@ import { persistAuthSession } from '@/lib/auth'
 import { useCart } from '@/hooks/useCart'
 import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, resolveInviteToken, saveInviteToken, clearInviteToken } from '@/lib/authFlow'
 import { isValidEmail, buildVerifyPendingUrl, shouldRequireEmailVerification } from '@/lib/validation'
+import TurnstileWidget, { isCaptchaEnabled } from '@/components/ui/TurnstileWidget'
 
 export default function LoginPage() {
   return (
@@ -28,6 +29,8 @@ function LoginForm() {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   useEffect(() => {
     saveAuthNext(nextUrl)
@@ -90,15 +93,24 @@ function LoginForm() {
       return
     }
 
+    if (isCaptchaEnabled() && !captchaToken) {
+      setError('Please complete the captcha verification.')
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await api.auth.login({
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
+        captchaToken,
       })
       persistAuthSession({ ...res, expires_in: res.expires_in || 60 * 60 * 24 * 7 })
       await completeLogin(res)
     } catch (err) {
       setError(err.detail || err.message || 'Login failed. Check that the backend is running.')
+      setCaptchaKey((k) => k + 1)
+      setCaptchaToken('')
     } finally {
       setLoading(false)
     }
@@ -194,6 +206,13 @@ function LoginForm() {
                 </Link>
               </div>
             </div>
+
+            <TurnstileWidget
+              resetKey={captchaKey}
+              onToken={setCaptchaToken}
+              onExpire={() => setCaptchaToken('')}
+              className="flex justify-center"
+            />
 
             <button
               type="submit"

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText } from 'lucide-react'
+import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText, Wrench } from 'lucide-react'
 import { clearAuthSession } from '@/lib/auth'
 import { api } from '@/lib/api'
 
@@ -13,10 +13,12 @@ export default function AdminLayout({ children }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [ready, setReady] = useState(false)
   const [user, setUser] = useState(null)
+  const [lowStockCount, setLowStockCount] = useState(0)
 
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { label: 'Products', href: '/admin/products', icon: Package },
+    { label: 'Parts & Cart', href: '/admin/parts', icon: Wrench },
     { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Users', href: '/admin/users', icon: Users },
     { label: 'Content', href: '/admin/contenido', icon: Compass },
@@ -36,6 +38,12 @@ export default function AdminLayout({ children }) {
         }
         setUser(me)
         setReady(true)
+        try {
+          const stats = await api.admin.stats()
+          setLowStockCount(stats?.stock_bajo_total || 0)
+        } catch {
+          setLowStockCount(0)
+        }
       } catch {
         const next = pathname?.startsWith('/admin') ? pathname : '/admin/dashboard'
         router.replace(`/login?next=${encodeURIComponent(next)}`)
@@ -93,9 +101,14 @@ export default function AdminLayout({ children }) {
               key={href}
               href={href}
               onClick={() => setMobileSidebarOpen(false)}
-              className="flex items-center gap-4 px-4 py-3 rounded hover:bg-white/10 transition">
+              className="flex items-center gap-4 px-4 py-3 rounded hover:bg-white/10 transition relative">
               <Icon className="w-5 h-5 flex-shrink-0" />
               <span className={`text-sm font-semibold ${!sidebarOpen && 'md:hidden'}`}>{label}</span>
+              {href === '/admin/parts' && lowStockCount > 0 && (
+                <span className={`ml-auto px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold ${!sidebarOpen && 'md:absolute md:top-2 md:right-2 md:ml-0'}`}>
+                  {lowStockCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

@@ -188,52 +188,63 @@ class EmailService:
             "html": self._wrap(body, preheader="Confirm your email to activate your WingConcept account."),
         }, "verificacion_email", email)
 
-    async def enviar_confirmacion_orden(
-        self, email: str, nombre: str, numero_orden: str, total: float, moneda: str
-    ) -> bool:
-        """Confirmación de orden creada."""
-        body = f"""
-        {self._heading(f"Thank you for your purchase, {nombre}!")}
-        <p>Your order has been received and is now being processed.</p>
+    def _order_link(self, orden_id: Optional[str] = None) -> str:
+        base = settings.FRONTEND_URL.rstrip("/")
+        if orden_id:
+            return f"{base}/orders/{orden_id}"
+        return f"{base}/orders"
+
+    def _order_box(self, rows: list[tuple[str, str]], *, highlight_last: bool = False) -> str:
+        inner = ""
+        for i, (label, value) in enumerate(rows):
+            is_last = i == len(rows) - 1
+            color = _BRAND if highlight_last and is_last else _INK
+            inner += f"""
+              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">{label}</p>
+              <p style="margin:0 0 14px;font-size:16px;font-weight:700;color:{color};">{value}</p>"""
+        return f"""
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
           style="margin:20px 0;background-color:{_BG2};border-radius:8px;">
-          <tr>
-            <td style="padding:16px 20px;">
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Order number</p>
-              <p style="margin:0 0 14px;font-size:16px;font-weight:700;color:{_INK};">#{numero_orden}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Total</p>
-              <p style="margin:0;font-size:16px;font-weight:700;color:{_BRAND};">{total:,.2f} {moneda}</p>
-            </td>
-          </tr>
-        </table>
-        <p>We'll notify you as soon as your order has been shipped.</p>
+          <tr><td style="padding:16px 20px;">{inner}</td></tr>
+        </table>"""
+
+    async def enviar_confirmacion_orden(
+        self, email: str, nombre: str, numero_orden: str, total: float, moneda: str,
+        orden_id: Optional[str] = None,
+    ) -> bool:
+        """Confirmación de orden creada (pendiente de pago)."""
+        track_url = self._order_link(orden_id)
+        body = f"""
+        {self._heading(f"Thank you for your order, {nombre}!")}
+        <p>We received your order. Complete payment to confirm it, or check status anytime in your account.</p>
+        {self._order_box([
+            ("Order number", f"#{numero_orden}"),
+            ("Total", f"{total:,.2f} {moneda}"),
+        ], highlight_last=True)}
+        {self._button(track_url, "View order status")}
+        <p style="color:{_INK2};font-size:13px;">We'll email you at each step: payment, preparation, shipping and delivery.</p>
         """
         return self._enviar({
             "from": self._from_address(),
             "to": [email],
-            "subject": f"Order confirmation #{numero_orden} — WingConcept",
+            "subject": f"Order received #{numero_orden} — WingConcept",
             "html": self._wrap(body, preheader=f"Your order #{numero_orden} has been received."),
         }, "confirmacion_orden", email)
 
     async def enviar_pago_confirmado(
-        self, email: str, nombre: str, numero_orden: str, proveedor: str
+        self, email: str, nombre: str, numero_orden: str, proveedor: str,
+        orden_id: Optional[str] = None,
     ) -> bool:
         """Notifica que el pago fue procesado exitosamente."""
+        track_url = self._order_link(orden_id)
         body = f"""
-        {self._heading(f"Payment received, {nombre}")}
-        <p>Your payment for the order below was processed successfully.</p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-          style="margin:20px 0;background-color:{_BG2};border-radius:8px;">
-          <tr>
-            <td style="padding:16px 20px;">
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Order number</p>
-              <p style="margin:0 0 14px;font-size:16px;font-weight:700;color:{_INK};">#{numero_orden}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Payment provider</p>
-              <p style="margin:0;font-size:16px;font-weight:700;color:{_INK};">{proveedor.upper()}</p>
-            </td>
-          </tr>
-        </table>
-        <p>Your order is now being prepared.</p>
+        {self._heading(f"Payment confirmed, {nombre}")}
+        <p>Your payment was processed successfully. We're preparing your order.</p>
+        {self._order_box([
+            ("Order number", f"#{numero_orden}"),
+            ("Payment provider", proveedor.upper()),
+        ])}
+        {self._button(track_url, "Track your order")}
         """
         return self._enviar({
             "from": self._from_address(),
@@ -242,6 +253,22 @@ class EmailService:
             "html": self._wrap(body, preheader=f"Payment confirmed for order #{numero_orden}."),
         }, "pago_confirmado", email)
 
+    async def enviar_orden_procesando(
+        self, email: str, nombre: str, numero_orden: str, orden_id: Optional[str] = None,
+    ) -> bool:
+        body = f"""
+        {self._heading(f"We're preparing your order, {nombre}")}
+        <p>Your order is being prepared in our warehouse. We'll notify you when it ships.</p>
+        {self._order_box([("Order number", f"#{numero_orden}")])}
+        {self._button(self._order_link(orden_id), "View order details")}
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": f"Order in preparation — #{numero_orden}",
+            "html": self._wrap(body, preheader=f"Order #{numero_orden} is being prepared."),
+        }, "orden_procesando", email)
+
     async def enviar_orden_enviada(
         self,
         email: str,
@@ -249,30 +276,90 @@ class EmailService:
         numero_orden: str,
         numero_guia: str,
         transportadora: str,
+        orden_id: Optional[str] = None,
     ) -> bool:
-        """Notifica que la orden fue despachada con número de guía."""
+        """Notifica que la orden fue despachada."""
         body = f"""
         {self._heading(f"Your order is on its way, {nombre}!")}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-          style="margin:20px 0;background-color:{_BG2};border-radius:8px;">
-          <tr>
-            <td style="padding:16px 20px;">
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Order number</p>
-              <p style="margin:0 0 14px;font-size:16px;font-weight:700;color:{_INK};">#{numero_orden}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Carrier</p>
-              <p style="margin:0 0 14px;font-size:16px;font-weight:700;color:{_INK};">{transportadora}</p>
-              <p style="margin:0 0 6px;font-size:13px;color:{_INK2};">Tracking number</p>
-              <p style="margin:0;font-size:16px;font-weight:700;color:{_BRAND};">{numero_guia}</p>
-            </td>
-          </tr>
-        </table>
+        {self._order_box([
+            ("Order number", f"#{numero_orden}"),
+            ("Carrier", transportadora),
+            ("Tracking number", numero_guia),
+        ], highlight_last=True)}
+        {self._button(self._order_link(orden_id), "View order & timeline")}
         """
         return self._enviar({
             "from": self._from_address(),
             "to": [email],
-            "subject": f"Your order has shipped — Order #{numero_orden}",
+            "subject": f"Your order has shipped — #{numero_orden}",
             "html": self._wrap(body, preheader=f"Order #{numero_orden} has shipped."),
         }, "orden_enviada", email)
+
+    async def enviar_orden_entregada(
+        self, email: str, nombre: str, numero_orden: str, orden_id: Optional[str] = None,
+    ) -> bool:
+        body = f"""
+        {self._heading(f"Order delivered, {nombre}!")}
+        <p>Your order has been marked as delivered. We hope you enjoy your WingConcept gear.</p>
+        {self._order_box([("Order number", f"#{numero_orden}")])}
+        {self._button(self._order_link(orden_id), "View order summary")}
+        <p style="color:{_INK2};font-size:13px;">Questions or issues? Reply to our contact form at wingconcept.com/contact</p>
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": f"Order delivered — #{numero_orden}",
+            "html": self._wrap(body, preheader=f"Order #{numero_orden} has been delivered."),
+        }, "orden_entregada", email)
+
+    async def enviar_orden_cancelada(
+        self, email: str, nombre: str, numero_orden: str, orden_id: Optional[str] = None,
+    ) -> bool:
+        body = f"""
+        {self._heading(f"Order cancelled, {nombre}")}
+        <p>Your order has been cancelled. If you were charged, a refund will be processed according to our terms.</p>
+        {self._order_box([("Order number", f"#{numero_orden}")])}
+        {self._button(self._order_link(orden_id), "View order details")}
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": f"Order cancelled — #{numero_orden}",
+            "html": self._wrap(body, preheader=f"Order #{numero_orden} was cancelled."),
+        }, "orden_cancelada", email)
+
+    async def enviar_orden_reembolsada(
+        self, email: str, nombre: str, numero_orden: str, orden_id: Optional[str] = None,
+    ) -> bool:
+        body = f"""
+        {self._heading(f"Refund processed, {nombre}")}
+        <p>Your order has been refunded. Depending on your bank, funds may take 5–10 business days to appear.</p>
+        {self._order_box([("Order number", f"#{numero_orden}")])}
+        {self._button(self._order_link(orden_id), "View order details")}
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": f"Refund issued — Order #{numero_orden}",
+            "html": self._wrap(body, preheader=f"Refund processed for order #{numero_orden}."),
+        }, "orden_reembolsada", email)
+
+    async def enviar_orden_error_stock(
+        self, email: str, nombre: str, numero_orden: str, orden_id: Optional[str] = None,
+    ) -> bool:
+        body = f"""
+        {self._heading(f"Update on your order, {nombre}")}
+        <p>Your payment was received, but one or more items are temporarily out of stock. Our team is resolving this and will contact you shortly.</p>
+        {self._order_box([("Order number", f"#{numero_orden}")])}
+        {self._button(self._order_link(orden_id), "View order status")}
+        <p style="color:{_INK2};font-size:13px;">No further action is required right now. We apologize for the inconvenience.</p>
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [email],
+            "subject": f"Stock update — Order #{numero_orden}",
+            "html": self._wrap(body, preheader=f"Important update about order #{numero_orden}."),
+        }, "orden_error_stock", email)
 
     async def enviar_cupon_descuento(
         self,

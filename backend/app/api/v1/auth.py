@@ -29,6 +29,7 @@ from app.schemas.auth import (
 from app.schemas.invitacion import AcceptAdminInviteRequest
 from app.schemas.usuario import UsuarioResponse
 from app.services.auth_service import auth_service
+from app.services.captcha_service import verify_turnstile
 from app.services.email_service import email_service
 from app.services.invitation_service import invitation_service
 from app.utils.redis_client import check_rate_limit
@@ -82,6 +83,8 @@ async def register(
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos de registro. Espera 1 hora.")
 
+    await verify_turnstile(data.captcha_token, client_ip)
+
     usuario = await auth_service.registrar(db, data)
 
     # Enviar emails (no bloquear registro si fallan)
@@ -132,6 +135,8 @@ async def login(
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos fallidos. Espera 15 minutos.")
 
+    await verify_turnstile(data.captcha_token, client_ip)
+
     login_data = await auth_service.login(db, data)
     _set_auth_cookies(response, login_data.access_token, login_data.refresh_token)
 
@@ -180,6 +185,8 @@ async def recuperar_password(
     )
     if not permitido:
         raise PermisosDenegadosError("Demasiados intentos. Espera 1 hora.")
+
+    await verify_turnstile(data.captcha_token, client_ip)
 
     try:
         token_data = await auth_service.solicitar_recuperacion(db, data.email)

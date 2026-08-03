@@ -35,10 +35,22 @@ const PUBLIC_PATHS = new Set([
   '/contenidos/manuals',
   '/dealers',
   '/contact',
+  '/productos',
 ])
 
+const PROTECTED_PREFIXES = ['/checkout', '/orders', '/cuenta', '/admin']
+
+function isProtectedPage(pathname) {
+  if (!pathname) return false
+  return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+}
+
 function isPublicPath(path) {
-  return PUBLIC_PATHS.has(path) || path.startsWith('/auth/verify-email')
+  const base = path.split('?')[0]
+  if (PUBLIC_PATHS.has(base)) return true
+  if (base.startsWith('/auth/verify-email')) return true
+  if (base.startsWith('/productos')) return true
+  return false
 }
 
 function getSessionId() {
@@ -61,9 +73,13 @@ function clearSessionAndRedirect() {
   document.cookie = 'refresh_token=; path=/; max-age=0'
   document.cookie = 'user=; path=/; max-age=0'
   const path = window.location.pathname
-  if (!path.startsWith('/login') && !path.startsWith('/register') && !path.includes('forgot-password')) {
-    window.location.href = '/login?session_expired=true'
+  if (path.startsWith('/login') || path.startsWith('/register') || path.includes('forgot-password')) {
+    return
   }
+  if (!isProtectedPage(path)) {
+    return
+  }
+  window.location.href = '/login?session_expired=true'
 }
 
 async function parseErrorResponse(res) {
@@ -165,7 +181,7 @@ async function request(path, options = {}) {
   return res.status === 204 ? null : res.json()
 }
 
-async function uploadRequest(path, file) {
+async function uploadRequest(path, file, extraFields = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
 
@@ -179,6 +195,9 @@ async function uploadRequest(path, file) {
     body: (() => {
       const formData = new FormData()
       formData.append('file', file)
+      Object.entries(extraFields).forEach(([key, value]) => {
+        if (value != null && value !== '') formData.append(key, String(value))
+      })
       return formData
     })(),
   })
@@ -232,8 +251,8 @@ export const api = {
     resendVerificationEmail: (email) =>
       request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
     logout: () => request('/auth/logout', { method: 'POST' }),
-    forgotPassword: (email) =>
-      request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email }), skipAuth: true }),
+    forgotPassword: (email, captchaToken = '') =>
+      request('/auth/recuperar', { method: 'POST', body: JSON.stringify({ email, captchaToken }), skipAuth: true }),
     resetPassword: (data) =>
       request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
     acceptAdminInvite: (data) =>
@@ -268,6 +287,7 @@ export const api = {
 
   admin: {
     stats: () => request('/admin/stats'),
+    stockAlertas: () => request('/admin/stock/alertas'),
     productos: (params = {}) => request(`/admin/productos${buildQuery(params)}`),
     obtenerProducto: (productoId) => request(`/admin/productos/${productoId}`),
     crearProducto: (data) => request('/admin/productos', { method: 'POST', body: JSON.stringify(data) }),
@@ -306,6 +326,10 @@ export const api = {
     eliminarManual: (manualId, permanente = false) =>
       request(`/admin/manuals/${manualId}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
     uploadManual: (file) => uploadRequest('/admin/uploads/manual', file),
+    uploadImagen: (file, productoId = null) =>
+      uploadRequest('/admin/uploads/imagen', file, productoId ? { producto_id: productoId } : {}),
+    actualizarVariante: (varianteId, data) =>
+      request(`/admin/variantes/${varianteId}/stock`, { method: 'PATCH', body: JSON.stringify(data) }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure', { skipAuth: true }),

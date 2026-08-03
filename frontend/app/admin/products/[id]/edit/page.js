@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import { api } from '@/lib/api'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const CATEGORIAS = ['paramotor', 'vela', 'motor', 'accesorios', 'repuestos', 'paratrike']
 
@@ -17,6 +18,7 @@ export default function EditProductPage({ params }) {
     categoria: 'paramotor',
     activo: true,
     destacado: false,
+    imagenes: [],
   })
   const [variantes, setVariantes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,6 +38,7 @@ export default function EditProductPage({ params }) {
           categoria: data.categoria || 'paramotor',
           activo: data.activo ?? true,
           destacado: data.destacado ?? false,
+          imagenes: data.imagenes || [],
         })
         setVariantes(data.variantes || [])
       } catch {
@@ -149,6 +152,14 @@ export default function EditProductPage({ params }) {
             <label className="block text-sm font-semibold text-ink mb-1">Description</label>
             <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={4} className="w-full p-3 border border-borderline rounded" />
           </div>
+
+          <ImageUploadField
+            images={form.imagenes}
+            onChange={(imagenes) => setForm({ ...form, imagenes })}
+            productoId={id}
+            label="Product images"
+          />
+
           <div className="flex gap-6">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} />

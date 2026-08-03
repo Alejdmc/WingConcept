@@ -46,6 +46,7 @@ from app.services.dealer_service import dealer_service
 from app.services.manual_service import manual_service
 from app.services.invitation_service import invitation_service
 from app.services.email_service import email_service
+from app.services.stock_service import stock_service
 from app.services.admin_policy import assert_invite_flow_allowed
 from app.config import settings
 
@@ -85,6 +86,8 @@ async def dashboard_stats(
     )
     kg_vendidos = float(kg_result.scalar() or 0)
 
+    alertas_stock = await stock_service.listar_alertas_stock(db)
+
     return {
         "total_usuarios": total_usuarios,
         "total_productos_activos": total_productos,
@@ -92,6 +95,23 @@ async def dashboard_stats(
         "ordenes_pendientes": ordenes_pendientes,
         "ingresos_totales": ingresos_totales,
         "kg_vendidos": kg_vendidos,
+        "stock_bajo_total": len(alertas_stock),
+        "stock_bajo_umbral": settings.LOW_STOCK_THRESHOLD,
+        "alertas_stock": alertas_stock[:20],
+    }
+
+
+@router.get("/stock/alertas")
+async def alertas_stock_admin(
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Lista completa de partes/accesorios con stock bajo o agotado."""
+    alertas = await stock_service.listar_alertas_stock(db)
+    return {
+        "umbral": settings.LOW_STOCK_THRESHOLD,
+        "total": len(alertas),
+        "items": alertas,
     }
 
 
@@ -250,11 +270,12 @@ async def listar_productos_admin(
     pagina: int = Query(1, ge=1),
     por_pagina: int = Query(20, ge=1, le=100),
     buscar: Optional[str] = Query(None, max_length=100),
+    categoria: Optional[str] = Query(None, max_length=100),
     db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
     """Lista todos los productos con stock y ventas para el panel de admin."""
-    return await producto_service.listar_admin(db, pagina, por_pagina, buscar)
+    return await producto_service.listar_admin(db, pagina, por_pagina, buscar, categoria)
 
 
 @router.get("/productos/{producto_id}", response_model=ProductoResponse)
@@ -373,29 +394,6 @@ async def actualizar_orden(
         data = data.model_copy(update={"estado": estado_interno})
 
     orden_response = await orden_service.actualizar_estado(db, orden_id, data)
-
-    # Enviar email si se marca como enviada
-    if (
-        estado_interno == "enviado"
-        and data.numero_guia
-        and data.transportadora
-    ):
-        result = await db.execute(
-            select(Orden)
-            .options(selectinload(Orden.usuario))
-            .where(Orden.id == orden_id)
-        )
-        orden = result.scalar_one_or_none()
-        if orden and orden.usuario:
-            from app.services.email_service import email_service
-            await email_service.enviar_orden_enviada(
-                email=orden.usuario.email,
-                nombre=orden.usuario.nombre,
-                numero_orden=orden.numero_orden,
-                numero_guia=data.numero_guia,
-                transportadora=data.transportadora,
-            )
-
     return orden_response
 
 

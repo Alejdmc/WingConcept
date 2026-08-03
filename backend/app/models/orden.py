@@ -14,6 +14,7 @@ from app.database import Base
 
 if TYPE_CHECKING:
     from app.models.direccion_envio import DireccionEnvio
+    from app.models.orden_evento import OrdenEvento
     from app.models.pago import Pago
     from app.models.usuario import Usuario
     from app.models.variante import Variante
@@ -86,6 +87,10 @@ class Orden(Base):
     pago: Mapped[Optional["Pago"]] = relationship("Pago", back_populates="orden", uselist=False)
     direccion_envio: Mapped[Optional["DireccionEnvio"]] = relationship(
         "DireccionEnvio", back_populates="ordenes"
+    )
+    eventos: Mapped[List["OrdenEvento"]] = relationship(
+        "OrdenEvento", back_populates="orden", cascade="all, delete-orphan",
+        order_by="OrdenEvento.created_at",
     )
 
     def __repr__(self) -> str:

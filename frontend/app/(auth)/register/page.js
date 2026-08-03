@@ -7,6 +7,7 @@ import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle, Pho
 import { api } from '@/lib/api'
 import { saveAuthNext, getAuthNext, clearAuthNext, buildAuthUrl, getInviteToken, saveInviteToken } from '@/lib/authFlow'
 import { isValidEmail, buildVerifyPendingUrl } from '@/lib/validation'
+import TurnstileWidget, { isCaptchaEnabled } from '@/components/ui/TurnstileWidget'
 
 export default function RegisterPage() {
   return (
@@ -26,6 +27,9 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaKey, setCaptchaKey] = useState(0)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   useEffect(() => {
     saveAuthNext(nextUrl)
@@ -74,6 +78,16 @@ function RegisterForm() {
       return
     }
 
+    if (isCaptchaEnabled() && !captchaToken) {
+      setError('Please complete the captcha verification.')
+      return
+    }
+
+    if (!acceptedTerms) {
+      setError('You must accept the Terms of Service and Privacy Policy to create an account.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -83,6 +97,7 @@ function RegisterForm() {
         email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono,
         password: formData.password,
+        captchaToken,
       })
 
       setSuccess('Account created! Check your email to verify your address.')
@@ -95,6 +110,8 @@ function RegisterForm() {
     } catch (err) {
       const detail = err.detail || 'Error creating account. Please try again.'
       setError(detail)
+      setCaptchaKey((k) => k + 1)
+      setCaptchaToken('')
     } finally {
       setLoading(false)
     }
@@ -267,9 +284,36 @@ function RegisterForm() {
               </div>
             </div>
 
+            <TurnstileWidget
+              resetKey={captchaKey}
+              onToken={setCaptchaToken}
+              onExpire={() => setCaptchaToken('')}
+              className="flex justify-center"
+            />
+
+            <label className="flex items-start gap-3 cursor-pointer mt-2">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-borderline text-brand focus:ring-brand"
+              />
+              <span className="text-sm text-ink2 leading-relaxed">
+                I agree to the{' '}
+                <Link href="/terms" target="_blank" className="text-brand font-semibold hover:underline">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" target="_blank" className="text-brand font-semibold hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
+
             {/* Submit Button */}
             <button 
-              disabled={loading} 
+              disabled={loading || !acceptedTerms} 
               className="w-full py-4 bg-brand text-white font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 disabled:opacity-50 transition mt-6">
               {loading ? 'Creating Account...' : isCheckoutFlow ? 'Create Account & Continue' : 'Create Account'}
             </button>
