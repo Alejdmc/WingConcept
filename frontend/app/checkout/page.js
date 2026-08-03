@@ -80,7 +80,11 @@ export default function CheckoutPage() {
 
   const cart = { items, total: cartTotal, cantidad_items: items.reduce((s, i) => s + (i.cantidad || 1), 0) }
 
-  if (cart.items.length === 0) {
+  // Tras crear la orden el carrito queda vacío en el servidor; el paso 3 (pago) sigue siendo válido.
+  const pendingOrderId =
+    typeof window !== 'undefined' ? sessionStorage.getItem('current_order_id') : null
+
+  if (cart.items.length === 0 && currentStep < 3 && !pendingOrderId) {
     return (
       <div className="min-h-screen bg-bg px-8 py-12">
         <div className="max-w-4xl mx-auto text-center">
@@ -195,7 +199,6 @@ export default function CheckoutPage() {
                 setStep={setCurrentStep}
                 appliedCoupon={appliedCoupon}
                 setCartError={setCartError}
-                onOrderCreated={refetch}
               />
             )}
             {currentStep === 3 && <PaymentStep setStep={setCurrentStep} />}
@@ -393,7 +396,7 @@ const COUNTRY_OPTIONS = [
   { code: 'IT', name: 'Italy' },
 ]
 
-function ShippingStep({ setStep, appliedCoupon, setCartError, onOrderCreated }) {
+function ShippingStep({ setStep, appliedCoupon, setCartError }) {
   const [formData, setFormData] = useState({
     nombre_destinatario: '',
     telefono: '',
@@ -455,8 +458,8 @@ function ShippingStep({ setStep, appliedCoupon, setCartError, onOrderCreated }) 
       })
 
       sessionStorage.setItem('current_order_id', res.id)
-      await onOrderCreated?.()
       setStep(3)
+      // No refetch aquí: vaciaría el carrito en UI antes del paso de pago (refetch en /checkout/exito)
     } catch (err) {
       console.error('Error creating order:', err)
       setCartError(err.detail || 'Error creating order. Please try again.')
