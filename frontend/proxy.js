@@ -37,7 +37,7 @@ function loginRedirect(request) {
   return NextResponse.redirect(loginUrl)
 }
 
-export async function middleware(request) {
+export async function proxy(request) {
   const token = request.cookies.get('access_token')?.value
   const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 

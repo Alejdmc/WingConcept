@@ -72,6 +72,7 @@ class ProductoCreate(BaseModel):
     destacado: bool = False
     orden_display: int = 0
     variantes: Optional[List[VarianteCreate]] = None
+    contenido_extra: Optional[Dict[str, Any]] = None
 
     @field_validator("categoria")
     @classmethod
@@ -98,6 +99,7 @@ class ProductoUpdate(BaseModel):
     activo: Optional[bool] = None
     destacado: Optional[bool] = None
     orden_display: Optional[int] = None
+    contenido_extra: Optional[Dict[str, Any]] = None
 
     @field_validator("categoria")
     @classmethod
@@ -128,6 +130,7 @@ class ProductoResponse(BaseModel):
     activo: bool
     destacado: bool
     orden_display: int
+    contenido_extra: Optional[Dict[str, Any]] = None
     variantes: List[VarianteResponse] = []
     created_at: datetime
     updated_at: datetime
@@ -156,6 +159,7 @@ class ProductoListResponse(BaseModel):
     activo: bool
     destacado: bool
     precio_desde: Optional[float] = None  # Precio mínimo de variantes activas
+    contenido_extra: Optional[Dict[str, Any]] = None
 
     # Campos amigables para el frontend
     name: Optional[str] = None    # = nombre

@@ -35,6 +35,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 CACHE_PREFIX = "productos"
+ADMIN_LIST_TTL = 60
 
 
 def _format_price(precio: Optional[float]) -> Optional[str]:
@@ -87,6 +88,7 @@ def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoLis
         activo=p.activo,
         destacado=p.destacado,
         precio_desde=precio_desde,
+        contenido_extra=p.contenido_extra,
         # Campos amigables para el frontend
         name=p.nombre,
         image=p.imagenes[0] if p.imagenes else None,
@@ -211,10 +213,9 @@ class ProductoService:
                 db.add(variante)
             await db.flush()
 
-        await db.refresh(producto)
         await cache_delete_pattern(f"{CACHE_PREFIX}:list:*")
         logger.info(f"Producto creado: {producto.nombre}")
-        return ProductoResponse.model_validate(producto)
+        return await self.obtener_admin(db, producto.id)
 
     async def obtener_admin(self, db: AsyncSession, producto_id: UUID) -> ProductoResponse:
         """Obtiene un producto completo por ID para el panel admin."""
@@ -236,7 +237,7 @@ class ProductoService:
 
         await db.flush()
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
-        return ProductoResponse.model_validate(producto)
+        return await self.obtener_admin(db, producto_id)
 
     async def eliminar(self, db: AsyncSession, producto_id: UUID) -> None:
         """Soft delete: desactiva el producto en lugar de eliminarlo."""
@@ -322,6 +323,14 @@ class ProductoService:
         from app.models.variante import Variante
         from app.models.orden import ItemOrden
 
+        cache_key = (
+            f"{CACHE_PREFIX}:admin:list:{pagina}:{por_pagina}:"
+            f"{buscar or ''}:{categoria or ''}"
+        )
+        cached = await cache_get(cache_key)
+        if cached:
+            return PaginatedAdminProductos(**cached)
+
         query = select(Producto).options(selectinload(Producto.variantes))
         if buscar:
             query = query.where(Producto.nombre.ilike(f"%{buscar}%"))
@@ -372,13 +381,15 @@ class ProductoService:
                 subcategoria=p.subcategoria,
             ))
 
-        return PaginatedAdminProductos(
+        result = PaginatedAdminProductos(
             items=items,
             total=total,
             pagina=pagina,
             por_pagina=por_pagina,
             paginas=math.ceil(total / por_pagina) if total > 0 else 0,
         )
+        await cache_set(cache_key, result.model_dump(), ttl=ADMIN_LIST_TTL)
+        return result
 
     async def listar_categorias(self, db: AsyncSession) -> List[CategoriaResponse]:
         """Retorna categorías disponibles con conteo de productos activos."""

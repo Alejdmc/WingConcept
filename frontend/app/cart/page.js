@@ -6,7 +6,7 @@ import { saveAuthNext } from '@/lib/authFlow'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { formatConfigSummary } from '@/hooks/useCms'
 
 export default function CartPage() {
   const router = useRouter()
@@ -107,8 +107,15 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-bold text-ink text-lg pr-8">{item.name}</h3>
-                      <p className="text-sm text-ink2 mb-4">{item.price}</p>
+                      <h3 className="font-bold text-ink text-lg pr-8">{item.name || item.producto_nombre}</h3>
+                      <p className="text-sm text-ink2 mb-2">{item.price}</p>
+                      {item.configuracion && formatConfigSummary(item.configuracion).length > 0 && (
+                        <ul className="text-xs text-ink2 space-y-0.5 mb-3">
+                          {formatConfigSummary(item.configuracion).map((line) => (
+                            <li key={line.label}><span className="font-semibold text-ink">{line.label}:</span> {line.value}</li>
+                          ))}
+                        </ul>
+                      )}
 
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
                         <button

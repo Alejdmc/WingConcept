@@ -1,10 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, MapPin, Calendar, Users, Clock, ArrowRight } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import Reveal from '@/components/ui/Reveal'
 import { api } from '@/lib/api'
+import { useContenido } from '@/hooks/useContenido'
 import { TOURISTIC_FLIGHT_SCHEDULE } from '@/lib/touristFlight'
 
 const FALLBACK = {
@@ -20,26 +21,11 @@ const FALLBACK = {
 }
 
 export default function AdventurePage() {
-  const [content, setContent] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { content, loading } = useContenido('adventure', () => api.contenidos.adventure(), FALLBACK)
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api.contenidos.adventure()
-        setContent(data)
-      } catch {
-        setContent(FALLBACK)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
-
-  const hero = content?.hero || FALLBACK.hero
-  const intro = content?.intro || FALLBACK.intro
-  const expediciones = content?.expediciones || FALLBACK.expediciones
+  const hero = content.hero
+  const intro = content.intro
+  const expediciones = content.expediciones
 
   return (
     <div className="min-h-screen bg-white">
@@ -58,21 +44,19 @@ export default function AdventurePage() {
 
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image
-            src={hero.imagen || '/images/front1.jpg'}
+          <SafeImage
+            src={hero.imagen}
             alt="Adventure"
             fill
             className="object-cover"
             priority
+            fallbackSrc="/images/front1.jpg"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}>
+          <Reveal>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               {hero.titulo}
             </h1>
@@ -80,7 +64,7 @@ export default function AdventurePage() {
             <p className="text-2xl md:text-3xl font-bold text-white drop-shadow-xl">
               {hero.descripcion}
             </p>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 

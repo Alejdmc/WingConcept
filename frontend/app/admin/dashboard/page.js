@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BarChart3, Package, ShoppingCart, TrendingUp, Users, Clock3, AlertTriangle } from 'lucide-react'
 import { api } from '@/lib/api'
+import { useAdminStatsStream } from '@/hooks/useAdminStatsStream'
 
 const STATUS_COLORS = {
   Pending: 'bg-yellow-100 text-yellow-700',
@@ -29,72 +30,65 @@ const SkeletonCard = () => (
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [error, setError] = useState('')
 
   const [recentOrders, setRecentOrders] = useState([])
-  const [loadingOrders, setLoadingOrders] = useState(true)
+  const [initialOrdersLoading, setInitialOrdersLoading] = useState(true)
 
   useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true)
+    const loadAll = async () => {
       setError('')
       try {
-        const data = await api.admin.stats()
-        setStats(data)
+        const [statsData, ordersData] = await Promise.all([
+          api.admin.stats(),
+          api.admin.ordenes({ por_pagina: 5 }),
+        ])
+        setStats(statsData)
+        setRecentOrders(ordersData.items || [])
       } catch (err) {
-        console.error('Error loading admin stats:', err)
+        console.error('Error loading dashboard:', err)
         setError('Could not load dashboard statistics.')
       } finally {
-        setLoading(false)
+        setInitialLoading(false)
+        setInitialOrdersLoading(false)
       }
     }
 
-    const loadRecentOrders = async () => {
-      setLoadingOrders(true)
-      try {
-        const data = await api.admin.ordenes({ por_pagina: 5 })
-        setRecentOrders(data.items || [])
-      } catch (err) {
-        console.error('Error loading recent orders:', err)
-      } finally {
-        setLoadingOrders(false)
-      }
-    }
-
-    loadStats()
-    loadRecentOrders()
+    loadAll()
   }, [])
+
+  useAdminStatsStream(setStats, !initialLoading)
 
   const cards = [
     {
       label: 'Revenue',
-      value: loading ? '...' : `$${Number(stats?.ingresos_totales || 0).toLocaleString()}`,
+      value: initialLoading ? '...' : `$${Number(stats?.ingresos_totales || 0).toLocaleString()}`,
       icon: TrendingUp,
       color: 'bg-green-500',
     },
     {
       label: 'Orders',
-      value: loading ? '...' : stats?.total_ordenes || 0,
-      sublabel: loading ? '' : `${stats?.ordenes_pendientes || 0} pending`,
+      value: initialLoading ? '...' : stats?.total_ordenes || 0,
+      sublabel: initialLoading ? '' : `${stats?.ordenes_pendientes || 0} pending`,
       icon: ShoppingCart,
       color: 'bg-purple-500',
     },
     {
       label: 'Products',
-      value: loading ? '...' : stats?.total_productos_activos || 0,
+      value: initialLoading ? '...' : stats?.total_productos_activos || 0,
       icon: Package,
       color: 'bg-blue-500',
     },
     {
       label: 'Users',
-      value: loading ? '...' : stats?.total_usuarios || 0,
+      value: initialLoading ? '...' : stats?.total_usuarios || 0,
       icon: Users,
       color: 'bg-pink-500',
     },
     {
       label: 'Kg sold',
-      value: loading ? '...' : `${Number(stats?.kg_vendidos || 0).toLocaleString()} Kg`,
+      value: initialLoading ? '...' : `${Number(stats?.kg_vendidos || 0).toLocaleString()} Kg`,
       icon: BarChart3,
       color: 'bg-orange-500',
     },
@@ -113,7 +107,7 @@ export default function DashboardPage() {
         <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>
       )}
 
-      {!loading && stats?.stock_bajo_total > 0 && (
+      {!initialLoading && stats?.stock_bajo_total > 0 && (
         <div className="mb-8 p-5 rounded-lg border-2 border-orange-300 bg-orange-50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div className="flex items-start gap-3">
@@ -122,7 +116,7 @@ export default function DashboardPage() {
                 <h2 className="font-black text-lg text-orange-900">Low stock alert</h2>
                 <p className="text-sm text-orange-800 mt-1">
                   {stats.stock_bajo_total} item{stats.stock_bajo_total !== 1 ? 's' : ''} at or below{' '}
-                  {stats.stock_bajo_umbral ?? 2} units in Parts &amp; Cart catalog.
+                  {stats.stock_bajo_umbral ?? 2} units in Parts &amp; Accessories catalog.
                 </p>
               </div>
             </div>
@@ -158,7 +152,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-        {loading ? (
+        {initialLoading ? (
           <>
             <SkeletonCard />
             <SkeletonCard />
@@ -207,7 +201,7 @@ export default function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {loadingOrders ? (
+            {initialOrdersLoading && recentOrders.length === 0 ? (
               <tr><td colSpan="5" className="py-8 text-center text-ink2">Loading orders...</td></tr>
             ) : recentOrders.length === 0 ? (
               <tr><td colSpan="5" className="py-8 text-center text-ink2">No orders yet.</td></tr>

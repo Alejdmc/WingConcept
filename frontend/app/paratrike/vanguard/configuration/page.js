@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,9 +8,10 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
+import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 
-const CONFIG_OPTIONS = {
+const DEFAULT_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', basePrice: 0 },
     { id: 'rotax-912', name: 'Rotax 912 (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg' },
@@ -24,6 +25,7 @@ const CONFIG_OPTIONS = {
     { id: 'reportage', name: 'Reportage', description: 'Stable platform tailored for aerial photography and video work, with extra mounting points for camera gear.', image: '/images/chassis/reportage.jpg' },
   ],
   propellers: [
+    { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
     { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
     { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
   ],
@@ -64,16 +66,24 @@ const PRODUCT_IMAGES = [
 export default function ConfiguratorPage() {
   const router = useRouter()
   const { addConfiguredProduct } = useCart()
+  const { options: CONFIG_OPTIONS, basePrice, loading: optionsLoading, defaultSelections } = useConfigOptions(PRODUCT_IDS.vanguard, DEFAULT_OPTIONS)
   const [step, setStep] = useState(0)
-  const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
-  const [selectedChassisType, setSelectedChassisType] = useState(CONFIG_OPTIONS.chassisTypes[0].id)
-  const [selectedPropeller, setSelectedPropeller] = useState(CONFIG_OPTIONS.propellers[0].id)
+  const [selectedEngine, setSelectedEngine] = useState(DEFAULT_OPTIONS.engines[0].id)
+  const [selectedChassisType, setSelectedChassisType] = useState(DEFAULT_OPTIONS.chassisTypes[0].id)
+  const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
-  const [selectedChassisColor, setSelectedChassisColor] = useState(CONFIG_OPTIONS.colors[0].name)
-  const [selectedPeriphColor, setSelectedPeriphColor] = useState(CONFIG_OPTIONS.colors[0].name)
+  const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const applyDefaults = useCallback((d) => {
+    if (d.engineId) setSelectedEngine(d.engineId)
+    if (d.propellerId) setSelectedPropeller(d.propellerId)
+    if (d.chassisTypeId) setSelectedChassisType(d.chassisTypeId)
+  }, [])
+
+  useApplyConfigDefaults(defaultSelections, optionsLoading, applyDefaults)
 
   const accessories = CONFIG_OPTIONS.accessories
 
@@ -83,12 +93,12 @@ export default function ConfiguratorPage() {
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
-    const baseChassis = 5950
+    const baseChassis = basePrice ?? 5950
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
     return baseChassis + enginePrice + propellerPrice + upgradesPrice
-  }, [engine, propeller, selectedUpgrades])
+  }, [engine, propeller, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories])
 
   const goToPreviousImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
@@ -117,7 +127,6 @@ export default function ConfiguratorPage() {
         chassisType: selectedChassisType,
         propeller: selectedPropeller,
         chassisColor: selectedChassisColor,
-        peripheralColor: selectedPeriphColor,
         upgrades: selectedUpgrades,
         totalPrice,
       })
@@ -230,27 +239,6 @@ export default function ConfiguratorPage() {
                       style={{ backgroundColor: c.hex }}
                       title={c.name}>
                       {selectedChassisColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
-                    </motion.button>
-                  ))}
-                </div>
-              </details>
-
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
-                <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
-                  Peripheral Color
-                  <ChevronDown className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-4 flex gap-3 flex-wrap">
-                  {CONFIG_OPTIONS.colors.map(c => (
-                    <motion.button
-                      key={c.name}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSelectedPeriphColor(c.name)}
-                      className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center
-                        ${selectedPeriphColor === c.name ? 'border-brand scale-110' : 'border-borderline hover:border-brand/50'}`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}>
-                      {selectedPeriphColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
                     </motion.button>
                   ))}
                 </div>

@@ -296,9 +296,9 @@ export default function AdminPartsPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-black text-ink">Parts &amp; Cart Catalog</h1>
+          <h1 className="text-3xl font-black text-ink">Parts &amp; Accessories</h1>
           <p className="text-ink2 mt-2">
-            Manage parts and accessories shown on /parts — images, prices, order and descriptions. Items here can be added to cart.
+            Manage parts and accessories shown on /parts — images, prices, stock, order and descriptions. Items here can be added to cart.
           </p>
         </div>
         <button

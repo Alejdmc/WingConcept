@@ -11,12 +11,23 @@ import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
-function mapApiItem(item) {
+function parsePrice(item) {
+  if (typeof item.precio_desde === 'number') return item.precio_desde
+  if (typeof item.price === 'number') return item.price
+  if (typeof item.price === 'string') {
+    const n = parseFloat(item.price.replace(/[^0-9.]/g, ''))
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+function mapApiProduct(item) {
+  const price = parsePrice(item)
   return {
-    id: item.slug || item.id,
+    id: item.id,
     productoId: item.id,
     name: item.name || item.nombre,
-    price: item.precio_desde ?? null,
+    price,
     image: item.image || item.imagenes?.[0] || '/images/logo.png',
     description: item.desc || item.descripcion_corta || item.descripcion || '',
     compatibleWith: item.compatible_with?.length ? item.compatible_with : ['vanguard', 'nomadic'],
@@ -31,26 +42,37 @@ function mapStaticItem(item) {
 }
 
 export default function PartsPage() {
-  const [parts, setParts] = useState(STATIC_PARTS.map(mapStaticItem))
-  const [accessories, setAccessories] = useState(STATIC_ACCESSORIES.map(mapStaticItem))
+  const [parts, setParts] = useState(() => STATIC_PARTS.map(mapStaticItem))
+  const [accessories, setAccessories] = useState(() => STATIC_ACCESSORIES.map(mapStaticItem))
+  const [loading, setLoading] = useState(true)
   const [source, setSource] = useState('static')
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true)
       try {
         const [partsRes, accRes] = await Promise.all([
-          api.productos.listar({ categoria: 'repuestos', por_pagina: 100 }),
-          api.productos.listar({ categoria: 'accesorios', por_pagina: 100 }),
+          api.productos.listar({ categoria: 'repuestos', por_pagina: 50 }),
+          api.productos.listar({ categoria: 'accesorios', por_pagina: 50 }),
         ])
-        const apiParts = (partsRes.items || []).map(mapApiItem)
-        const apiAcc = (accRes.items || []).map(mapApiItem)
+        const apiParts = (partsRes.items || []).map(mapApiProduct)
+        const apiAcc = (accRes.items || []).map(mapApiProduct)
+
         if (apiParts.length > 0 || apiAcc.length > 0) {
-          if (apiParts.length > 0) setParts(apiParts)
-          if (apiAcc.length > 0) setAccessories(apiAcc)
+          setParts(apiParts)
+          setAccessories(apiAcc)
           setSource('api')
+        } else {
+          setParts(STATIC_PARTS.map(mapStaticItem))
+          setAccessories(STATIC_ACCESSORIES.map(mapStaticItem))
+          setSource('static')
         }
       } catch {
-        // keep static fallback
+        setParts(STATIC_PARTS.map(mapStaticItem))
+        setAccessories(STATIC_ACCESSORIES.map(mapStaticItem))
+        setSource('static')
+      } finally {
+        setLoading(false)
       }
     }
     load()
@@ -75,28 +97,42 @@ export default function PartsPage() {
         <div className="mb-12">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
           <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
-          {source === 'static' && (
-            <p className="text-sm text-amber-700 mt-2">Showing catalog preview. Add items in Admin → Parts &amp; Cart to enable checkout.</p>
+          {source === 'static' && !loading && (
+            <p className="text-sm text-amber-700 mt-2">Could not load products from the server. Add items in Admin → Parts &amp; Accessories or run the parts seed script.</p>
           )}
         </div>
 
-        <section className="mb-16">
-          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {parts.map((part) => (
-              <PartCard key={part.id} part={part} />
-            ))}
-          </div>
-        </section>
+        {loading && (
+          <p className="text-sm text-ink2 mb-4">Updating catalog...</p>
+        )}
 
-        <section>
-          <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {accessories.map((accessory) => (
-              <PartCard key={accessory.id} part={accessory} />
-            ))}
-          </div>
-        </section>
+        <>
+          <section className="mb-16">
+              <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
+              {parts.length === 0 ? (
+                <p className="text-ink2">No parts listed yet.</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {parts.map((part) => (
+                    <PartCard key={part.productoId || part.id} part={part} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section>
+              <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
+              {accessories.length === 0 ? (
+                <p className="text-ink2">No accessories listed yet.</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {accessories.map((accessory) => (
+                    <PartCard key={accessory.productoId || accessory.id} part={accessory} />
+                  ))}
+                </div>
+              )}
+            </section>
+        </>
       </div>
     </div>
   )
@@ -106,7 +142,8 @@ function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
   const [imgError, setImgError] = useState(false)
-  const canAddToCart = Boolean(part.productoId) && typeof part.price === 'number'
+  const hasPrice = typeof part.price === 'number'
+  const canAddToCart = Boolean(part.productoId) && hasPrice
 
   const handleAdd = async () => {
     if (!part.productoId) return
@@ -117,6 +154,7 @@ function PartCard({ part }) {
       setTimeout(() => setStatus('idle'), 2000)
     } catch {
       setStatus('error')
+      setTimeout(() => setStatus('idle'), 3000)
     }
   }
 
@@ -158,8 +196,8 @@ function PartCard({ part }) {
         {part.description && (
           <p className="text-xs text-ink2 mt-1.5 line-clamp-3 flex-1">{part.description}</p>
         )}
-        {typeof part.price === 'number' ? (
-          <p className="text-xl font-black text-brand mt-2 mb-3">${part.price.toLocaleString()}</p>
+        {hasPrice ? (
+          <p className="text-xl font-black text-brand mt-2 mb-3">${part.price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</p>
         ) : (
           <p className="text-xl font-black text-ink2 mt-2 mb-3">Price on request</p>
         )}
@@ -169,11 +207,13 @@ function PartCard({ part }) {
             type="button"
             onClick={handleAdd}
             disabled={status === 'loading'}
-            className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all">
+            className="mt-auto inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all w-full">
             {status === 'added' ? (
               <>
                 <Check className="w-4 h-4" /> Added
               </>
+            ) : status === 'error' ? (
+              <>Try again</>
             ) : (
               <>
                 <ShoppingCart className="w-4 h-4" />
@@ -181,18 +221,25 @@ function PartCard({ part }) {
               </>
             )}
           </button>
-        ) : typeof part.price === 'number' ? (
-          <p className="text-xs text-ink2 font-semibold py-2">Coming soon to cart — add in Admin → Parts &amp; Cart</p>
+        ) : hasPrice ? (
+          <button
+            type="button"
+            disabled
+            className="mt-auto inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-bg2 text-ink2 font-black uppercase tracking-wide text-xs w-full cursor-not-allowed"
+            title="Product not linked yet">
+            <ShoppingCart className="w-4 h-4 opacity-50" />
+            Unavailable
+          </button>
         ) : (
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand text-brand font-black uppercase tracking-wide text-xs hover:bg-brand-soft transition-all">
+            className="mt-auto inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand text-brand font-black uppercase tracking-wide text-xs hover:bg-brand-soft transition-all w-full">
             Contact Us
           </Link>
         )}
 
-        {status === 'error' && (
-          <p className="text-red-600 text-xs font-semibold mt-2">Error adding to cart. Try again.</p>
+        {status === 'error' && canAddToCart && (
+          <p className="text-red-600 text-xs font-semibold mt-2">Could not add to cart. Check that the backend is running.</p>
         )}
       </div>
     </motion.div>

@@ -70,6 +70,7 @@ function LoginForm() {
         window.location.assign('/admin/dashboard')
         return
       } catch (err) {
+        setError(err?.detail || 'Could not activate admin access. Check that the invite matches your email.')
         console.warn('Admin invite acceptance failed:', err)
       }
     }

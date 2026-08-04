@@ -88,6 +88,114 @@ class CarritoService:
             "price": item.get("price") or f"${precio:,.0f}",
         }
 
+    async def _precio_actual_item(
+        self,
+        db: AsyncSession,
+        variante: Variante,
+        configuracion: Optional[Dict[str, Any]],
+        precio_guardado: float,
+    ) -> float:
+        """Recalcula el precio desde configurador_opciones (fuente autoritativa)."""
+        if not configuracion:
+            return precio_guardado
+        try:
+            return await configurador_service.resolver_precio_carrito(
+                db,
+                variante.producto_id,
+                float(variante.precio),
+                configuracion,
+            )
+        except Exception as exc:
+            logger.warning("No se pudo recalcular precio del carrito: %s", exc)
+            return precio_guardado
+
+    async def _sincronizar_precios_carrito_db(
+        self, db: AsyncSession, carrito: Carrito, variantes_map: dict
+    ) -> None:
+        """Actualiza precios guardados si cambiaron en el admin del configurador."""
+        dirty = False
+        for item in carrito.items:
+            variante = variantes_map.get(item.variante_id)
+            if not variante or not item.configuracion:
+                continue
+            nuevo = await self._precio_actual_item(
+                db, variante, item.configuracion, float(item.precio_unitario)
+            )
+            if nuevo != float(item.precio_unitario):
+                item.precio_unitario = nuevo
+                dirty = True
+        if dirty:
+            await db.flush()
+
+    async def _sincronizar_precios_carrito_anonimo(
+        self, db: AsyncSession, data: Optional[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Recalcula precios del carrito anónimo (Redis) desde la DB."""
+        if not data or not data.get("items"):
+            return data
+
+        items = data.get("items", [])
+        variant_ids = []
+        for item in items:
+            if item.get("configuracion") and item.get("variante_id"):
+                try:
+                    variant_ids.append(UUID(str(item["variante_id"])))
+                except (ValueError, TypeError):
+                    continue
+
+        if not variant_ids:
+            return data
+
+        result = await db.execute(
+            select(Variante)
+            .options(selectinload(Variante.producto))
+            .where(Variante.id.in_(variant_ids))
+        )
+        variantes_map = {v.id: v for v in result.scalars().all()}
+
+        dirty = False
+        for item in items:
+            if not item.get("configuracion"):
+                continue
+            try:
+                variante = variantes_map.get(UUID(str(item["variante_id"])))
+            except (ValueError, TypeError):
+                continue
+            if not variante:
+                continue
+
+            guardado = float(item.get("precio_unitario", 0))
+            nuevo = await self._precio_actual_item(
+                db, variante, item.get("configuracion"), guardado
+            )
+            if nuevo != guardado:
+                cantidad = int(item.get("cantidad", 1))
+                item["precio_unitario"] = nuevo
+                item["subtotal"] = nuevo * cantidad
+                item["price"] = f"${nuevo:,.0f}"
+                dirty = True
+
+        if not dirty:
+            return data
+
+        total = sum(float(i.get("subtotal", 0)) for i in items)
+        synced = {
+            "items": items,
+            "total": total,
+            "cantidad_items": sum(int(i.get("cantidad", 1)) for i in items),
+        }
+        return synced
+
+    async def _responder_anonimo(
+        self, db: AsyncSession, session_id: str, carrito_data: Dict[str, Any]
+    ) -> CarritoResponse:
+        """Persiste y responde carrito anónimo con precios al día."""
+        synced = await self._sincronizar_precios_carrito_anonimo(db, carrito_data)
+        if synced is not carrito_data and synced is not None:
+            await carrito_set(session_id, synced)
+            carrito_data = synced
+        return self._carrito_anonimo_a_response(carrito_data)
+
     def _carrito_anonimo_a_response(self, data: Optional[Dict[str, Any]]) -> CarritoResponse:
         if not data:
             return CarritoResponse()
@@ -279,6 +387,8 @@ class CarritoService:
         items_response = []
         total = 0.0
 
+        await self._sincronizar_precios_carrito_db(db, carrito, variantes_map)
+
         for item in carrito.items:
             variante = variantes_map.get(item.variante_id)
             producto_nombre = None
@@ -319,10 +429,12 @@ class CarritoService:
 
     # ── Carrito anónimo (Redis) ───────────────────────────────────────────────
 
-    async def obtener_anonimo(self, session_id: str) -> CarritoResponse:
-        """Obtiene el carrito anónimo desde Redis."""
+    async def obtener_anonimo(self, session_id: str, db: AsyncSession) -> CarritoResponse:
+        """Obtiene el carrito anónimo desde Redis con precios recalculados."""
         data = await carrito_get(session_id)
-        return self._carrito_anonimo_a_response(data)
+        if not data:
+            return CarritoResponse()
+        return await self._responder_anonimo(db, session_id, data)
 
     async def agregar_item_anonimo(
         self,
@@ -330,6 +442,7 @@ class CarritoService:
         variante_id: str,
         cantidad: int,
         precio: float,
+        db: AsyncSession,
         variante_nombre: str = "",
         producto_nombre: str = "",
         imagen: str = "",
@@ -383,14 +496,19 @@ class CarritoService:
         total = sum(i["subtotal"] for i in items)
         carrito_data = {"items": items, "total": total, "cantidad_items": sum(i["cantidad"] for i in items)}
         await carrito_set(session_id, carrito_data)
-        return self._carrito_anonimo_a_response(carrito_data)
+        return await self._responder_anonimo(db, session_id, carrito_data)
 
     async def limpiar_anonimo(self, session_id: str) -> None:
         """Elimina el carrito anónimo de Redis (tras login o checkout)."""
         await carrito_delete(session_id)
 
     async def actualizar_cantidad_anonimo(
-        self, session_id: str, item_id: str, cantidad: int, stock_disponible: Optional[int] = None
+        self,
+        session_id: str,
+        item_id: str,
+        cantidad: int,
+        db: AsyncSession,
+        stock_disponible: Optional[int] = None,
     ) -> CarritoResponse:
         """Actualiza cantidad de un item en carrito anónimo."""
         data = await carrito_get(session_id)
@@ -415,9 +533,11 @@ class CarritoService:
             "cantidad_items": sum(i["cantidad"] for i in items),
         }
         await carrito_set(session_id, carrito_data)
-        return self._carrito_anonimo_a_response(carrito_data)
+        return await self._responder_anonimo(db, session_id, carrito_data)
 
-    async def eliminar_item_anonimo(self, session_id: str, item_id: str) -> CarritoResponse:
+    async def eliminar_item_anonimo(
+        self, session_id: str, item_id: str, db: AsyncSession
+    ) -> CarritoResponse:
         """Elimina un item del carrito anónimo."""
         data = await carrito_get(session_id)
         items = data.get("items", []) if data else []
@@ -432,7 +552,7 @@ class CarritoService:
             "cantidad_items": sum(i["cantidad"] for i in items),
         }
         await carrito_set(session_id, carrito_data)
-        return self._carrito_anonimo_a_response(carrito_data)
+        return await self._responder_anonimo(db, session_id, carrito_data)
 
     async def fusionar_anonimo_con_usuario(
         self, db: AsyncSession, usuario_id: UUID, session_id: str

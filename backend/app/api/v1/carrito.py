@@ -45,7 +45,7 @@ async def obtener_carrito(
         carrito = await carrito_service.obtener_o_crear(db, current_user.id)
         return await carrito_service._carrito_a_response(db, carrito)
 
-    return await carrito_service.obtener_anonimo(session_id)
+    return await carrito_service.obtener_anonimo(session_id, db)
 
 
 @router.post("/items", response_model=CarritoResponse, status_code=status.HTTP_201_CREATED)
@@ -86,6 +86,7 @@ async def agregar_item(
         variante_id=str(variante.id),
         cantidad=data.cantidad,
         precio=precio,
+        db=db,
         variante_nombre=variante.nombre,
         producto_nombre=variante.producto.nombre if variante.producto else "",
         imagen=(
@@ -115,7 +116,7 @@ async def actualizar_item(
     from sqlalchemy import select
     from app.models.variante import Variante
 
-    anon_data = await carrito_service.obtener_anonimo(session_id)
+    anon_data = await carrito_service.obtener_anonimo(session_id, db)
     anon_item = next((i for i in anon_data.items if str(i.id) == str(item_id)), None)
     stock = None
     if anon_item:
@@ -126,7 +127,7 @@ async def actualizar_item(
         stock = variante.stock if variante else None
 
     return await carrito_service.actualizar_cantidad_anonimo(
-        session_id, str(item_id), data.cantidad, stock_disponible=stock
+        session_id, str(item_id), data.cantidad, db, stock_disponible=stock
     )
 
 
@@ -141,7 +142,7 @@ async def eliminar_item(
     if current_user:
         return await carrito_service.eliminar_item(db, current_user.id, item_id)
 
-    return await carrito_service.eliminar_item_anonimo(session_id, str(item_id))
+    return await carrito_service.eliminar_item_anonimo(session_id, str(item_id), db)
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)

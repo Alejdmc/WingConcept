@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import SafeImage from '@/components/ui/SafeImage'
+import Reveal from '@/components/ui/Reveal'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { ArrowRight, Zap } from 'lucide-react'
@@ -31,26 +31,6 @@ const fallbackProducts = [
     href: '/paratrike/nomadic'
   },
 ]
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-}
 
 export default function FeaturedProducts() {
   const [selectedId, setSelectedId] = useState(null)
@@ -89,41 +69,24 @@ export default function FeaturedProducts() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70" />
       
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-7xl mx-auto relative z-10">
+      <Reveal className="max-w-7xl mx-auto relative z-10">
         
         {/* Header */}
         <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}>
+          <Reveal delay={0.1}>
             <p className="text-brand font-bold uppercase tracking-[0.3em] text-sm mb-4">Premium Selection</p>
-          </motion.div>
+          </Reveal>
           <h2 className="text-3xl sm:text-5xl md:text-7xl font-black uppercase text-white mb-6 tracking-tight">Featured Products</h2>
-          <motion.div 
-            initial={{ width: 0 }}
-            whileInView={{ width: '100%' }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="h-1 bg-gradient-to-r from-transparent via-brand to-transparent max-w-md mx-auto" />
+          <Reveal delay={0.2} className="h-1 bg-gradient-to-r from-transparent via-brand to-transparent max-w-md mx-auto" />
         </div>
         
         {/* Grid */}
-        <motion.div
-          className="flex flex-wrap justify-center gap-8 lg:gap-10"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.15 }}>
-
-          {items.map((product) => (
-            <motion.div
+        <div className="flex flex-wrap justify-center gap-8 lg:gap-10">
+          {items.map((product, i) => (
+            <Reveal
               key={product.id}
-              variants={itemVariants}
-              whileHover={{ y: -8 }}
+              delay={i * 0.1}
+              viewport
               className={`relative group cursor-pointer transition-all duration-500 w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1.8rem)] max-w-sm`}
               onClick={() => setSelectedId(selectedId === product.id ? null : product.id)}
             >
@@ -211,10 +174,10 @@ export default function FeaturedProducts() {
                   )}
                 </AnimatePresence>
               </motion.div>
-            </motion.div>
+            </Reveal>
           ))}
-        </motion.div>
-      </motion.div>
+        </div>
+      </Reveal>
     </section>
   )
 }
