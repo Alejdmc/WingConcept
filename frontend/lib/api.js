@@ -21,6 +21,8 @@ function apiUrl(path = '') {
   return `${base}/api/v1${path}`
 }
 
+export { apiUrl, getApiBase }
+
 const PUBLIC_PATHS = new Set([
   '/auth/login',
   '/auth/register',
@@ -36,6 +38,7 @@ const PUBLIC_PATHS = new Set([
   '/dealers',
   '/contact',
   '/productos',
+  '/cms',
 ])
 
 const PROTECTED_PREFIXES = ['/checkout', '/orders', '/cuenta', '/admin']
@@ -50,6 +53,7 @@ function isPublicPath(path) {
   if (PUBLIC_PATHS.has(base)) return true
   if (base.startsWith('/auth/verify-email')) return true
   if (base.startsWith('/productos')) return true
+  if (base.startsWith('/cms')) return true
   return false
 }
 
@@ -109,11 +113,20 @@ function buildQuery(params = {}) {
   return query ? `?${query}` : ''
 }
 
-async function request(path, options = {}) {
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
+const MAX_GET_ATTEMPTS = 3
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function request(path, options = {}, attempt = 0) {
   const { skipAuth = false, ...fetchOptions } = options
   const isPublic = skipAuth || isPublicPath(path)
   const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
+  const method = (fetchOptions.method || 'GET').toUpperCase()
+  const maxAttempts = method === 'GET' ? MAX_GET_ATTEMPTS : 1
 
   let res
   try {
@@ -128,10 +141,19 @@ async function request(path, options = {}) {
       ...fetchOptions,
     })
   } catch {
+    if (attempt + 1 < maxAttempts) {
+      await sleep(350 * (attempt + 1))
+      return request(path, options, attempt + 1)
+    }
     throw {
       status: 0,
       detail: `Cannot reach the API${getApiBase() ? ` at ${getApiBase()}` : ''}. Make sure the backend is running on port 8000.`,
     }
+  }
+
+  if (RETRYABLE_STATUSES.has(res.status) && attempt + 1 < maxAttempts) {
+    await sleep(350 * (attempt + 1))
+    return request(path, options, attempt + 1)
   }
 
   if (res.status === 401 && !isPublic && typeof window !== 'undefined') {
@@ -330,6 +352,20 @@ export const api = {
       uploadRequest('/admin/uploads/imagen', file, productoId ? { producto_id: productoId } : {}),
     actualizarVariante: (varianteId, data) =>
       request(`/admin/variantes/${varianteId}/stock`, { method: 'PATCH', body: JSON.stringify(data) }),
+    configuradorOpciones: (params = {}) => request(`/admin/configurador-opciones${buildQuery(params)}`),
+    crearConfiguradorOpcion: (data) =>
+      request('/admin/configurador-opciones', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarConfiguradorOpcion: (id, data) =>
+      request(`/admin/configurador-opciones/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarConfiguradorOpcion: (id, permanente = false) =>
+      request(`/admin/configurador-opciones/${id}${permanente ? '?permanente=true' : ''}`, { method: 'DELETE' }),
+    siteBlocks: (params = {}) => request(`/admin/site-blocks${buildQuery(params)}`),
+    crearSiteBlock: (data) =>
+      request('/admin/site-blocks', { method: 'POST', body: JSON.stringify(data) }),
+    actualizarSiteBlock: (id, data) =>
+      request(`/admin/site-blocks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminarSiteBlock: (id) =>
+      request(`/admin/site-blocks/${id}`, { method: 'DELETE' }),
   },
   contenidos: {
     adventure: () => request('/contenidos/adventure', { skipAuth: true }),
@@ -359,6 +395,12 @@ export const api = {
   },
   pagos: {
     checkout: (data) => request('/pagos/checkout', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  cms: {
+    site: (seccion) =>
+      request(`/cms/site${seccion ? buildQuery({ seccion }) : ''}`, { skipAuth: true }),
+    configurador: (productoId) =>
+      request(`/cms/configurador/${productoId}`, { skipAuth: true }),
   },
   usuarios: {
     perfil: () => request('/usuarios/me'),

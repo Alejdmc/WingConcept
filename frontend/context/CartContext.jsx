@@ -80,7 +80,6 @@ export function CartProvider({ children }) {
           propeller: config.propeller,
           chassisColor: config.chassisColor,
           accentColor: config.accentColor,
-          peripheralColor: config.peripheralColor,
           upgrades: config.upgrades || [],
           totalPrice: config.totalPrice,
         },

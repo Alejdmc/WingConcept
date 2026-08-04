@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth, productos, carrito, ordenes, pagos, webhooks,
-    configurador, admin, usuarios, uploads, contenidos, cupones, dealers, manuals, contact,
+    configurador, admin, usuarios, uploads, contenidos, cupones, dealers, manuals, contact, cms,
 )
 
 api_router = APIRouter()
@@ -27,4 +27,5 @@ api_router.include_router(cupones.router)
 api_router.include_router(dealers.router)
 api_router.include_router(manuals.router)
 api_router.include_router(contact.router)
+api_router.include_router(cms.router)
 

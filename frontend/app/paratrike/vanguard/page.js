@@ -1,22 +1,25 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather } from 'lucide-react'
 import Gallery from '@/components/sections/Gallery'
+import { api } from '@/lib/api'
+
+const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather }
 
 const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
   src: `/images/vanguard/${i + 1}.png`,
   alt: `Vanguard V8.0 ${i + 1}`,
 }))
 
-const vanguard = {
+const vanguardFallback = {
   id: 1,
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
   image: '/images/vanguard/1.png',
-  price: 'Contact for pricing',
   year: 2020,
   brand: 'Wing Concept',
   philosophy: 'Passion, Science, and Freedom',
@@ -92,6 +95,32 @@ const vanguard = {
 }
 
 export default function ParatrikePage() {
+  const [vanguard, setVanguard] = useState(vanguardFallback)
+
+  useEffect(() => {
+    api.productos.obtener('vanguard-v8').then((p) => {
+      const extra = p.contenido_extra || {}
+      setVanguard((prev) => ({
+        ...prev,
+        name: p.nombre || prev.name,
+        description: p.descripcion || prev.description,
+        tagline: extra.tagline || prev.tagline,
+        philosophy: extra.philosophy || prev.philosophy,
+        features: (extra.features || prev.features).map((f) => ({
+          ...f,
+          icon: ICON_MAP[f.icon] || Package,
+        })),
+        engines: extra.engines_list?.length ? extra.engines_list : prev.engines,
+        specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
+        gallery: extra.gallery?.length
+          ? extra.gallery.map((src, i) => ({ src, alt: `Vanguard ${i + 1}` }))
+          : VANGUARD_GALLERY,
+      }))
+    }).catch(() => {})
+  }, [])
+
+  const galleryItems = vanguard.gallery || VANGUARD_GALLERY
+
   return (
     <main className="bg-white">
       {/* Hero Section */}
@@ -152,7 +181,7 @@ export default function ParatrikePage() {
       </section>
 
       {/* Gallery */}
-      <Gallery images={VANGUARD_GALLERY} eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
+      <Gallery images={galleryItems} eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engine Compatibility */}
       <section className="py-24 px-6 bg-bg2">

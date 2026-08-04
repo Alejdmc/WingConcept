@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -8,9 +8,10 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
+import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 
-const CONFIG_OPTIONS = {
+const DEFAULT_OPTIONS = {
   engines: [
     { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg' },
     { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg' },
@@ -22,6 +23,7 @@ const CONFIG_OPTIONS = {
     { id: 'titanium-finish', name: 'Titanium Finish', description: 'Titanium finish, lightweight with high structural strength.', swatch: '#8e8e8e' },
   ],
   propellers: [
+    { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
     { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
     { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
   ],
@@ -59,16 +61,39 @@ const PRODUCT_IMAGES = [
 export default function ConfiguratorNomadicPage() {
   const router = useRouter()
   const { addConfiguredProduct } = useCart()
+  const { options, basePrice, loading: optionsLoading, defaultSelections } = useConfigOptions(NOMADIC_PRODUCTO_ID, {
+    engines: DEFAULT_OPTIONS.engines,
+    chassisTypes: [],
+    chassisFinishes: DEFAULT_OPTIONS.chassisFinishes,
+    propellers: DEFAULT_OPTIONS.propellers,
+    colors: DEFAULT_OPTIONS.colors,
+    accessories: DEFAULT_OPTIONS.accessories,
+  })
+  const CONFIG_OPTIONS = {
+    engines: options.engines,
+    chassisFinishes: options.chassisFinishes || DEFAULT_OPTIONS.chassisFinishes,
+    propellers: options.propellers,
+    colors: options.colors,
+    accessories: options.accessories,
+  }
   const [step, setStep] = useState(0)
-  const [selectedEngine, setSelectedEngine] = useState(CONFIG_OPTIONS.engines[0].id)
-  const [selectedFinish, setSelectedFinish] = useState(CONFIG_OPTIONS.chassisFinishes[0].id)
-  const [selectedPropeller, setSelectedPropeller] = useState(CONFIG_OPTIONS.propellers[0].id)
+  const [selectedEngine, setSelectedEngine] = useState(DEFAULT_OPTIONS.engines[0].id)
+  const [selectedFinish, setSelectedFinish] = useState(DEFAULT_OPTIONS.chassisFinishes[0].id)
+  const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
-  const [selectedChassisColor, setSelectedChassisColor] = useState(CONFIG_OPTIONS.colors[0].name)
-  const [selectedAccentColor, setSelectedAccentColor] = useState(CONFIG_OPTIONS.colors[0].name)
+  const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
+  const [selectedAccentColor, setSelectedAccentColor] = useState(DEFAULT_OPTIONS.colors[0].name)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const applyDefaults = useCallback((d) => {
+    if (d.engineId) setSelectedEngine(d.engineId)
+    if (d.propellerId) setSelectedPropeller(d.propellerId)
+    if (d.finishId) setSelectedFinish(d.finishId)
+  }, [])
+
+  useApplyConfigDefaults(defaultSelections, optionsLoading, applyDefaults)
 
   const accessories = CONFIG_OPTIONS.accessories
 
@@ -78,12 +103,13 @@ export default function ConfiguratorNomadicPage() {
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
-    const baseChassis = 8950
+    const baseChassis = basePrice ?? 8950
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
+    const finishPrice = finish?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + propellerPrice + upgradesPrice
-  }, [engine, propeller, selectedUpgrades])
+    return baseChassis + enginePrice + propellerPrice + finishPrice + upgradesPrice
+  }, [engine, propeller, finish, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories])
 
   const goToPreviousImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))

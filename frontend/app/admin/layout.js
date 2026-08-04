@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText, Wrench } from 'lucide-react'
+import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText, Wrench, Globe, Sliders, Plane } from 'lucide-react'
 import { clearAuthSession } from '@/lib/auth'
 import { api } from '@/lib/api'
 
@@ -18,10 +18,13 @@ export default function AdminLayout({ children }) {
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { label: 'Products', href: '/admin/products', icon: Package },
-    { label: 'Parts & Cart', href: '/admin/parts', icon: Wrench },
+    { label: 'Paratrikes page', href: '/admin/paratrikes', icon: Plane },
+    { label: 'Customization', href: '/admin/configurador', icon: Sliders },
+    { label: 'Parts & Accessories', href: '/admin/parts', icon: Wrench },
     { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { label: 'Users', href: '/admin/users', icon: Users },
-    { label: 'Content', href: '/admin/contenido', icon: Compass },
+    { label: 'Pages', href: '/admin/contenido', icon: Compass },
+    { label: 'Website texts', href: '/admin/site', icon: Globe },
     { label: 'Dealers', href: '/admin/dealers', icon: Handshake },
     { label: 'Manuals', href: '/admin/manuals', icon: FileText },
     { label: 'Discounts', href: '/admin/descuentos', icon: Tag },

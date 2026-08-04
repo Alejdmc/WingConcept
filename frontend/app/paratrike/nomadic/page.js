@@ -1,23 +1,25 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronDown, ArrowLeft, Zap, Shield, Gauge } from 'lucide-react'
+import { ChevronDown, ArrowLeft, Zap, Shield, Gauge, Package } from 'lucide-react'
 import Gallery from '@/components/sections/Gallery'
+import { api } from '@/lib/api'
+
+const ICON_MAP = { Zap, Shield, Gauge, Package }
 
 const NOMADIC_GALLERY = Array.from({ length: 6 }, (_, i) => ({
   src: `/images/nomadic/${i + 1}.jpg`,
   alt: `Nomadic Trike ${i + 1}`,
 }))
 
-const nomadic = {
+const nomadicFallback = {
   id: 2,
   name: 'Nomadic Trike',
   tagline: 'The Ultimate Off-Grid Adventure Machine',
   description: 'The Nomadic is a high-strength trike designed for pilots who demand versatility in extreme conditions. Built with high-grade stainless steel, its adjustable geometry and robust design make it the perfect platform for remote expeditions and off-grid adventures.',
   image: '/images/nomadic/1.jpg',
-  price: 'Contact for pricing',
   year: 2026,
   brand: 'Limitless',
   philosophy: 'Go Further, Land Anywhere',
@@ -61,7 +63,35 @@ const nomadic = {
 }
 
 export default function NomadicPage() {
-  const [expandedAccordion, setExpandedAccordion] = useState(null)
+  const [nomadic, setNomadic] = useState(nomadicFallback)
+
+  useEffect(() => {
+    api.productos.obtener('nomadic-trike').then((p) => {
+      const extra = p.contenido_extra || {}
+      const heroImage = p.imagenes?.[0] || extra.gallery?.[0] || nomadicFallback.image
+      setNomadic((prev) => ({
+        ...prev,
+        name: p.nombre || prev.name,
+        description: p.descripcion || prev.description,
+        tagline: extra.tagline || prev.tagline,
+        philosophy: extra.philosophy || prev.philosophy,
+        year: extra.year || prev.year,
+        brand: extra.brand || prev.brand,
+        image: heroImage,
+        features: (extra.features?.length ? extra.features : prev.features).map((f) => ({
+          ...f,
+          icon: ICON_MAP[f.icon] || Package,
+        })),
+        engines: extra.engines_list?.length ? extra.engines_list : prev.engines,
+        specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
+        gallery: extra.gallery?.length
+          ? extra.gallery.map((src, i) => ({ src, alt: `Nomadic ${i + 1}` }))
+          : NOMADIC_GALLERY,
+      }))
+    }).catch(() => {})
+  }, [])
+
+  const galleryItems = nomadic.gallery || NOMADIC_GALLERY
 
   return (
     <div className="min-h-screen bg-white">
@@ -83,16 +113,15 @@ export default function NomadicPage() {
       <section className="relative min-h-screen bg-gradient-to-b from-bg2 to-white pt-20">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            
-            {/* Left: Info */}
+
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               className="space-y-8">
-              
+
               <div>
-                <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">Limitless — {nomadic.year}</p>
+                <p className="text-brand font-bold uppercase tracking-widest text-sm mb-4">{nomadic.brand} — {nomadic.year}</p>
                 <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase text-ink leading-tight mb-4">
                   {nomadic.name}
                 </h1>
@@ -116,7 +145,6 @@ export default function NomadicPage() {
               </Link>
             </motion.div>
 
-            {/* Right: Image */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -168,7 +196,7 @@ export default function NomadicPage() {
       </section>
 
       {/* Gallery */}
-      <Gallery images={NOMADIC_GALLERY} eyebrow="Nomadic Trike" title="Photo Gallery" bgClass="bg-white" />
+      <Gallery images={galleryItems} eyebrow="Nomadic Trike" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engines Section */}
       <section className="py-24 px-6 bg-white">

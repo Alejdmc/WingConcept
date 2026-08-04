@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import RecursoNoEncontradoError, PermisosDenegadosError
+from app.services.carrito_service import carrito_service
 from app.services.stock_service import stock_service
 from app.models.carrito import Carrito
 from app.models.orden import ItemOrden, Orden
@@ -139,6 +140,16 @@ class OrdenService:
 
         if not carrito or not carrito.items:
             raise RecursoNoEncontradoError("Carrito vacío o inexistente")
+
+        # Recalcular precios configurados (paratrikes) con tarifas actuales del admin
+        variante_ids = [item.variante_id for item in carrito.items]
+        variantes_result = await db.execute(
+            select(Variante)
+            .options(selectinload(Variante.producto))
+            .where(Variante.id.in_(variante_ids))
+        )
+        variantes_map = {v.id: v for v in variantes_result.scalars().all()}
+        await carrito_service._sincronizar_precios_carrito_db(db, carrito, variantes_map)
 
         # Calcular subtotal desde precios del carrito
         subtotal = 0.0

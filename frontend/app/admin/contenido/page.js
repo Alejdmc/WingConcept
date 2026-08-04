@@ -2,30 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
-
-const SECCIONES = [
-  { id: 'adventure', label: 'Adventure' },
-  { id: 'shows', label: 'Shows' },
-  { id: 'events', label: 'Events' },
-]
-
-const TIPOS_POR_SECCION = {
-  adventure: [
-    { value: 'hero', label: 'Hero' },
-    { value: 'intro', label: 'Intro' },
-    { value: 'expedicion', label: 'Expedition' },
-  ],
-  shows: [
-    { value: 'hero', label: 'Hero' },
-    { value: 'intro', label: 'Intro' },
-    { value: 'show', label: 'Show' },
-  ],
-  events: [
-    { value: 'hero', label: 'Hero' },
-    { value: 'intro', label: 'Intro' },
-    { value: 'evento', label: 'Event' },
-  ],
-}
+import { SECCIONES_CONTENIDO, TIPOS_CONTENIDO, tipoLabel } from '@/lib/cmsLabels'
 
 const CARD_TIPOS = new Set(['expedicion', 'show', 'evento'])
 
@@ -72,7 +49,7 @@ function toFormData(item) {
 }
 
 function ContenidoForm({ seccion, initial, onSave, onCancel }) {
-  const tipos = TIPOS_POR_SECCION[seccion] || TIPOS_POR_SECCION.adventure
+  const tipos = TIPOS_CONTENIDO[seccion] || TIPOS_CONTENIDO.adventure
   const [form, setForm] = useState(initial || emptyForm(seccion, tipos[0]?.value))
   const [saving, setSaving] = useState(false)
 
@@ -117,13 +94,14 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
     <form onSubmit={handleSubmit} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold mb-1">Type</label>
+          <label className="block text-sm font-semibold mb-1">What are you editing?</label>
           <select name="tipo" value={form.tipo} onChange={handleChange} className="w-full p-2 border rounded">
             {tipos.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
+          <p className="text-xs text-ink2 mt-1">{tipos.find((t) => t.value === form.tipo)?.hint}</p>
         </div>
         <div>
-          <label className="block text-sm font-semibold mb-1">Order</label>
+          <label className="block text-sm font-semibold mb-1">Display order</label>
           <input name="orden" type="number" value={form.orden} onChange={handleChange} className="w-full p-2 border rounded" />
         </div>
       </div>
@@ -139,7 +117,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-1">Image (URL or path)</label>
+        <label className="block text-sm font-semibold mb-1">Image (URL or path like /images/...)</label>
         <input name="imagen" value={form.imagen} onChange={handleChange} placeholder="/images/..." className="w-full p-2 border rounded" />
       </div>
 
@@ -204,7 +182,7 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} />
-        Active (visible on site)
+        Active (visible on the public website)
       </label>
 
       <div className="flex gap-3">
@@ -287,19 +265,15 @@ export default function AdminContenidoPage() {
     }
   }
 
-  const tipoLabel = (tipo) => {
-    const all = [...TIPOS_POR_SECCION.adventure, ...TIPOS_POR_SECCION.shows, ...TIPOS_POR_SECCION.events]
-    return [...new Map(all.map((t) => [t.value, t.label])).entries()].find(([v]) => v === tipo)?.[1] || tipo
-  }
-
-  const seccionLabel = SECCIONES.find((s) => s.id === seccion)?.label
+  const seccionLabel = SECCIONES_CONTENIDO.find((s) => s.id === seccion)?.label
+  const seccionDesc = SECCIONES_CONTENIDO.find((s) => s.id === seccion)?.descripcion
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-black text-ink">Content Management</h1>
-          <p className="text-ink2 mt-2">Adventure, Shows and Events — create, view, edit and delete.</p>
+          <h1 className="text-3xl font-black text-ink">Pages — Adventure, Shows & Events</h1>
+          <p className="text-ink2 mt-2">Edit banners, introductions and cards on your public pages.</p>
         </div>
         <button
           onClick={() => { setCreating(true); setEditing(null); setViewing(null) }}
@@ -310,8 +284,8 @@ export default function AdminContenidoPage() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-8">
-        {SECCIONES.map((s) => (
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {SECCIONES_CONTENIDO.map((s) => (
           <button
             key={s.id}
             onClick={() => setSeccion(s.id)}
@@ -323,6 +297,7 @@ export default function AdminContenidoPage() {
           </button>
         ))}
       </div>
+      {seccionDesc && <p className="text-sm text-ink2 mb-6 bg-bg2 p-3 rounded-lg">{seccionDesc}</p>}
 
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
 
@@ -347,7 +322,7 @@ export default function AdminContenidoPage() {
             <button onClick={() => setViewing(null)} className="text-ink2 hover:text-ink">✕</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <p><span className="font-semibold">Type:</span> {tipoLabel(viewing.tipo)}</p>
+            <p><span className="font-semibold">Section type:</span> {tipoLabel(viewing.seccion, viewing.tipo)}</p>
             <p><span className="font-semibold">Status:</span> {viewing.activo ? 'Active' : 'Inactive'}</p>
             <p className="col-span-2"><span className="font-semibold">Description:</span> {viewing.descripcion || '—'}</p>
             {viewing.imagen && <p className="col-span-2"><span className="font-semibold">Image:</span> {viewing.imagen}</p>}
@@ -366,7 +341,7 @@ export default function AdminContenidoPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-bg2">
             <tr>
-              <th className="text-left py-4 px-6 font-semibold">Type</th>
+              <th className="text-left py-4 px-6 font-semibold">Section type</th>
               <th className="text-left py-4 px-6 font-semibold">Title</th>
               <th className="text-left py-4 px-6 font-semibold">Order</th>
               <th className="text-left py-4 px-6 font-semibold">Status</th>
@@ -381,7 +356,7 @@ export default function AdminContenidoPage() {
             ) : (
               items.map((item) => (
                 <tr key={item.id} className={`border-t border-borderline hover:bg-bg2 ${!item.activo ? 'opacity-60' : ''}`}>
-                  <td className="py-4 px-6 text-ink2">{tipoLabel(item.tipo)}</td>
+                  <td className="py-4 px-6 text-ink2">{tipoLabel(seccion, item.tipo)}</td>
                   <td className="py-4 px-6 font-semibold">{item.titulo}</td>
                   <td className="py-4 px-6">{item.orden}</td>
                   <td className="py-4 px-6">

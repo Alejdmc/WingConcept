@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Search, Plus, Pencil, Package } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -37,8 +37,12 @@ function StockModal({ product, onClose, onSaved }) {
     setError('')
     try {
       const updated = await api.admin.actualizarStock(varianteId, { stock: Number(stock) })
-      setVariantes((prev) => prev.map((v) => (v.id === varianteId ? updated : v)))
-      onSaved()
+      setVariantes((prev) => {
+        const next = prev.map((v) => (v.id === varianteId ? updated : v))
+        const total = next.reduce((sum, v) => sum + (v.stock || 0), 0)
+        onSaved(product.id, total)
+        return next
+      })
     } catch {
       setError('Error updating stock.')
     } finally {
@@ -91,26 +95,37 @@ function StockModal({ product, onClose, onSaved }) {
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [stockProduct, setStockProduct] = useState(null)
 
-  const loadProducts = async () => {
-    setLoading(true)
+  const loadProducts = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      if (products.length === 0) setInitialLoading(true)
+      else setRefreshing(true)
+    }
     setError('')
     try {
       const data = await api.admin.productos({ por_pagina: 50 })
       setProducts(data.items || [])
     } catch (err) {
       console.error('Error loading admin products:', err)
-      setError('Could not load products.')
+      if (!silent) setError('Could not load products.')
     } finally {
-      setLoading(false)
+      setInitialLoading(false)
+      setRefreshing(false)
     }
-  }
+  }, [products.length])
 
   useEffect(() => {
     loadProducts()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleStockSaved = useCallback((productId, newStock) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, stock: newStock } : p))
+    )
   }, [])
 
   const filtered = products.filter((product) =>
@@ -146,6 +161,9 @@ export default function ProductsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2 border border-borderline rounded bg-bg2 text-ink focus:outline-none focus:border-brand"
         />
+        {refreshing && (
+          <span className="absolute right-3 top-2.5 text-xs text-ink2">Updating...</span>
+        )}
       </div>
 
       <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
@@ -162,7 +180,7 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {initialLoading && products.length === 0 ? (
               <tr>
                 <td colSpan="7" className="py-8 text-center text-ink2">Loading products...</td>
               </tr>
@@ -216,7 +234,7 @@ export default function ProductsPage() {
         <StockModal
           product={stockProduct}
           onClose={() => setStockProduct(null)}
-          onSaved={loadProducts}
+          onSaved={handleStockSaved}
         />
       )}
     </div>

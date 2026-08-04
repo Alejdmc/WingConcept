@@ -4,10 +4,12 @@ Paramotores y accesorios con soporte multiidioma básico y modelo 3D.
 """
 import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+from typing import Any, Dict
 
 from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -48,6 +50,9 @@ class Producto(Base):
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
     destacado: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     orden_display: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    # Contenido de la página de producto: tagline, features, specs, gallery, etc.
+    contenido_extra: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

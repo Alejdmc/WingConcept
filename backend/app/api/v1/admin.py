@@ -3,19 +3,20 @@ WingConcept Backend — Admin Endpoints
 Panel de administración: usuarios, órdenes, estadísticas
 Solo accesible con rol admin.
 """
+import asyncio
+import json
 import logging
 import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.dependencies import get_current_admin
 from app.database import get_db
-from app.models.orden import Orden, ItemOrden
-from app.models.producto import Producto
 from app.models.usuario import Usuario
 from app.schemas.orden import (
     AdminOrdenResponse,
@@ -47,6 +48,7 @@ from app.services.manual_service import manual_service
 from app.services.invitation_service import invitation_service
 from app.services.email_service import email_service
 from app.services.stock_service import stock_service
+from app.services.admin_stats_service import get_dashboard_stats
 from app.services.admin_policy import assert_invite_flow_allowed
 from app.config import settings
 
@@ -60,45 +62,36 @@ UPDATABLE_USER_FIELDS = frozenset({"nombre", "apellido", "telefono", "activo"})
 
 @router.get("/stats")
 async def dashboard_stats(
-    db: AsyncSession = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    """Estadísticas generales del dashboard."""
-    total_usuarios = (await db.execute(select(func.count(Usuario.id)))).scalar()
-    total_productos = (await db.execute(
-        select(func.count(Producto.id)).where(Producto.activo == True)
-    )).scalar()
-    total_ordenes = (await db.execute(select(func.count(Orden.id)))).scalar()
-    ordenes_pendientes = (await db.execute(
-        select(func.count(Orden.id)).where(Orden.estado == "pendiente")
-    )).scalar()
-    ingresos_result = await db.execute(
-        select(func.sum(Orden.total)).where(Orden.estado.in_(["pagado", "procesando", "enviado", "entregado"]))
+    """Estadísticas generales del dashboard (caché Redis + queries en paralelo)."""
+    return await get_dashboard_stats(use_cache=True)
+
+
+@router.get("/stats/stream")
+async def dashboard_stats_stream(
+    _admin=Depends(get_current_admin),
+):
+    """SSE: empuja stats actualizadas cada 30 segundos al panel admin."""
+
+    async def event_generator():
+        try:
+            while True:
+                stats = await get_dashboard_stats(use_cache=True)
+                yield f"data: {json.dumps(stats, default=str)}\n\n"
+                await asyncio.sleep(30)
+        except asyncio.CancelledError:
+            raise
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
-    ingresos_totales = float(ingresos_result.scalar() or 0)
-
-    # Kg vendidos: suma de ItemOrden.cantidad de órdenes completadas.
-    # (En el futuro se puede ponderar por el peso_kg del snapshot.)
-    kg_result = await db.execute(
-        select(func.coalesce(func.sum(ItemOrden.cantidad), 0))
-        .join(Orden, Orden.id == ItemOrden.orden_id)
-        .where(Orden.estado.in_(["enviado", "entregado"]))
-    )
-    kg_vendidos = float(kg_result.scalar() or 0)
-
-    alertas_stock = await stock_service.listar_alertas_stock(db)
-
-    return {
-        "total_usuarios": total_usuarios,
-        "total_productos_activos": total_productos,
-        "total_ordenes": total_ordenes,
-        "ordenes_pendientes": ordenes_pendientes,
-        "ingresos_totales": ingresos_totales,
-        "kg_vendidos": kg_vendidos,
-        "stock_bajo_total": len(alertas_stock),
-        "stock_bajo_umbral": settings.LOW_STOCK_THRESHOLD,
-        "alertas_stock": alertas_stock[:20],
-    }
 
 
 @router.get("/stock/alertas")
@@ -588,4 +581,104 @@ async def crear_cupon_admin(
 ):
     """Crea un cupón para un cliente y envía el código por email."""
     return await cupon_service.crear_y_enviar(db, data, admin.id)
+
+
+# ── Configurador opciones (CMS) ───────────────────────────────────────────────
+
+from app.schemas.configurador_opcion import (
+    ConfiguradorOpcionCreate,
+    ConfiguradorOpcionResponse,
+    ConfiguradorOpcionUpdate,
+    PaginatedConfiguradorOpciones,
+)
+from app.schemas.site_block import SiteBlockCreate, SiteBlockResponse, SiteBlockUpdate
+from app.services.configurador_opcion_service import configurador_opcion_service
+from app.services.site_block_service import site_block_service
+
+
+@router.get("/configurador-opciones", response_model=PaginatedConfiguradorOpciones)
+async def listar_configurador_opciones_admin(
+    producto_id: Optional[uuid.UUID] = Query(None),
+    grupo: Optional[str] = Query(None),
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(100, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    return await configurador_opcion_service.listar_admin(db, producto_id, grupo, pagina, por_pagina)
+
+
+@router.post("/configurador-opciones", response_model=ConfiguradorOpcionResponse, status_code=status.HTTP_201_CREATED)
+async def crear_configurador_opcion_admin(
+    data: ConfiguradorOpcionCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    op = await configurador_opcion_service.crear(db, data)
+    return ConfiguradorOpcionResponse.model_validate(op)
+
+
+@router.put("/configurador-opciones/{opcion_id}", response_model=ConfiguradorOpcionResponse)
+async def actualizar_configurador_opcion_admin(
+    opcion_id: uuid.UUID,
+    data: ConfiguradorOpcionUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    op = await configurador_opcion_service.actualizar(db, opcion_id, data)
+    return ConfiguradorOpcionResponse.model_validate(op)
+
+
+@router.delete("/configurador-opciones/{opcion_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_configurador_opcion_admin(
+    opcion_id: uuid.UUID,
+    permanente: bool = Query(False),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    await configurador_opcion_service.eliminar(db, opcion_id, permanente=permanente)
+
+
+# ── Bloques del sitio (CMS global) ────────────────────────────────────────────
+
+@router.get("/site-blocks")
+async def listar_site_blocks_admin(
+    seccion: Optional[str] = Query(None),
+    pagina: int = Query(1, ge=1),
+    por_pagina: int = Query(200, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    return await site_block_service.listar_admin(db, seccion, pagina, por_pagina)
+
+
+@router.post("/site-blocks", response_model=SiteBlockResponse, status_code=status.HTTP_201_CREATED)
+async def crear_site_block_admin(
+    data: SiteBlockCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    block = await site_block_service.crear(db, data)
+    return SiteBlockResponse.model_validate(block)
+
+
+@router.put("/site-blocks/{block_id}", response_model=SiteBlockResponse)
+async def actualizar_site_block_admin(
+    block_id: uuid.UUID,
+    data: SiteBlockUpdate,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    block = await site_block_service.actualizar(db, block_id, data)
+    return SiteBlockResponse.model_validate(block)
+
+
+@router.delete("/site-blocks/{block_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_site_block_admin(
+    block_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    await site_block_service.eliminar(db, block_id)
+
 

@@ -3,8 +3,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 /**
- * next/image wrapper: skips invalid src, shows placeholder on error,
- * uses lazy loading by default to reduce layout thrashing.
+ * next/image wrapper: skips invalid src, retries once on error, shows placeholder on failure.
  */
 export default function SafeImage({
   src,
@@ -15,10 +14,17 @@ export default function SafeImage({
   className = '',
   priority = false,
   sizes,
+  fallbackSrc,
   ...props
 }) {
   const [failed, setFailed] = useState(false)
-  const validSrc = typeof src === 'string' && src.trim().length > 0 ? src.trim() : null
+  const [attempt, setAttempt] = useState(0)
+
+  const baseSrc = typeof src === 'string' && src.trim().length > 0 ? src.trim() : null
+  const retrySrc = baseSrc && attempt === 1 && !baseSrc.includes('?')
+    ? `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}_r=1`
+    : baseSrc
+  const validSrc = attempt === 2 && fallbackSrc ? fallbackSrc : retrySrc
 
   if (!validSrc || failed) {
     return (
@@ -31,6 +37,18 @@ export default function SafeImage({
     )
   }
 
+  const handleError = () => {
+    if (attempt === 0) {
+      setAttempt(1)
+      return
+    }
+    if (fallbackSrc && attempt === 1) {
+      setAttempt(2)
+      return
+    }
+    setFailed(true)
+  }
+
   const imageProps = {
     src: validSrc,
     alt,
@@ -38,7 +56,8 @@ export default function SafeImage({
     priority,
     loading: priority ? undefined : 'lazy',
     sizes: sizes || (fill ? '(max-width: 768px) 100vw, 50vw' : undefined),
-    onError: () => setFailed(true),
+    onError: handleError,
+    unoptimized: validSrc.startsWith('http'),
     ...props,
   }
 

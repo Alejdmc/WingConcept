@@ -1,10 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, MapPin, Users, Clock } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import Reveal from '@/components/ui/Reveal'
 import { api } from '@/lib/api'
+import { useContenido } from '@/hooks/useContenido'
 
 const FALLBACK = {
   hero: { titulo: 'W.C Events', descripcion: 'Learn, Connect, and Grow with Our Community', imagen: '/images/motor.png' },
@@ -13,19 +14,11 @@ const FALLBACK = {
 }
 
 export default function EventsPage() {
-  const [content, setContent] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { content, loading } = useContenido('events', () => api.contenidos.events(), FALLBACK)
 
-  useEffect(() => {
-    api.contenidos.events()
-      .then(setContent)
-      .catch(() => setContent(FALLBACK))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const hero = content?.hero || FALLBACK.hero
-  const intro = content?.intro || FALLBACK.intro
-  const eventos = content?.eventos || content?.items || FALLBACK.eventos
+  const hero = content.hero
+  const intro = content.intro
+  const eventos = content.eventos?.length ? content.eventos : (content.items?.length ? content.items : FALLBACK.eventos)
 
   return (
     <div className="min-h-screen bg-white">
@@ -44,17 +37,17 @@ export default function EventsPage() {
 
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image src={hero.imagen || '/images/motor.png'} alt="Events" fill className="object-cover" priority />
+          <SafeImage src={hero.imagen} alt="Events" fill className="object-cover" priority fallbackSrc="/images/motor.png" />
           <div className="absolute inset-0 bg-black/50" />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          <Reveal>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               {hero.titulo}
             </h1>
             <div className="h-2 w-24 bg-brand mx-auto mb-8" />
             <p className="text-2xl md:text-3xl font-bold text-white drop-shadow-xl">{hero.descripcion}</p>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 

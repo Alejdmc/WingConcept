@@ -67,6 +67,7 @@ export default function AdminUsersPage() {
       setInvitations(data.items || [])
     } catch (err) {
       console.error('Error loading admin invitations:', err)
+      setInviteError(err?.detail || 'Could not load invitations. Enable ALLOW_NEW_ADMINS=true in backend/.env for local dev.')
     } finally {
       setLoadingInvites(false)
     }

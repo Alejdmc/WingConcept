@@ -19,6 +19,13 @@ export default function EditProductPage({ params }) {
     activo: true,
     destacado: false,
     imagenes: [],
+    contenido_extra: null,
+  })
+  const [pageContent, setPageContent] = useState({
+    tagline: '',
+    philosophy: '',
+    galleryText: '',
+    featuresJson: '[]',
   })
   const [variantes, setVariantes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +46,14 @@ export default function EditProductPage({ params }) {
           activo: data.activo ?? true,
           destacado: data.destacado ?? false,
           imagenes: data.imagenes || [],
+          contenido_extra: data.contenido_extra || null,
+        })
+        const extra = data.contenido_extra || {}
+        setPageContent({
+          tagline: extra.tagline || '',
+          philosophy: extra.philosophy || '',
+          galleryText: (extra.gallery || []).join('\n'),
+          featuresJson: JSON.stringify(extra.features || [], null, 2),
         })
         setVariantes(data.variantes || [])
       } catch {
@@ -60,7 +75,22 @@ export default function EditProductPage({ params }) {
     setSaving(true)
     setError('')
     try {
-      await api.admin.actualizarProducto(id, form)
+      let features = []
+      try {
+        features = JSON.parse(pageContent.featuresJson || '[]')
+      } catch {
+        setError('Features must be valid JSON (array of {title, desc, icon}).')
+        setSaving(false)
+        return
+      }
+      const contenido_extra = {
+        ...(form.contenido_extra || {}),
+        tagline: pageContent.tagline || null,
+        philosophy: pageContent.philosophy || null,
+        gallery: pageContent.galleryText.split('\n').map((s) => s.trim()).filter(Boolean),
+        features,
+      }
+      await api.admin.actualizarProducto(id, { ...form, contenido_extra })
       router.push('/admin/products')
     } catch (err) {
       setError(err.detail || 'Error saving product.')
@@ -169,6 +199,27 @@ export default function EditProductPage({ params }) {
               <input type="checkbox" name="destacado" checked={form.destacado} onChange={handleChange} />
               Featured
             </label>
+          </div>
+        </div>
+
+        <div className="bg-white border border-borderline rounded-lg p-6 space-y-4">
+          <h2 className="font-black text-ink">Product page content</h2>
+          <p className="text-sm text-ink2">Texts and gallery shown on the public product page (e.g. Vanguard, Nomadic). For listing cards and prices, use <Link href="/admin/paratrikes" className="text-brand hover:underline">Paratrikes page</Link> and <Link href="/admin/configurador" className="text-brand hover:underline">Customization</Link>.</p>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Tagline (subtitle under product name)</label>
+            <input value={pageContent.tagline} onChange={(e) => setPageContent({ ...pageContent, tagline: e.target.value })} className="w-full p-3 border rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Philosophy line</label>
+            <input value={pageContent.philosophy} onChange={(e) => setPageContent({ ...pageContent, philosophy: e.target.value })} className="w-full p-3 border rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Gallery images (one URL per line)</label>
+            <textarea value={pageContent.galleryText} onChange={(e) => setPageContent({ ...pageContent, galleryText: e.target.value })} rows={4} className="w-full p-3 border rounded font-mono text-sm" placeholder="/images/vanguard/1.png" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Features (JSON array: title, desc, icon)</label>
+            <textarea value={pageContent.featuresJson} onChange={(e) => setPageContent({ ...pageContent, featuresJson: e.target.value })} rows={8} className="w-full p-3 border rounded font-mono text-xs" />
           </div>
         </div>
 

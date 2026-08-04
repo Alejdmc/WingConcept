@@ -98,7 +98,17 @@ function RegisterForm() {
         telefono: formData.telefono,
         password: formData.password,
         captchaToken,
+        ...(inviteToken ? { inviteToken } : {}),
       })
+
+      if (inviteToken) {
+        setSuccess('Admin account created! You can sign in now.')
+        clearAuthNext()
+        setTimeout(() => {
+          router.push(buildAuthUrl('/login', '/admin/dashboard', inviteToken))
+        }, 1500)
+        return
+      }
 
       setSuccess('Account created! Check your email to verify your address.')
       clearAuthNext()
