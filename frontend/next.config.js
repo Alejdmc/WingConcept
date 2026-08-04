@@ -1,6 +1,11 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  turbopack: {
+    root: path.join(__dirname),
+  },
   async rewrites() {
     // Dev: proxy same-origin /api → backend (evita CORS en uploads multipart)
     if (process.env.NODE_ENV === 'development') {

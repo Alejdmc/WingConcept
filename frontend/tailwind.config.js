@@ -17,10 +17,9 @@ module.exports = {
         borderline:   '#e5e5ea',
       },
       fontFamily: {
-       
-        sans: ['Montserrat', 'sans-serif'],
-        barlow:    ['"Barlow"', 'sans-serif'],
-        condensed: ['"Barlow Condensed"', 'sans-serif'],
+        sans: ['var(--font-montserrat)', 'sans-serif'],
+        barlow: ['var(--font-barlow)', 'sans-serif'],
+        condensed: ['var(--font-barlow-condensed)', 'sans-serif'],
       },
     },
   },
