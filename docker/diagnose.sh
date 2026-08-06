@@ -67,13 +67,14 @@ if $RESTART; then
   echo "==> Reiniciando stack..."
   export NGINX_CONF=nginx.conf
   "${COMPOSE[@]}" up -d --build
+  "${COMPOSE[@]}" up -d --force-recreate nginx
   echo "==> Esperando servicios (90s max)..."
   for i in $(seq 1 18); do
     live=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 5 http://127.0.0.1/health 2>/dev/null || echo "000")
-    ready=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 10 http://127.0.0.1/health/ready 2>/dev/null || echo "000")
+    api=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 10 http://127.0.0.1/api/v1/productos/destacados 2>/dev/null || echo "000")
     home=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 15 http://127.0.0.1/ 2>/dev/null || echo "000")
-    echo "  intento $i: live=$live ready=$ready home=$home"
-    if [[ "$live" == "200" && "$ready" == "200" && "$home" == "200" ]]; then
+    echo "  intento $i: live=$live api=$api home=$home"
+    if [[ "$live" == "200" && "$api" == "200" && "$home" == "200" ]]; then
       echo "✅ Stack recuperado"
       exit 0
     fi
