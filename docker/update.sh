@@ -51,7 +51,10 @@ echo "==> .env restaurado"
 
 export NGINX_CONF=nginx.conf
 
-echo "==> Migraciones Alembic (antes del rebuild)..."
+echo "==> Reconstruyendo backend (requerido para migraciones nuevas)..."
+"${COMPOSE[@]}" build backend
+
+echo "==> Migraciones Alembic..."
 "${COMPOSE[@]}" run --rm --no-deps --entrypoint alembic backend upgrade head
 
 echo "==> Reconstruyendo y levantando servicios..."
