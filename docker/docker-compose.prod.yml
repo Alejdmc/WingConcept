@@ -17,7 +17,7 @@ services:
       uvicorn app.main:app
       --host 0.0.0.0
       --port 8000
-      --workers 4
+      --workers 2
       --proxy-headers
       --forwarded-allow-ips=*
     volumes: !reset []  # Sin montar código fuente en producción
@@ -28,12 +28,26 @@ services:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REQUIRE_EMAIL_VERIFIED=true
-      - RUN_MIGRATIONS=true
+      - RUN_MIGRATIONS=false
+      - DB_POOL_SIZE=3
+      - DB_MAX_OVERFLOW=3
+      - DB_POOL_TIMEOUT=20
+      - DB_COMMAND_TIMEOUT=25
     depends_on:
       redis:
         condition: service_healthy
     healthcheck:
-      start_period: 90s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
   redis:
     image: redis:7-alpine
@@ -62,4 +76,10 @@ services:
       - INTERNAL_API_URL=http://backend:8000
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M

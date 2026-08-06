@@ -19,6 +19,7 @@ SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9\-_]{8,64}$")
 # Rutas excluidas del rate limit global (webhooks de pago, health checks)
 RATE_LIMIT_EXEMPT_PREFIXES = (
     "/health",
+    "/health/live",
     "/api/v1/webhooks/",
 )
 

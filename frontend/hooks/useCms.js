@@ -51,10 +51,14 @@ export function useSiteBlocks(seccion = null) {
     if (cached) {
       setBlocks(cached)
       setLoading(false)
-      load()
-    } else {
-      load()
+      // Refetch en background solo si el caché tiene más de 5 minutos
+      const entry = cache.get(key)
+      if (entry && Date.now() - entry.ts < 5 * 60 * 1000) {
+        return () => { cancelled = true }
+      }
     }
+
+    load()
 
     return () => { cancelled = true }
   }, [key, seccion])

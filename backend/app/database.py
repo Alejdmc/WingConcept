@@ -51,7 +51,11 @@ def get_async_connect_args(url: str) -> dict:
     if "supabase" in lower:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-    return {"ssl": ctx}
+
+    connect_args: dict = {"ssl": ctx}
+    connect_args["timeout"] = settings.DB_COMMAND_TIMEOUT
+    connect_args["command_timeout"] = settings.DB_COMMAND_TIMEOUT
+    return connect_args
 
 
 ASYNC_DATABASE_URL = _build_async_url(settings.DATABASE_URL) if settings.DATABASE_URL else ""
@@ -65,7 +69,12 @@ _engine_kwargs = {
 if os.environ.get("TESTING") == "1":
     _engine_kwargs["poolclass"] = NullPool
 else:
-    _engine_kwargs.update(pool_size=10, max_overflow=20, pool_recycle=3600)
+    _engine_kwargs.update(
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_timeout=settings.DB_POOL_TIMEOUT,
+        pool_recycle=settings.DB_POOL_RECYCLE,
+    )
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 engine = create_async_engine(

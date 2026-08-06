@@ -43,14 +43,38 @@ cp "$ENV_BACKUP" backend/.env
 rm -f "$ENV_BACKUP"
 echo "==> .env restaurado"
 
-echo "==> Reconstruyendo y levantando servicios..."
+cd docker
 export NGINX_CONF=nginx.conf
+
+echo "==> Migraciones Alembic (antes del rebuild)..."
+$COMPOSE run --rm --no-deps --entrypoint alembic backend upgrade head
+
+echo "==> Reconstruyendo y levantando servicios..."
 $COMPOSE up -d --build
 
-echo ""
-echo "==> Migraciones (si RUN_MIGRATIONS=true en backend/.env)..."
-$COMPOSE exec -T backend alembic upgrade head 2>/dev/null || echo "    (omitido o backend aún iniciando — ejecuta manualmente si hace falta)"
+echo "==> Verificando salud (hasta 120s)..."
+ok=false
+for i in $(seq 1 24); do
+  live=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 5 http://127.0.0.1/health 2>/dev/null || echo "000")
+  ready=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 15 http://127.0.0.1/health/ready 2>/dev/null || echo "000")
+  home=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 20 http://127.0.0.1/ 2>/dev/null || echo "000")
+  echo "  [$i/24] live=$live ready=$ready home=$home"
+  if [ "$live" = "200" ] && [ "$ready" = "200" ] && [ "$home" = "200" ]; then
+    ok=true
+    break
+  fi
+  sleep 5
+done
 
 echo ""
-echo "✅ Update completado"
 $COMPOSE ps
+
+if [ "$ok" = true ]; then
+  echo ""
+  echo "✅ Update completado — sitio respondiendo"
+else
+  echo ""
+  echo "⚠️  Update desplegado pero el sitio no respondió OK"
+  echo "   Ejecuta: bash docker/diagnose.sh --restart"
+  exit 1
+fi

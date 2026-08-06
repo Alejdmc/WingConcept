@@ -276,9 +276,15 @@ async def root():
     }
 
 
+@app.get("/health/live", tags=["Health"])
+async def health_live():
+    """Liveness probe — responde si el proceso está vivo (sin tocar DB/Redis)."""
+    return {"status": "alive"}
+
+
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Health check para load balancers y Docker."""
+    """Readiness probe — verifica DB y Redis (no usar como liveness de Docker)."""
     checks = {"api": "ok"}
 
     # Check DB

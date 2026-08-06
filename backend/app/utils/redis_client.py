@@ -28,6 +28,9 @@ async def get_redis() -> aioredis.Redis:
             db=settings.REDIS_DB,
             decode_responses=True,
             encoding="utf-8",
+            socket_connect_timeout=5,
+            socket_timeout=5,
+            retry_on_timeout=True,
         )
     return _redis_pool
 
@@ -116,9 +119,8 @@ async def check_rate_limit(
         return count <= limit, remaining
     except Exception as e:
         logger.warning(f"Redis rate_limit error [{identifier}]: {e}")
-        if settings.is_production:
-            return False, 0
-        return True, limit  # En desarrollo, permitir si Redis no está disponible
+        # Fail-open: mejor servir tráfico sin rate limit que bloquear todo el sitio
+        return True, limit
 
 
 # ── Refresh Token Blacklist (rotation) ────────────────────────────────────────
