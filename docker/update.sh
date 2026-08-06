@@ -10,7 +10,13 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 BRANCH="${DEPLOY_BRANCH:-production}"
-COMPOSE="docker compose --env-file backend/.env -f docker/docker-compose.yml -f docker/docker-compose.prod.yml"
+ENV_FILE="$REPO_ROOT/backend/.env"
+COMPOSE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -f "$REPO_ROOT/docker/docker-compose.yml"
+  -f "$REPO_ROOT/docker/docker-compose.prod.yml"
+)
 
 echo "==> WingConcept update — rama: $BRANCH"
 
@@ -19,13 +25,13 @@ if [ ! -d .git ]; then
   exit 1
 fi
 
-if [ ! -f backend/.env ]; then
+if [ ! -f "$ENV_FILE" ]; then
   echo "ERROR: Falta backend/.env — créalo antes de desplegar"
   exit 1
 fi
 
 ENV_BACKUP="$(mktemp)"
-cp backend/.env "$ENV_BACKUP"
+cp "$ENV_FILE" "$ENV_BACKUP"
 echo "==> .env respaldado temporalmente"
 
 git fetch origin "$BRANCH"
@@ -39,18 +45,17 @@ fi
 git checkout "$BRANCH"
 git reset --hard "origin/$BRANCH"
 
-cp "$ENV_BACKUP" backend/.env
+cp "$ENV_BACKUP" "$ENV_FILE"
 rm -f "$ENV_BACKUP"
 echo "==> .env restaurado"
 
-cd docker
 export NGINX_CONF=nginx.conf
 
 echo "==> Migraciones Alembic (antes del rebuild)..."
-$COMPOSE run --rm --no-deps --entrypoint alembic backend upgrade head
+"${COMPOSE[@]}" run --rm --no-deps --entrypoint alembic backend upgrade head
 
 echo "==> Reconstruyendo y levantando servicios..."
-$COMPOSE up -d --build
+"${COMPOSE[@]}" up -d --build
 
 echo "==> Verificando salud (hasta 120s)..."
 ok=false
@@ -67,7 +72,7 @@ for i in $(seq 1 24); do
 done
 
 echo ""
-$COMPOSE ps
+"${COMPOSE[@]}" ps
 
 if [ "$ok" = true ]; then
   echo ""

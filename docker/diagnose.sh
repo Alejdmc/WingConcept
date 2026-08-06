@@ -9,7 +9,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-COMPOSE="docker compose --env-file backend/.env -f docker/docker-compose.yml -f docker/docker-compose.prod.yml"
+ENV_FILE="$REPO_ROOT/backend/.env"
+COMPOSE=(
+  docker compose
+  --env-file "$ENV_FILE"
+  -f "$REPO_ROOT/docker/docker-compose.yml"
+  -f "$REPO_ROOT/docker/docker-compose.prod.yml"
+)
 RESTART=false
 
 if [[ "${1:-}" == "--restart" ]]; then
@@ -30,7 +36,7 @@ echo ""
 
 echo "── Estado Docker ──"
 export NGINX_CONF=nginx.conf
-$COMPOSE ps 2>/dev/null || { echo "ERROR: docker compose ps falló"; exit 1; }
+"${COMPOSE[@]}" ps 2>/dev/null || { echo "ERROR: docker compose ps falló"; exit 1; }
 echo ""
 
 echo "── Health interno ──"
@@ -46,22 +52,21 @@ done
 echo ""
 
 echo "── Últimos logs (backend) ──"
-$COMPOSE logs --tail=30 backend 2>/dev/null || true
+"${COMPOSE[@]}" logs --tail=30 backend 2>/dev/null || true
 echo ""
 
 echo "── Últimos logs (frontend) ──"
-$COMPOSE logs --tail=20 frontend 2>/dev/null || true
+"${COMPOSE[@]}" logs --tail=20 frontend 2>/dev/null || true
 echo ""
 
 echo "── Últimos logs (nginx) ──"
-$COMPOSE logs --tail=15 nginx 2>/dev/null || true
+"${COMPOSE[@]}" logs --tail=15 nginx 2>/dev/null || true
 echo ""
 
 if $RESTART; then
   echo "==> Reiniciando stack..."
-  cd docker
   export NGINX_CONF=nginx.conf
-  $COMPOSE up -d --build
+  "${COMPOSE[@]}" up -d --build
   echo "==> Esperando servicios (90s max)..."
   for i in $(seq 1 18); do
     live=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 3 --max-time 5 http://127.0.0.1/health 2>/dev/null || echo "000")
