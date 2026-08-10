@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { useCart } from '@/hooks/useCart'
 import { ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
@@ -134,7 +135,7 @@ export default function CartPage() {
 
                     <div className="text-right">
                       <p className="text-2xl font-black text-brand">
-                        ${(item.precio_unitario * (item.cantidad || 1)).toLocaleString()}
+                        ${((item.precio_unitario ?? 0) * (item.cantidad || 1)).toLocaleString()}
                       </p>
                     </div>
                   </div>
