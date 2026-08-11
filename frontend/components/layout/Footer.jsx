@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { Facebook, Instagram, TikTok, Youtube, Mail, Phone } from 'lucide-react'
+import { ZOMIDEV_PAGE_ENABLED } from '@/lib/featureFlags'
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -56,7 +57,16 @@ export default function Footer() {
           {/* Left: Copyright */}
           <div className="text-white/40 text-xs">
             <p>&copy; 2026 Wing Concept. All rights reserved.</p>
-            <p className="mt-2">Designed & Developed by <Link href="/zomidev" className="text-brand font-bold hover:text-brand/80 transition">ZomiDev</Link></p>
+            <p className="mt-2">
+              Designed & Developed by{' '}
+              {ZOMIDEV_PAGE_ENABLED ? (
+                <Link href="/zomidev" className="text-brand font-bold hover:text-brand/80 transition">
+                  ZomiDev
+                </Link>
+              ) : (
+                <span className="text-brand font-bold">ZomiDev</span>
+              )}
+            </p>
           </div>
           {/* Right: Social */}
           <div className="flex items-center gap-6">

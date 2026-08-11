@@ -61,9 +61,87 @@ def _format_specs(atributos: Optional[dict]) -> Optional[str]:
     return " | ".join(parts) if parts else None
 
 
+LEGACY_NOMADIC_IMAGES = frozenset({
+    "/images/nomadic/1.jpg",
+    "/images/nomadic1.png",
+    "/images/paramotor_trike_ejemplo.PNG",
+})
+
+LEGACY_NOMADIC_BASENAMES = frozenset({
+    "1.jpg",
+    "nomadic1.png",
+    "paramotor_trike_ejemplo.png",
+})
+
+NOMADIC_HERO_IMAGE = "/images/nomadic/2.jpg"
+NOMADIC_DOCUMENT_BASE_PRICE = 4379.5
+NOMADIC_GALLERY_URLS = [f"/images/nomadic/{i}.jpg" for i in range(2, 7)]
+
+
+def _is_legacy_nomadic_image(url: Optional[str]) -> bool:
+    if not url or not isinstance(url, str):
+        return True
+    trimmed = url.strip()
+    if trimmed in LEGACY_NOMADIC_IMAGES:
+        return True
+    basename = trimmed.rsplit("/", 1)[-1].lower()
+    if basename in LEGACY_NOMADIC_BASENAMES:
+        return True
+    if trimmed.lower().endswith("/nomadic/1.jpg"):
+        return True
+    return False
+
+
+def _filter_nomadic_images(urls: Optional[list]) -> list:
+    if not urls:
+        return []
+    return [u for u in urls if u and not _is_legacy_nomadic_image(u)]
+
+
+def _sanitize_nomadic_product(p: "Producto") -> None:
+    """Remove legacy image URLs — file nomadic/1.jpg was deleted from public/."""
+    if p.slug != "nomadic-trike":
+        return
+    filtered = _filter_nomadic_images(p.imagenes)
+    p.imagenes = filtered if filtered else list(NOMADIC_GALLERY_URLS)
+    extra = dict(p.contenido_extra or {})
+    gallery = _filter_nomadic_images(extra.get("gallery"))
+    extra["gallery"] = gallery if gallery else list(NOMADIC_GALLERY_URLS)
+    listing = dict(extra.get("listing") or {})
+    if _is_legacy_nomadic_image(listing.get("image")):
+        listing["image"] = NOMADIC_HERO_IMAGE
+    extra["listing"] = listing
+    p.contenido_extra = extra
+
+
+def _resolve_product_image(p: "Producto") -> Optional[str]:
+    """Listing/gallery first — avoids stale product.imagenes (e.g. nomadic1.png)."""
+    extra = p.contenido_extra or {}
+    listing = extra.get("listing") or {}
+    if listing.get("image") and not _is_legacy_nomadic_image(listing["image"]):
+        return listing["image"]
+    gallery = _filter_nomadic_images(extra.get("gallery"))
+    if gallery:
+        return gallery[0]
+    if p.imagenes:
+        filtered = _filter_nomadic_images(p.imagenes)
+        if filtered:
+            return filtered[0]
+        first = p.imagenes[0]
+        if p.slug == "nomadic-trike" and _is_legacy_nomadic_image(first):
+            return NOMADIC_HERO_IMAGE
+        return first
+    if p.slug == "nomadic-trike":
+        return NOMADIC_HERO_IMAGE
+    return None
+
+
 def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoListResponse":
     """Construye un ProductoListResponse con todos los campos (backend + frontend)."""
+    _sanitize_nomadic_product(p)
     precio_desde = min((v.precio for v in variantes_activas), default=None)
+    if p.slug == "nomadic-trike":
+        precio_desde = NOMADIC_DOCUMENT_BASE_PRICE
 
     # Specs: tomar atributos de la variante principal (es_principal=True) o la primera
     variante_principal = next(
@@ -91,8 +169,10 @@ def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoLis
         contenido_extra=p.contenido_extra,
         # Campos amigables para el frontend
         name=p.nombre,
-        image=p.imagenes[0] if p.imagenes else None,
-        price=_format_price(precio_desde),
+        image=_resolve_product_image(p),
+        price=(
+            f"${precio_desde:,.2f}" if p.slug == "nomadic-trike" else _format_price(precio_desde)
+        ),
         desc=p.descripcion_corta,
         specs=specs,
         compatible_with=compatible_with,
@@ -178,6 +258,7 @@ class ProductoService:
         if not producto:
             raise RecursoNoEncontradoError("Producto")
 
+        _sanitize_nomadic_product(producto)
         response = ProductoResponse.model_validate(producto)
         await cache_set(cache_key, response.model_dump(), ttl=settings.REDIS_CACHE_TTL)
         return response

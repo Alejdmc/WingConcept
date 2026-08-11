@@ -147,32 +147,32 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Header */}
-      <div className="bg-white border-b border-borderline sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition mb-6">
+      <div className="bg-white border-b border-borderline sticky-below-nav">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition mb-4 sm:mb-6">
             <ArrowLeft className="w-4 h-4" />
             Continue Shopping
           </Link>
 
           {/* Steps */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between overflow-x-auto pb-1">
             {CHECKOUT_STEPS.map((step, i) => (
-              <div key={step.id} className="flex items-center flex-1">
+              <div key={step.id} className="flex items-center flex-1 min-w-0 shrink-0">
                 <motion.div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition-all
+                  className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold transition-all shrink-0
                     ${currentStep >= step.id
                       ? 'bg-brand text-white'
                       : 'bg-borderline text-ink2'
                     }`}>
                   {step.id}
                 </motion.div>
-                <p className={`ml-3 text-sm font-semibold ${
+                <p className={`hidden sm:block ml-2 sm:ml-3 text-sm font-semibold truncate ${
                   currentStep >= step.id ? 'text-ink' : 'text-ink2'
                 }`}>
                   {step.name}
                 </p>
                 {i < CHECKOUT_STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 transition-all ${
+                  <div className={`flex-1 h-0.5 mx-2 sm:mx-4 transition-all min-w-[12px] ${
                     currentStep > step.id ? 'bg-brand' : 'bg-borderline'
                   }`} />
                 )}
@@ -209,7 +209,7 @@ export default function CheckoutPage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-1">
-            <div className="bg-white border border-borderline rounded-xl p-6 sticky top-32">
+            <div className="bg-white border border-borderline rounded-xl p-6 sticky-summary">
               <h3 className="font-black text-ink mb-6 uppercase tracking-wide">Order Summary</h3>
 
               {/* Items */}
@@ -313,7 +313,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
         {/* Cart Items */}
         <div className="divide-y divide-borderline">
           {cart.items.map(item => (
-            <div key={item.id} className="p-6 flex gap-6">
+            <div key={item.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
               {/* Image */}
               <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
                 {item.producto_imagen && (
@@ -322,7 +322,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
               </div>
 
               {/* Details */}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-ink text-lg">{item.producto_nombre}</h3>
                 <p className="text-sm text-ink2 mb-4">{item.variante_nombre}</p>
 
@@ -343,7 +343,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
               </div>
 
               {/* Price & Remove */}
-              <div className="text-right">
+              <div className="text-left sm:text-right sm:ml-auto">
                 <p className="text-2xl font-black text-brand mb-4">
                   ${(item.precio_unitario * item.cantidad).toLocaleString()}
                 </p>
@@ -359,7 +359,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
         </div>
 
         {/* Actions */}
-        <div className="p-6 bg-bg2 flex justify-between items-center">
+        <div className="p-4 sm:p-6 bg-bg2 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
           <p className="text-sm text-ink2">
             {cart.cantidad_items} item{cart.cantidad_items !== 1 ? 's' : ''} in cart
           </p>

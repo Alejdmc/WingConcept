@@ -1,12 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import { X } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import { filterNomadicImages, NOMADIC_GALLERY } from '@/lib/nomadicContent'
 
 const DEFAULT_IMAGES = [
   { src: '/images/vanguard/1.png', alt: 'Vanguard V8.0' },
-  { src: '/images/nomadic/1.jpg', alt: 'Nomadic Trike' },
+  { src: '/images/nomadic/2.jpg', alt: 'Nomadic Trike' },
   { src: '/images/vanguard/2.png', alt: 'Vanguard V8.0' },
   { src: '/images/vanguard/3.png', alt: 'Vanguard V8.0' },
   { src: '/images/vanguard/4.png', alt: 'Vanguard V8.0' },
@@ -18,8 +19,20 @@ const DEFAULT_IMAGES = [
   { src: '/images/vanguard/10.png', alt: 'Vanguard V8.0' },
 ]
 
+function sanitizeGalleryImages(images) {
+  const srcs = (images || []).map((img) => img?.src).filter(Boolean)
+  const filteredSrcs = filterNomadicImages(srcs)
+  if (!filteredSrcs.length) {
+    return images?.length ? DEFAULT_IMAGES : NOMADIC_GALLERY
+  }
+  const allowed = new Set(filteredSrcs)
+  const cleaned = (images || []).filter((img) => img?.src && allowed.has(img.src))
+  return cleaned.length ? cleaned : NOMADIC_GALLERY
+}
+
 export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight', title = 'Gallery', bgClass = 'bg-white' }) {
   const [openIndex, setOpenIndex] = useState(null)
+  const galleryImages = useMemo(() => sanitizeGalleryImages(images), [images])
 
   return (
     <section className={`py-24 px-6 ${bgClass}`}>
@@ -31,9 +44,9 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((img, i) => (
+          {galleryImages.map((img, i) => (
             <motion.button
-              key={img.src}
+              key={`${img.src}-${i}`}
               type="button"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -43,7 +56,7 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
               onClick={() => setOpenIndex(i)}
               className="relative aspect-square rounded-xl overflow-hidden bg-bg2 border border-borderline group"
             >
-              <Image
+              <SafeImage
                 src={img.src}
                 alt={img.alt}
                 fill
@@ -78,9 +91,9 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-3xl aspect-square"
             >
-              <Image
-                src={images[openIndex].src}
-                alt={images[openIndex].alt}
+              <SafeImage
+                src={galleryImages[openIndex].src}
+                alt={galleryImages[openIndex].alt}
                 fill
                 className="object-contain"
               />

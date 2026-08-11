@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Save, ExternalLink, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import { PARATRIKE_HREFS } from '@/lib/cmsLabels'
+import { pickNomadicImage, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 function emptyListing() {
   return {
@@ -34,7 +36,9 @@ function fromProduct(p) {
       tagline: listing.tagline || '',
       description: listing.description || p.descripcion_corta || '',
       featuresText: (listing.features || []).join('\n'),
-      image: listing.image || p.imagenes?.[0] || '',
+      image: p.slug === 'nomadic-trike'
+        ? pickNomadicImage([listing.image, ...(p.imagenes || [])].filter(Boolean), NOMADIC_HERO_IMAGE)
+        : (listing.image || p.imagenes?.[0] || ''),
       cta_label: listing.cta_label || '',
       compareDescription: compare.description || '',
       compareBulletsText: (compare.bullets || []).join('\n'),
@@ -185,12 +189,12 @@ export default function AdminParatrikesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Card image (URL or path)</label>
-                  <input
-                    value={item.listing.image}
-                    onChange={(e) => updateField(item.id, 'image', e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="/images/vanguard/1.png"
+                  <ImageUploadField
+                    images={item.listing.image ? [item.listing.image] : []}
+                    onChange={(urls) => updateField(item.id, 'image', urls[0] || '')}
+                    productoId={item.id}
+                    label="Card image"
+                    maxImages={1}
                   />
                 </div>
                 <div className="md:col-span-2">

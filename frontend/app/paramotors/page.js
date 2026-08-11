@@ -36,7 +36,7 @@ export default function ParamotorsPage() {
                 alt="Wing Concept"
                 width={500}
                 height={200}
-                className="drop-shadow-lg brightness-0 invert"
+                className="hero-logo drop-shadow-lg brightness-0 invert"
               />
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">

@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --nav-h: 4rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --nav-h: 5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --nav-h: 7rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 9rem;
+  }
+}
+
+@layer components {
+  .sticky-below-nav {
+    @apply sticky z-40;
+    top: var(--nav-h);
+  }
+
+  .sticky-summary {
+    @apply lg:sticky;
+    top: calc(var(--nav-h) + 1rem);
+  }
+
+  .hero-logo {
+    @apply w-full max-w-[220px] sm:max-w-xs md:max-w-md h-auto;
+  }
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -9,5 +47,9 @@
 
 html {
   scroll-behavior: smooth !important;
-  
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }

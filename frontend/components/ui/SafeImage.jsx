@@ -1,9 +1,12 @@
 'use client'
 import { useState } from 'react'
 import Image from 'next/image'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
+import { isLegacyNomadicImage } from '@/lib/nomadicContent'
 
 /**
- * next/image wrapper: skips invalid src, retries once on error, shows placeholder on failure.
+ * next/image wrapper: always renders an image when fallbackSrc is set.
+ * Retries the primary src once, then falls back — never leaves an empty slot.
  */
 export default function SafeImage({
   src,
@@ -14,19 +17,20 @@ export default function SafeImage({
   className = '',
   priority = false,
   sizes,
-  fallbackSrc,
+  fallbackSrc = FALLBACK_IMAGES.product,
   ...props
 }) {
-  const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
 
-  const baseSrc = typeof src === 'string' && src.trim().length > 0 ? src.trim() : null
-  const retrySrc = baseSrc && attempt === 1 && !baseSrc.includes('?')
-    ? `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}_r=1`
-    : baseSrc
-  const validSrc = attempt === 2 && fallbackSrc ? fallbackSrc : retrySrc
+  const rawSrc = typeof src === 'string' && src.trim().length > 0 ? src.trim() : null
+  const baseSrc = rawSrc && isLegacyNomadicImage(rawSrc) ? null : rawSrc
+  const primary = baseSrc || fallbackSrc
+  const retrySrc = attempt === 1 && primary && !primary.includes('?')
+    ? `${primary}${primary.includes('?') ? '&' : '?'}_r=1`
+    : primary
+  const validSrc = attempt >= 2 && fallbackSrc ? fallbackSrc : retrySrc
 
-  if (!validSrc || failed) {
+  if (!validSrc) {
     return (
       <div
         className={`bg-bg2 flex items-center justify-center text-ink2/40 text-xs uppercase tracking-widest ${className}`}
@@ -42,11 +46,13 @@ export default function SafeImage({
       setAttempt(1)
       return
     }
-    if (fallbackSrc && attempt === 1) {
+    if (fallbackSrc && validSrc !== fallbackSrc) {
       setAttempt(2)
       return
     }
-    setFailed(true)
+    if (attempt < 3 && fallbackSrc) {
+      setAttempt(3)
+    }
   }
 
   const imageProps = {

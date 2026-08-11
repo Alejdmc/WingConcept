@@ -25,7 +25,7 @@ export default function CartPage() {
 
   if (cargando && items.length === 0) {
     return (
-      <div className="min-h-screen bg-bg px-8 py-12 flex items-center justify-center">
+      <div className="min-h-screen bg-bg px-4 sm:px-6 lg:px-8 py-12 flex items-center justify-center">
         <p className="text-ink2 text-lg">Loading cart...</p>
       </div>
     )
@@ -33,7 +33,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-bg px-8 py-12">
+      <div className="min-h-screen bg-bg px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-4xl mx-auto">
           <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition mb-8">
             <ArrowLeft className="w-4 h-4" />
@@ -61,7 +61,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link href="/" className="flex items-center gap-2 text-ink hover:text-brand transition mb-8">
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -88,7 +88,7 @@ export default function CartPage() {
               {/* Items */}
               <div className="divide-y divide-borderline">
                 {items.map(item => (
-                  <div key={item.cartId || item.id} className="relative p-6 flex gap-6">
+                  <div key={item.cartId || item.id} className="relative p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <button
                       onClick={() => removeFromCart(item.cartId || item.id)}
                       aria-label="Remove item"
@@ -107,7 +107,7 @@ export default function CartPage() {
                       />
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-ink text-lg pr-8">{item.name || item.producto_nombre}</h3>
                       <p className="text-sm text-ink2 mb-2">{item.price}</p>
                       {item.configuracion && formatConfigSummary(item.configuracion).length > 0 && (
@@ -133,7 +133,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-left sm:text-right sm:ml-auto">
                       <p className="text-2xl font-black text-brand">
                         ${((item.precio_unitario ?? 0) * (item.cantidad || 1)).toLocaleString()}
                       </p>
@@ -149,7 +149,7 @@ export default function CartPage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-1">
-            <div className="bg-white border border-borderline rounded-xl p-6 sticky top-32">
+            <div className="bg-white border border-borderline rounded-xl p-6 sticky-summary">
               <h3 className="font-black text-ink mb-6 uppercase tracking-wide">Order Summary</h3>
 
               <div className="space-y-3 mb-6 pb-6 border-b border-borderline">

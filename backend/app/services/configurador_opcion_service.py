@@ -19,6 +19,9 @@ from app.schemas.configurador_opcion import (
     PaginatedConfiguradorOpciones,
 )
 
+NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+NOMADIC_DOCUMENT_BASE_PRICE = 4379.5
+
 
 def _opcion_to_dict(op: ConfiguradorOpcion) -> Dict[str, Any]:
     base = {
@@ -106,6 +109,8 @@ class ConfiguradorOpcionService:
         await db.flush()
 
     async def _precio_base(self, db: AsyncSession, producto_id: uuid.UUID) -> Optional[float]:
+        if producto_id == NOMADIC_PRODUCT_ID:
+            return NOMADIC_DOCUMENT_BASE_PRICE
         result = await db.execute(
             select(Variante)
             .where(Variante.producto_id == producto_id, Variante.activo == True)

@@ -11,7 +11,7 @@ const PREFLIGHT_CHECKLIST = INDUCTION_PREFLIGHT_CHECKLIST
 export default function CursoInductivoPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/"

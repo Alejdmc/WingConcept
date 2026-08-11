@@ -6,12 +6,11 @@ import SafeImage from '@/components/ui/SafeImage'
 import Reveal from '@/components/ui/Reveal'
 import { api } from '@/lib/api'
 import { useContenido } from '@/hooks/useContenido'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 
-const FALLBACK = {
-  hero: { titulo: 'W.C Events', descripcion: 'Learn, Connect, and Grow with Our Community', imagen: '/images/motor.png' },
-  intro: { descripcion: 'Join our exclusive training courses, workshops, and community events.' },
-  eventos: [],
-}
+import { EVENTS_FALLBACK } from '@/lib/staticContent'
+
+const FALLBACK = EVENTS_FALLBACK
 
 export default function EventsPage() {
   const { content, loading } = useContenido('events', () => api.contenidos.events(), FALLBACK)
@@ -22,7 +21,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/"
@@ -80,7 +79,13 @@ export default function EventsPage() {
                   transition={{ delay: i * 0.05 }}
                   className="bg-white rounded-2xl overflow-hidden border border-borderline hover:shadow-lg hover:border-brand transition-all">
                   <div className="relative h-64 bg-bg2">
-                    {event.imagen && <Image src={event.imagen} alt={event.titulo} fill className="object-cover" />}
+                    <SafeImage
+                      src={event.imagen}
+                      alt={event.titulo}
+                      fill
+                      className="object-cover"
+                      fallbackSrc={FALLBACK_IMAGES.event}
+                    />
                     {event.precio && (
                       <div className="absolute top-4 right-4 bg-brand text-white px-4 py-2 rounded-full font-black text-lg">
                         {event.precio}

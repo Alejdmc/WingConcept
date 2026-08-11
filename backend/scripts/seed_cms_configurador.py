@@ -95,7 +95,7 @@ NOMADIC_CONTENIDO = {
         "Suspension": "High-Resistance All-Terrain",
         "Safety": "Full Cage Structural Protection",
     },
-    "gallery": [f"/images/nomadic/{i}.jpg" for i in range(1, 7)],
+    "gallery": [f"/images/nomadic/{i}.jpg" for i in range(2, 7)],
     "listing": {
         "tagline": "The Ultimate Off-Grid Adventure",
         "description": "Built for extreme conditions and remote expeditions. Go further, land anywhere with our ruggedized design.",
@@ -105,7 +105,7 @@ NOMADIC_CONTENIDO = {
             "Full cage protection",
             "Expedition-ready capacity",
         ],
-        "image": "/images/nomadic/1.jpg",
+        "image": "/images/nomadic/2.jpg",
         "cta_label": "Explore Nomadic",
     },
     "compare": {
@@ -155,15 +155,25 @@ VANGUARD_OPCIONES = [
     ("color", "candy-purple", "Candy Purple", None, 0, None, {"hex": "#9b59b6", "displayName": "Candy Purple"}),
     ("color", "white", "White", None, 0, None, {"hex": "#ffffff", "displayName": "White"}),
     ("color", "grey", "Grey", None, 0, None, {"hex": "#95a5a6", "displayName": "Grey"}),
-    ("accessory", "cruise-control", "Cruise Control", "Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.", 20, "/images/accessories/cruise-control.jpg", {}),
-    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.", 25, "/images/accessories/camel-back.jpg", {}),
-    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.", 30, "/images/parts/sun-roof-netting.png", {}),
-    ("accessory", "lateral-bag", "Lateral Bag for Vanguard", "Side storage bag tailored for the Vanguard frame. Perfect for carrying beverages, camping gear, and supplies on long trips.", 90, "/images/accessories/lateral-bag.jpg", {}),
-    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.", 105, "/images/parts/cockpit-liner.png", {}),
-    ("accessory", "instrument-kit", "Basic Instrument Kit (Vanguard)", "Features a built-in USB charger, an exclusive fuel gauge for the Vanguard model, and 3 TTO brand digital sensors (CHT, RPM, and radiator water temperature).", 440, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "Protects the pilot from the sun and prevents paraglider lines from tangling with equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
+    ("accessory", "front-bar-protection", "Padded Roll Bar Protector with Handles", "Protects the passenger and provides comfortable handles.", 47, "/images/parts/front-bar-protection.png", {}),
+    ("accessory", "front-brake", "Front Brake", "Additional cable brake providing extra braking power.", 120, "/images/parts/front-fork.png", {}),
+    ("accessory", "rear-mirror", "Rear Mirror", "Essential for viewing wing position during takeoff.", 25, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover for trailering.", 105, "/images/parts/cockpit-liner.png", {}),
+    ("accessory", "parachute-container", "Parachute Container", "Exclusive container for mounting on harnesses.", 55, "/images/parts/parachute-container.png", {}),
+    ("accessory", "lateral-bag", "Two Side Explorer Cases (L-R)", "Pair of aerodynamic side cases with extra straps.", 95, "/images/parts/lateral-bag-explorer.png", {}),
+    ("accessory", "cruise-control", "Cruise Control", "Maintains desired RPM for stable, smooth flight.", 25, "/images/parts/front-bar-protection.png", {}),
+    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "Hydration bladder setup for long-endurance flights.", 25, "/images/parts/passenger-harness.png", {}),
+    ("accessory", "fuel-gauge-vanguard", "Analog Fuel Gauge (Vanguard)", "Analog fuel gauge for the Vanguard L-shaped tank.", 119, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "auxiliary-lights", "Auxiliary Lights Kit", "LED lights, position indicators, switch and wiring.", 187.10, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "instrument-kit", "Basic Instrument Kit (Vanguard)", "TTO digital gauges and 4-port USB charger.", 340, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/front-axle.png", {}),
+    ("accessory", "propeller-guard", "External Propeller Guard", "Prevents wing or lines from entering the propeller.", 295, "/images/parts/pilot-dynamic-cage.png", {}),
 ]
 
 NOMADIC_OPCIONES = [
+    ("engine", "no-engine", "No Engine", "Chassis only — add an engine later or supply your own.", 0, None, {}),
     ("engine", "polini-303", "Polini Thor 303", None, 3950, "/images/engines/polini-303.jpg", {"power": "38 HP"}),
     ("engine", "polini-260", "Polini Thor 260", None, 4200, "/images/engines/polini-260.jpg", {"power": "24 HP"}),
     ("engine", "vittorazi-300-my25", "Vittorazi Cosmos 300 MY25", None, 4560, "/images/engines/vittorazi-300-my25.jpg", {"power": "36 HP"}),
@@ -178,13 +188,15 @@ NOMADIC_OPCIONES = [
     ("color", "candy-purple", "Candy Purple", None, 0, None, {"hex": "#9b59b6", "displayName": "Candy Purple"}),
     ("color", "white", "White", None, 0, None, {"hex": "#ffffff", "displayName": "White"}),
     ("color", "grey", "Grey", None, 0, None, {"hex": "#95a5a6", "displayName": "Grey"}),
-    ("accessory", "cruise-control", "Cruise Control", "Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.", 20, "/images/accessories/cruise-control.jpg", {}),
-    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.", 25, "/images/accessories/camel-back.jpg", {}),
-    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.", 30, "/images/parts/sun-roof-netting.png", {}),
-    ("accessory", "lateral-bag-explorer", "Lateral Bag Explorer", "Side-mounted storage bag built to hold additional gear during cross-country exploration flights.", 85, "/images/parts/lateral-bag-explorer.png", {}),
-    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.", 105, "/images/parts/cockpit-liner.png", {}),
-    ("accessory", "bottom-explorer-bag", "Bottom Explorer Bag", "A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.", 124.80, "/images/parts/bottom-explorer-bag.png", {}),
-    ("accessory", "instrument-kit", "Basic Instrument Kit (Nomadic)", "Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.", 350, "/images/parts/instrument-kit-nomadic.png", {}),
+    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "Protects the pilot from the sun and prevents paraglider lines from tangling with equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
+    ("accessory", "cruise-control", "Cruise Control", "Maintains desired RPM for stable, smooth flight.", 25, "/images/parts/front-bar-protection.png", {}),
+    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "Hydration bladder setup for long-endurance flights.", 25, "/images/parts/passenger-harness.png", {}),
+    ("accessory", "lateral-bag-explorer", "Lateral Bag Explorer", "Side-mounted storage bag for cross-country exploration.", 85, "/images/parts/lateral-bag-explorer.png", {}),
+    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover for trailering.", 105, "/images/parts/cockpit-liner.png", {}),
+    ("accessory", "bottom-explorer-bag", "Bottom Explorer Bag", "Bottom-mounted adventure bag for long expeditions.", 125, "/images/parts/bottom-explorer-bag.png", {}),
+    ("accessory", "instrument-kit", "Basic Instrument Kit (Nomadic)", "USB charger and 3 TTO digital sensors.", 350, "/images/parts/instrument-kit-nomadic.png", {}),
+    ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/instrument-kit-nomadic.png", {}),
+    ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/front-axle.png", {}),
 ]
 
 
@@ -224,13 +236,22 @@ async def seed_cms_data(db: AsyncSession) -> None:
         existing = producto.contenido_extra or {}
         if not existing:
             producto.contenido_extra = contenido
+            if pid == NOMADIC_ID:
+                producto.imagenes = contenido["gallery"]
         else:
             merged = {**existing}
             for key in ("listing", "compare"):
                 if key in contenido and not merged.get(key):
                     merged[key] = contenido[key]
-            if pid == NOMADIC_ID and not existing.get("features"):
-                merged.update({k: v for k, v in contenido.items() if k not in merged or not merged.get(k)})
+            if pid == NOMADIC_ID:
+                merged["gallery"] = contenido["gallery"]
+                listing = {**(merged.get("listing") or {}), **contenido["listing"]}
+                merged["listing"] = listing
+                if not existing.get("features"):
+                    merged.update({k: v for k, v in contenido.items() if k not in merged or not merged.get(k)})
+                legacy = {"/images/nomadic/1.jpg", "/images/nomadic1.png", "/images/paramotor_trike_ejemplo.PNG"}
+                filtered = [u for u in (producto.imagenes or []) if u not in legacy]
+                producto.imagenes = filtered if filtered else contenido["gallery"]
             producto.contenido_extra = merged
 
     await _seed_opciones(db, VANGUARD_ID, VANGUARD_OPCIONES)

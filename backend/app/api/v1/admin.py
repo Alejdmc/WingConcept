@@ -21,6 +21,7 @@ from app.models.usuario import Usuario
 from app.schemas.orden import (
     AdminOrdenResponse,
     ESTADO_FRONTEND_MAP,
+    OrdenDetalleResponse,
     OrdenUpdate,
     PaginatedAdminOrdenes,
 )
@@ -367,6 +368,16 @@ async def listar_todas_ordenes(
         estado_interno = ESTADO_FRONTEND_MAP.get(estado, estado)
 
     return await orden_service.listar_admin(db, pagina, por_pagina, estado_interno)
+
+
+@router.get("/ordenes/{orden_id}", response_model=OrdenDetalleResponse)
+async def obtener_orden_admin(
+    orden_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """Detalle completo de una orden para el panel admin (items, timeline, cliente)."""
+    return await orden_service.obtener_con_acceso(db, orden_id, admin)
 
 
 @router.put("/ordenes/{orden_id}", response_model=AdminOrdenResponse)

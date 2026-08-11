@@ -18,6 +18,7 @@ from app.models.variante import Variante
 
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+NOMADIC_DOCUMENT_BASE_PRICE = 4379.5
 
 # Fallback legacy (solo si DB vacía)
 VANGUARD_ENGINES: Dict[str, float] = {
@@ -38,6 +39,7 @@ VANGUARD_ACCESSORIES: Dict[str, float] = {
 VANGUARD_PROPELLERS: Dict[str, float] = {"no-propeller": 0, "bipala": 534.75, "tripala": 677.35}
 
 NOMADIC_ENGINES: Dict[str, float] = {
+    "no-engine": 0,
     "polini-303": 3950, "polini-260": 4200, "vittorazi-300-my25": 4560,
 }
 NOMADIC_FINISHES: Dict[str, float] = {
@@ -52,7 +54,7 @@ NOMADIC_PROPELLERS: Dict[str, float] = {"no-propeller": 0, "bipala": 534.75, "tr
 
 LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
     VANGUARD_PRODUCT_ID: {
-        "fallback_base": 5950.0,
+        "fallback_base": 5950.25,
         "engines": VANGUARD_ENGINES,
         "finishes": VANGUARD_FINISHES,
         "accessories": VANGUARD_ACCESSORIES,
@@ -60,12 +62,12 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "default_engine": "no-engine",
     },
     NOMADIC_PRODUCT_ID: {
-        "fallback_base": 8950.0,
+        "fallback_base": NOMADIC_DOCUMENT_BASE_PRICE,
         "engines": NOMADIC_ENGINES,
         "finishes": NOMADIC_FINISHES,
         "accessories": NOMADIC_ACCESSORIES,
         "propellers": NOMADIC_PROPELLERS,
-        "default_engine": "polini-303",
+        "default_engine": "no-engine",
     },
 }
 
@@ -111,6 +113,8 @@ class ConfiguradorService:
     async def _precio_base_chasis(
         self, db: AsyncSession, producto_id: uuid.UUID, fallback: float
     ) -> float:
+        if producto_id == NOMADIC_PRODUCT_ID:
+            return NOMADIC_DOCUMENT_BASE_PRICE
         result = await db.execute(
             select(Variante)
             .where(Variante.producto_id == producto_id, Variante.activo == True)

@@ -9,6 +9,8 @@ import { ChevronRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useSiteBlocks } from '@/hooks/useCms'
 import { PARATRIKE_HREFS } from '@/lib/cmsLabels'
+import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
+import { resolveProductImage } from '@/lib/productImages'
 
 const FALLBACK_TRIKES = [
   {
@@ -17,7 +19,7 @@ const FALLBACK_TRIKES = [
     tagline: 'Performance Meets Precision',
     description: 'The ultimate high-performance trike for serious enthusiasts. Built with cutting-edge engineering and premium materials.',
     image: '/images/vanguard/1.png',
-    basePrice: 5950,
+    basePrice: 5950.25,
     features: ['Premium aluminum construction', 'Advanced aerodynamic design', 'Multiple engine options', 'Precision-engineered suspension'],
     href: '/paratrike/vanguard',
     ctaLabel: 'Explore Vanguard',
@@ -31,8 +33,8 @@ const FALLBACK_TRIKES = [
     name: 'Nomadic Trike',
     tagline: 'The Ultimate Off-Grid Adventure',
     description: 'Built for extreme conditions and remote expeditions. Go further, land anywhere with our ruggedized design.',
-    image: '/images/nomadic/1.jpg',
-    basePrice: 8950,
+    image: NOMADIC_HERO_IMAGE,
+    basePrice: NOMADIC_BASE_PRICE,
     features: ['High-durability stainless steel', 'All-terrain suspension system', 'Full cage protection', 'Expedition-ready capacity'],
     href: '/paratrike/nomadic',
     ctaLabel: 'Explore Nomadic',
@@ -47,16 +49,18 @@ function mapProductToTrike(product, fallback) {
   const extra = product.contenido_extra || {}
   const listing = extra.listing || {}
   const compare = extra.compare || fallback?.compare || { description: '', bullets: [] }
-  const price = typeof product.precio_desde === 'number'
-    ? product.precio_desde
-    : fallback?.basePrice
+  const price = product.slug === 'nomadic-trike'
+    ? NOMADIC_BASE_PRICE
+    : typeof product.precio_desde === 'number'
+      ? product.precio_desde
+      : fallback?.basePrice
 
   return {
     slug: product.slug,
     name: product.nombre || product.name || fallback?.name,
     tagline: listing.tagline || extra.tagline || fallback?.tagline,
     description: listing.description || product.descripcion_corta || product.desc || fallback?.description,
-    image: listing.image || product.image || product.imagenes?.[0] || fallback?.image,
+    image: resolveProductImage(product, fallback?.image),
     basePrice: price,
     features: listing.features?.length ? listing.features : fallback?.features || [],
     href: PARATRIKE_HREFS[product.slug] || fallback?.href || '#',
@@ -101,7 +105,7 @@ export default function ParaTrikeSelectionPage() {
         <div className="relative z-10 max-w-7xl mx-auto text-center px-6">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="mb-8 flex justify-center">
-              <Image src="/images/logo.png" alt="Wing Concept" width={500} height={200} className="drop-shadow-lg brightness-0 invert" />
+              <Image src="/images/logo.png" alt="Wing Concept" width={500} height={200} className="hero-logo drop-shadow-lg brightness-0 invert" />
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">
               {get('paratrike.hero.title', 'Paratrikes')}

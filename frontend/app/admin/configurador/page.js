@@ -4,6 +4,7 @@ import { Pencil, Eye, EyeOff, Plus, Save, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { PRODUCT_IDS } from '@/lib/products'
 import { GRUPO_CONFIGURADOR, grupoLabel } from '@/lib/cmsLabels'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const PRODUCTOS = [
   { id: PRODUCT_IDS.vanguard, label: 'Vanguard V8.0' },
@@ -218,10 +219,13 @@ export default function AdminConfiguradorPage() {
               </label>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1">Image (URL or path)</label>
-            <input value={form.imagen} onChange={(e) => setForm({ ...form, imagen: e.target.value })} className="w-full p-2 border rounded" placeholder="/images/..." />
-          </div>
+          <ImageUploadField
+            images={form.imagen ? [form.imagen] : []}
+            onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+            productoId={productoId}
+            label="Image"
+            maxImages={1}
+          />
           <div className="flex gap-2">
             <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded font-semibold">
               <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save'}

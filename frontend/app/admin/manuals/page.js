@@ -185,7 +185,6 @@ function PageBlockForm({ label, initial, onSave }) {
             label="Hero image"
             maxImages={1}
           />
-          <input name="imagen" value={form.imagen} onChange={handleChange} placeholder="/images/front1.jpg or uploaded URL" className="w-full p-2 border rounded mt-2 text-sm" />
         </div>
       )}
       <button type="submit" disabled={saving} className="px-4 py-2 bg-brand text-white rounded font-semibold disabled:opacity-50">

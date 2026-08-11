@@ -3,8 +3,14 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { api } from '@/lib/api'
 import { pickText, sleep } from '@/lib/contentUtils'
 
+import { HOMEPAGE_BLOCKS } from '@/lib/staticContent'
+
 const cache = new Map()
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 1
+
+const DEFAULT_BLOCKS_BY_SECTION = {
+  homepage: HOMEPAGE_BLOCKS,
+}
 
 function readCache(key) {
   return cache.get(key)?.data ?? null
@@ -16,7 +22,8 @@ function writeCache(key, data) {
 
 export function useSiteBlocks(seccion = null) {
   const key = seccion || '__all__'
-  const [blocks, setBlocks] = useState(() => readCache(key) || {})
+  const defaultBlocks = seccion ? (DEFAULT_BLOCKS_BY_SECTION[seccion] || {}) : {}
+  const [blocks, setBlocks] = useState(() => readCache(key) || defaultBlocks)
   const [loading, setLoading] = useState(() => !cache.has(key))
 
   const get = useCallback((blockKey, fallback = '') => {

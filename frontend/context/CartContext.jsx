@@ -1,6 +1,9 @@
 'use client'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { api } from '@/lib/api'
+import { usePathname } from 'next/navigation'
+import { api, isBackendUnavailable } from '@/lib/api'
+
+const CART_ROUTES = ['/cart', '/checkout']
 
 const CartContext = createContext(null)
 
@@ -16,6 +19,7 @@ function getOrCreateSessionId() {
 }
 
 export function CartProvider({ children }) {
+  const pathname = usePathname()
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [cargando, setCargando] = useState(false)
@@ -33,18 +37,22 @@ export function CartProvider({ children }) {
       const res = await api.carrito.obtener()
       return applyCartResponse(res)
     } catch (err) {
-      console.error('Error fetching cart:', err)
       setItems([])
       setTotal(0)
-      setError(err?.detail || 'Could not load cart.')
+      if (err?.status !== 0) {
+        setError(err?.detail || 'Could not load cart.')
+      }
       return null
     }
   }, [applyCartResponse])
 
   useEffect(() => {
     getOrCreateSessionId()
-    fetchCarrito()
-  }, [fetchCarrito])
+    const needsCart = CART_ROUTES.some((route) => pathname?.startsWith(route))
+    if (needsCart && !isBackendUnavailable()) {
+      fetchCarrito()
+    }
+  }, [fetchCarrito, pathname])
 
   const addToCart = useCallback(async (product) => {
     setCargando(true)

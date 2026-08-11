@@ -28,13 +28,10 @@ IMAGES_DIR = ROOT / "frontend" / "public" / "images"
 PRODUCT_IMAGES_BY_SLUG: dict[str, list[str]] = {
     "i-pro": ["ipro_ejemplo.PNG"],
     "vanguard-v8": [f"{i}vanguard.png" for i in range(1, 11)],
-    "nomadic-trike": ["nomadic1.png"],
+    "nomadic-trike": [f"nomadic/{i}.jpg" for i in range(2, 7)],
 }
 
-# Archivo local si nomadic1.png no existe en public/images
-IMAGE_FALLBACKS: dict[str, str] = {
-    "nomadic1.png": "paramotor_trike_ejemplo.PNG",
-}
+IMAGE_FALLBACKS: dict[str, str] = {}
 
 MIME_OVERRIDES = {
     ".png": "image/png",

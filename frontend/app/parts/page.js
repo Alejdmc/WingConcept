@@ -1,9 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart, Check, Package } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, Check } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { useCart } from '@/hooks/useCart'
 import { api } from '@/lib/api'
 import { PARTS as STATIC_PARTS } from '@/lib/parts'
@@ -80,7 +81,7 @@ export default function PartsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/paratrike"
@@ -141,7 +142,6 @@ export default function PartsPage() {
 function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
-  const [imgError, setImgError] = useState(false)
   const hasPrice = typeof part.price === 'number'
   const canAddToCart = Boolean(part.productoId) && hasPrice
 
@@ -166,21 +166,15 @@ function PartCard({ part }) {
       transition={{ duration: 0.4 }}
       className="border-2 border-borderline rounded-xl overflow-hidden hover:border-brand/50 transition-all flex flex-col">
       <div className="relative aspect-square bg-bg2">
-        {!imgError ? (
-          <Image
-            src={part.image}
-            alt={part.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-            className="object-contain p-3"
-            onError={() => setImgError(true)}
-            unoptimized={part.image?.startsWith('http')}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-10 h-10 text-ink2/40" />
-          </div>
-        )}
+        <SafeImage
+          src={part.image}
+          alt={part.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+          className="object-contain p-3"
+          fallbackSrc={FALLBACK_IMAGES.part}
+          unoptimized={part.image?.startsWith('http')}
+        />
       </div>
 
       <div className="p-4 flex flex-col flex-1">

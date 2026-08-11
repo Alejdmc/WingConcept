@@ -6,6 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
@@ -37,12 +39,21 @@ const DEFAULT_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.', image: '/images/accessories/cruise-control.jpg' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/accessories/camel-back.jpg' },
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'lateral-bag', name: 'Lateral Bag for Vanguard', price: 90, description: 'Side storage bag tailored for the Vanguard frame. Perfect for carrying beverages, camping gear, and supplies on long trips.', image: '/images/accessories/lateral-bag.jpg' },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment during sideways descent.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'front-bar-protection', name: 'Padded Roll Bar Protector with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Additional cable brake providing extra braking power — conventional mountain-bike derived system.', image: '/images/parts/front-fork.png' },
+    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/instrument-kit-vanguard.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 440, description: 'Features a built-in USB charger, an exclusive fuel gauge for the Vanguard model, and 3 TTO brand digital sensors (CHT, RPM, and radiator water temperature).', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'parachute-container', name: 'Parachute Container', price: 55, description: 'Exclusive container for mounting on the right or left side of the harnesses.', image: '/images/parts/parachute-container.png' },
+    { id: 'lateral-bag', name: 'Two Side Explorer Cases (L-R)', price: 95, description: 'Pair of aerodynamic side cases with extra straps for rods, tents, fuel, etc. without using internal space.', image: '/images/parts/lateral-bag-explorer.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
+    { id: 'fuel-gauge-vanguard', name: 'Analog Fuel Gauge (Vanguard)', price: 119, description: 'Analog fuel gauge for the Vanguard L-shaped tank.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 340, description: 'TTO digital RPM, spark plug temperature, coolant temperature gauges, and 4-port USB charger.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/front-axle.png' },
+    { id: 'propeller-guard', name: 'External Propeller Guard', price: 295, description: 'Prevents wing or lines from entering the propeller. Ideal for schools and beginners.', image: '/images/parts/pilot-dynamic-cage.png' },
   ]
 }
 
@@ -93,7 +104,7 @@ export default function ConfiguratorPage() {
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
-    const baseChassis = basePrice ?? 5950
+    const baseChassis = basePrice ?? 5950.25
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
@@ -142,7 +153,7 @@ export default function ConfiguratorPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-4 sm:py-6 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/paratrike"
@@ -450,8 +461,8 @@ function OptionCard({ selected, onClick, children }) {
 
 function SummaryRow({ label, value, price }) {
   return (
-    <div className="flex justify-between items-center py-1 border-b border-borderline/60">
-      <span className="text-ink2">{value ? `${label} — ${value}` : label}</span>
+    <div className="flex justify-between items-start gap-3 py-1 border-b border-borderline/60">
+      <span className="text-ink2 min-w-0 pr-2 break-words">{value ? `${label} — ${value}` : label}</span>
       {typeof price === 'number' && (
         <span className="font-semibold text-ink">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</span>
       )}
@@ -460,16 +471,9 @@ function SummaryRow({ label, value, price }) {
 }
 
 function OptionThumb({ src, alt }) {
-  const [imgError, setImgError] = useState(false)
   return (
     <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      {!imgError ? (
-        <Image src={src} alt={alt} fill className="object-cover" onError={() => setImgError(true)} />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <Package className="w-8 h-8 text-ink2/40" />
-        </div>
-      )}
+      <SafeImage src={src} alt={alt} fill className="object-cover" fallbackSrc={FALLBACK_IMAGES.accessory} />
     </div>
   )
 }

@@ -6,6 +6,21 @@ import { api } from '@/lib/api'
 
 const STATUS_OPTIONS = ['Pending', 'Paid', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded', 'Stock Error']
 
+const ESTADO_TO_DISPLAY = {
+  pendiente: 'Pending',
+  pagado: 'Paid',
+  procesando: 'Processing',
+  enviado: 'Shipped',
+  entregado: 'Delivered',
+  cancelado: 'Cancelled',
+  reembolsado: 'Refunded',
+  error_stock: 'Stock Error',
+}
+
+function orderStatusValue(order) {
+  return order?.estado_display || ESTADO_TO_DISPLAY[order?.estado] || order?.status || 'Pending'
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -19,7 +34,7 @@ export default function OrdersPage() {
         const data = await api.admin.ordenes({ por_pagina: 50 })
         setOrders(data.items || [])
       } catch (err) {
-        setError('Could not load orders.')
+        setError(err?.detail || err?.message || 'Could not load orders.')
       } finally {
         setLoading(false)
       }
@@ -82,17 +97,19 @@ export default function OrdersPage() {
             ) : orders.length === 0 ? (
               <tr><td colSpan="7" className="py-8 text-center text-ink2">No orders found.</td></tr>
             ) : (
-              orders.map((order) => (
-                <tr key={order.id} className="border-b border-borderline hover:bg-bg2 transition">
+              orders.map((order) => {
+                const statusValue = orderStatusValue(order)
+                return (
+                <tr key={order.id || order.numero_orden} className="border-b border-borderline hover:bg-bg2 transition">
                   <td className="py-4 px-6 font-bold text-ink">{order.numero_orden || order.id}</td>
                   <td className="py-4 px-6 text-ink2">{order.cliente_nombre || order.client}</td>
-                  <td className="py-4 px-6 text-ink font-semibold">{order.cantidad_items || order.items}</td>
-                  <td className="py-4 px-6 text-brand font-bold">{order.total_formateado || `$${order.total}`}</td>
+                  <td className="py-4 px-6 text-ink font-semibold">{order.cantidad_items ?? order.items ?? 0}</td>
+                  <td className="py-4 px-6 text-brand font-bold">{order.total_formateado || `$${Number(order.total || 0).toLocaleString()}`}</td>
                   <td className="py-4 px-6">
                     <select
-                      value={order.estado_display || order.estado || order.status}
+                      value={statusValue}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      className={`px-3 py-1 rounded text-xs font-bold border-0 cursor-pointer ${statusColors[order.estado_display || order.estado || order.status]}`}
+                      className={`px-3 py-1 rounded text-xs font-bold border-0 cursor-pointer ${statusColors[statusValue] || 'bg-bg2 text-ink2'}`}
                     >
                       {STATUS_OPTIONS.map((status) => (
                         <option key={status} value={status}>{status}</option>
@@ -101,16 +118,20 @@ export default function OrdersPage() {
                   </td>
                   <td className="py-4 px-6 text-ink2">{order.fecha || order.date}</td>
                   <td className="py-4 px-6">
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="inline-flex p-2 hover:bg-blue-100 rounded transition"
-                      title="Manage order & timeline"
-                    >
-                      <Eye className="w-4 h-4 text-blue-500" />
-                    </Link>
+                    {order.id ? (
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex p-2 hover:bg-blue-100 rounded transition"
+                        title="Manage order & timeline"
+                      >
+                        <Eye className="w-4 h-4 text-blue-500" />
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-ink2">—</span>
+                    )}
                   </td>
                 </tr>
-              ))
+              )})
             )}
           </tbody>
         </table>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { mergeContent, sleep } from '@/lib/contentUtils'
 
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 1
 
 /**
  * Loads CMS page content with retries and fallback merge (empty fields keep defaults).

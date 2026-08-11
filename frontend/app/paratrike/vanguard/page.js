@@ -2,12 +2,18 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather } from 'lucide-react'
+import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link2, Settings } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
 import Gallery from '@/components/sections/Gallery'
 import { api } from '@/lib/api'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
+import {
+  VANGUARD_BASE_PRICE,
+  VANGUARD_CHASSIS_SUMMARY,
+  VANGUARD_INCLUDED,
+} from '@/lib/vanguardContent'
 
-const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather }
+const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link: Link2, Settings }
 
 const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
   src: `/images/vanguard/${i + 1}.png`,
@@ -23,6 +29,10 @@ const vanguardFallback = {
   year: 2020,
   brand: 'Wing Concept',
   philosophy: 'Passion, Science, and Freedom',
+  basePrice: VANGUARD_BASE_PRICE,
+  model: VANGUARD_CHASSIS_SUMMARY.model,
+  chassisSubtitle: VANGUARD_CHASSIS_SUMMARY.subtitle,
+  included: VANGUARD_INCLUDED,
 
   features: [
     {
@@ -120,6 +130,7 @@ export default function ParatrikePage() {
   }, [])
 
   const galleryItems = vanguard.gallery || VANGUARD_GALLERY
+  const includedItems = vanguard.included || VANGUARD_INCLUDED
 
   return (
     <main className="bg-white">
@@ -137,16 +148,78 @@ export default function ParatrikePage() {
               <p className="text-ink font-black text-lg">{vanguard.philosophy}</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
               <Link href="/paratrike/vanguard/configuration" className="bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand/90 transition text-center">Customize Now</Link>
-              <a href="#specs" className="border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand hover:text-white transition text-center">View Specs</a>
+              <a href="#included" className="border-2 border-brand text-brand px-8 py-4 font-black uppercase tracking-widest rounded hover:bg-brand hover:text-white transition text-center">What&apos;s Included</a>
+              <a href="#specs" className="border-2 border-borderline text-ink px-8 py-4 font-black uppercase tracking-widest rounded hover:border-brand hover:text-brand transition text-center">View Specs</a>
             </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="relative h-96 lg:h-full lg:min-h-[600px]">
             <div className="relative w-full h-full bg-transparent rounded-xl overflow-hidden">
-              <Image src={vanguard.image} alt={vanguard.name} fill className="object-contain" priority />
+              <SafeImage src={vanguard.image} alt={vanguard.name} fill className="object-contain" priority fallbackSrc={FALLBACK_IMAGES.product} />
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* What's Included — standard chassis package */}
+      <section id="included" className="py-24 px-6 bg-white border-t border-borderline">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-center mb-16">
+            <p className="text-brand font-bold uppercase tracking-[0.3em] text-sm mb-4">Standard Chassis Package</p>
+            <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-4">What&apos;s Included</h2>
+            <div className="h-1 w-16 bg-brand mx-auto mb-8" />
+            <p className="text-4xl sm:text-5xl font-black text-brand">
+              ${Number(vanguard.basePrice ?? VANGUARD_BASE_PRICE).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="text-xl text-ink2 font-bold ml-2">USD</span>
+            </p>
+            <p className="text-ink2 mt-4 max-w-2xl mx-auto text-lg">
+              {vanguard.chassisSubtitle || VANGUARD_CHASSIS_SUMMARY.subtitle}. All characteristics below are included by default in every basic trike.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {includedItems.map((item, i) => {
+              const IconComponent = ICON_MAP[item.icon] || Package
+              return (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-bg2 rounded-2xl border border-borderline p-8 hover:border-brand hover:shadow-lg transition-all">
+                  <div className="flex items-start gap-5">
+                    <div className="w-14 h-14 shrink-0 bg-brand-soft rounded-xl flex items-center justify-center">
+                      <IconComponent className="w-7 h-7 text-brand" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Check className="w-4 h-4 text-brand shrink-0" />
+                        <h3 className="text-xl font-black text-ink uppercase tracking-wide">{item.title}</h3>
+                      </div>
+                      <p className="text-ink2 leading-relaxed text-sm">{item.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-brand to-brand/85 rounded-2xl p-8 sm:p-12 text-white text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-white/80 mb-3">Configure Your Build</p>
+            <p className="text-xl sm:text-2xl font-black uppercase mb-6">
+              Add engine, propeller & accessories in the configurator
+            </p>
+            <Link href="/paratrike/vanguard/configuration" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
+              Open Configurator
+            </Link>
           </motion.div>
         </div>
       </section>

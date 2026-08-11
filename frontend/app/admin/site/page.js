@@ -1,8 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { Pencil, Eye, EyeOff, Save } from 'lucide-react'
 import { api } from '@/lib/api'
 import { SECCIONES_SITIO } from '@/lib/cmsLabels'
+import ImageUploadField from '@/components/admin/ImageUploadField'
+import { isSiteImageBlock, parseSiteImageValue, serializeSiteImageValue, SITE_IMAGE_BLOCKS } from '@/lib/siteImageBlocks'
 
 export default function AdminSitePage() {
   const [seccion, setSeccion] = useState('homepage')
@@ -32,9 +35,17 @@ export default function AdminSitePage() {
     load()
   }, [seccion])
 
+  const [editImages, setEditImages] = useState([])
+
   const startEdit = (block) => {
     setEditing(block.id)
     setEditValue(block.valor || '')
+    if (isSiteImageBlock(block.clave)) {
+      const cfg = SITE_IMAGE_BLOCKS[block.clave]
+      setEditImages(parseSiteImageValue(block.valor, cfg.multiLine))
+    } else {
+      setEditImages([])
+    }
     setMessage('')
   }
 
@@ -42,7 +53,10 @@ export default function AdminSitePage() {
     setSaving(true)
     setError('')
     try {
-      await api.admin.actualizarSiteBlock(block.id, { valor: editValue })
+      const valor = isSiteImageBlock(block.clave)
+        ? serializeSiteImageValue(editImages, SITE_IMAGE_BLOCKS[block.clave].multiLine)
+        : editValue
+      await api.admin.actualizarSiteBlock(block.id, { valor })
       setMessage(`"${block.etiqueta}" saved.`)
       setEditing(null)
       load()
@@ -106,7 +120,11 @@ export default function AdminSitePage() {
                 <div>
                   <h3 className="font-bold text-ink">{block.etiqueta}</h3>
                   <p className="text-xs text-ink2 mt-1">
-                    {block.tipo === 'textarea' ? 'Multiple lines or image URLs (one per line)' : 'Short text'}
+                    {isSiteImageBlock(block.clave)
+                      ? 'Upload image(s) — stored in Supabase'
+                      : block.tipo === 'textarea'
+                        ? 'Multiple lines of text'
+                        : 'Short text'}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -123,7 +141,14 @@ export default function AdminSitePage() {
 
               {editing === block.id ? (
                 <div className="mt-3 space-y-3">
-                  {block.tipo === 'textarea' ? (
+                  {isSiteImageBlock(block.clave) ? (
+                    <ImageUploadField
+                      images={editImages}
+                      onChange={setEditImages}
+                      label={SITE_IMAGE_BLOCKS[block.clave].multiLine ? 'Hero slider images' : 'Background image'}
+                      maxImages={SITE_IMAGE_BLOCKS[block.clave].maxImages}
+                    />
+                  ) : block.tipo === 'textarea' ? (
                     <textarea value={editValue} onChange={(e) => setEditValue(e.target.value)} rows={5} className="w-full p-3 border rounded font-mono text-sm" />
                   ) : (
                     <input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="w-full p-3 border rounded" />
@@ -134,6 +159,15 @@ export default function AdminSitePage() {
                     </button>
                     <button onClick={() => setEditing(null)} className="px-4 py-2 border rounded">Cancel</button>
                   </div>
+                </div>
+              ) : isSiteImageBlock(block.clave) ? (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {parseSiteImageValue(block.valor, SITE_IMAGE_BLOCKS[block.clave].multiLine).map((url) => (
+                    <div key={url} className="relative w-20 h-20 rounded border border-borderline overflow-hidden bg-bg2">
+                      <Image src={url} alt="" fill className="object-cover" sizes="80px" unoptimized />
+                    </div>
+                  ))}
+                  {!block.valor?.trim() && <p className="text-sm text-ink2">—</p>}
                 </div>
               ) : (
                 <p className="text-sm text-ink2 mt-2 whitespace-pre-wrap break-words">{block.valor || '—'}</p>

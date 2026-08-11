@@ -106,7 +106,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/"
@@ -146,7 +146,7 @@ export default function ContactPage() {
                 alt="Wing Concept"
                 width={500}
                 height={200}
-                className="drop-shadow-lg brightness-0 invert"
+                className="hero-logo drop-shadow-lg brightness-0 invert"
               />
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase text-white tracking-tighter mb-4 drop-shadow-2xl">

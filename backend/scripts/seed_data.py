@@ -146,11 +146,11 @@ def main() -> None:
         cur, NOMADIC_ID, "Nomadic Trike", "nomadic-trike",
         "Ultimate off-grid adventure machine. Stainless steel chassis built for expedition flying.",
         "The Ultimate Off-Grid Adventure Machine", "paratrike", "nomadic",
-        ["/images/nomadic1.png"], 11, True,
+        [f"/images/nomadic/{i}.jpg" for i in range(2, 7)], 11, True,
     )
     _upsert_variante(
         cur, NOMADIC_VARIANT_ID, nomadic_id, "Nomadic Chassis Base", "NOM-BASE-001",
-        8950.00, 4, '{"peso_kg": 42, "empuje_kg": 110}', True,
+        4379.50, 4, '{"peso_kg": 42, "empuje_kg": 110}', True,
     )
 
     # ── Accesorios Vanguard ───────────────────────────────────────────

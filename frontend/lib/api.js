@@ -116,6 +116,40 @@ function buildQuery(params = {}) {
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504])
 const MAX_GET_ATTEMPTS = 3
 
+/** Coordinates a single availability probe so parallel hooks don't spam the proxy. */
+let backendReachable = true
+let backendProbe = null
+
+export function isBackendUnavailable() {
+  return !backendReachable
+}
+
+export function resetBackendAvailability() {
+  backendReachable = true
+  backendProbe = null
+}
+
+function probeBackendOnce() {
+  if (typeof window === 'undefined') return Promise.resolve(true)
+  if (!backendReachable) return Promise.resolve(false)
+  if (backendProbe) return backendProbe
+
+  backendProbe = fetch(apiUrl('/productos/destacados'), {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then((res) => {
+      backendReachable = res.ok || res.status < 500
+      return backendReachable
+    })
+    .catch(() => {
+      backendReachable = false
+      return false
+    })
+
+  return backendProbe
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -126,7 +160,15 @@ async function request(path, options = {}, attempt = 0) {
   const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
   const method = (fetchOptions.method || 'GET').toUpperCase()
-  const maxAttempts = method === 'GET' ? MAX_GET_ATTEMPTS : 1
+
+  if (method === 'GET' && typeof window !== 'undefined' && attempt === 0) {
+    const available = await probeBackendOnce()
+    if (!available) {
+      throw { status: 0, offline: true, detail: 'Backend unavailable — using local fallbacks.' }
+    }
+  }
+
+  const maxAttempts = method === 'GET' && isPublic ? 1 : method === 'GET' ? MAX_GET_ATTEMPTS : 1
 
   let res
   try {
@@ -141,15 +183,20 @@ async function request(path, options = {}, attempt = 0) {
       ...fetchOptions,
     })
   } catch {
+    backendReachable = false
+    backendProbe = Promise.resolve(false)
     if (attempt + 1 < maxAttempts) {
       await sleep(350 * (attempt + 1))
       return request(path, options, attempt + 1)
     }
     throw {
       status: 0,
+      offline: true,
       detail: `Cannot reach the API${getApiBase() ? ` at ${getApiBase()}` : ''}. Make sure the backend is running on port 8000.`,
     }
   }
+
+  backendReachable = true
 
   if (RETRYABLE_STATUSES.has(res.status) && attempt + 1 < maxAttempts) {
     await sleep(350 * (attempt + 1))
@@ -302,9 +349,9 @@ export const api = {
   },
 
   productos: {
-    destacados: () => request('/productos/destacados'),
-    obtener: (slug) => request(`/productos/${slug}`),
-    listar: (params = {}) => request(`/productos${buildQuery(params)}`),
+    destacados: () => request('/productos/destacados', { skipAuth: true }),
+    obtener: (slug) => request(`/productos/${slug}`, { skipAuth: true }),
+    listar: (params = {}) => request(`/productos${buildQuery(params)}`, { skipAuth: true }),
   },
 
   admin: {
@@ -318,6 +365,17 @@ export const api = {
     crearVariante: (productoId, data) => request(`/admin/productos/${productoId}/variantes`, { method: 'POST', body: JSON.stringify(data) }),
     actualizarStock: (varianteId, data) => request(`/admin/variantes/${varianteId}/stock`, { method: 'PATCH', body: JSON.stringify(data) }),
     ordenes: (params = {}) => request(`/admin/ordenes${buildQuery(params)}`),
+    obtenerOrden: async (ordenId) => {
+      try {
+        return await request(`/admin/ordenes/${ordenId}`)
+      } catch (err) {
+        // Backends sin GET admin aún pueden servir detalle vía /ordenes/{id}
+        if (err?.status === 404 || err?.status === 405) {
+          return request(`/ordenes/${ordenId}`)
+        }
+        throw err
+      }
+    },
     actualizarOrden: (ordenId, data) => request(`/admin/ordenes/${ordenId}`, { method: 'PUT', body: JSON.stringify(data) }),
     contenidos: (params = {}) => request(`/admin/contenidos${buildQuery(params)}`),
     obtenerContenido: (contenidoId) => request(`/admin/contenidos/${contenidoId}`),

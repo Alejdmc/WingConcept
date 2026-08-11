@@ -28,7 +28,7 @@ export default function ImageUploadField({
     setError('')
     try {
       const result = await api.admin.uploadImagen(file, productoId)
-      onChange([...(images || []), result.url])
+      onChange(maxImages === 1 ? [result.url] : [...(images || []), result.url])
     } catch (err) {
       setError(err.detail || 'Error uploading image.')
     } finally {

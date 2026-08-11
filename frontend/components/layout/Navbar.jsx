@@ -69,15 +69,15 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-36 px-4 sm:px-6 md:px-8">
-        <Link href="/" className="flex items-center">
+      <div className="flex items-center justify-between h-16 sm:h-20 md:h-28 lg:h-36 px-4 sm:px-6 md:px-8">
+        <Link href="/" className="flex items-center min-w-0 shrink">
           <Image
             src="/images/logo.png"
             alt="Wing Concept"
             width={700}
             height={200}
             priority
-            className="h-36 w-auto"
+            className="h-14 sm:h-16 md:h-24 lg:h-36 w-auto max-w-[min(52vw,280px)] sm:max-w-none"
           />
         </Link>
 
@@ -98,7 +98,7 @@ export default function Navbar() {
         </div>
 
         {/* Right Icons */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* User Profile */}
           <Link
             href={userHref}

@@ -2,17 +2,20 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
+import { NOMADIC_BASE_PRICE, NOMADIC_GALLERY } from '@/lib/nomadicContent'
 
 const DEFAULT_OPTIONS = {
   engines: [
+    { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0 },
     { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg' },
     { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg' },
     { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300 MY25', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg' },
@@ -35,13 +38,15 @@ const DEFAULT_OPTIONS = {
     { name: 'Grey', hex: '#95a5a6' }
   ],
   accessories: [
-    { id: 'cruise-control', name: 'Cruise Control', price: 20, description: 'Mechanical throttle lock located in a strategic ergonomic position, allowing the pilot to quickly and safely deactivate it instantly.', image: '/images/accessories/cruise-control.jpg' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/accessories/camel-back.jpg' },
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 30, description: 'A lightweight, mesh sun canopy that filters overhead sunlight effectively while generating zero aerodynamic drag during flight.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment.', image: '/images/parts/sun-roof-netting.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
     { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built to hold additional gear during cross-country exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 124.80, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
+    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 125, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
     { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.', image: '/images/parts/instrument-kit-nomadic.png' },
+    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/instrument-kit-nomadic.png' },
+    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/front-axle.png' },
   ]
 }
 
@@ -49,19 +54,12 @@ const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
 
 const NOMADIC_PRODUCTO_ID = PRODUCT_IDS.nomadic
 
-const PRODUCT_IMAGES = [
-  { src: '/images/nomadic/1.jpg', alt: 'Nomadic 1' },
-  { src: '/images/nomadic/2.jpg', alt: 'Nomadic 2' },
-  { src: '/images/nomadic/3.jpg', alt: 'Nomadic 3' },
-  { src: '/images/nomadic/4.jpg', alt: 'Nomadic 4' },
-  { src: '/images/nomadic/5.jpg', alt: 'Nomadic 5' },
-  { src: '/images/nomadic/6.jpg', alt: 'Nomadic 6' },
-]
+const PRODUCT_IMAGES = NOMADIC_GALLERY
 
 export default function ConfiguratorNomadicPage() {
   const router = useRouter()
   const { addConfiguredProduct } = useCart()
-  const { options, basePrice, loading: optionsLoading, defaultSelections } = useConfigOptions(NOMADIC_PRODUCTO_ID, {
+  const { options, loading: optionsLoading, defaultSelections } = useConfigOptions(NOMADIC_PRODUCTO_ID, {
     engines: DEFAULT_OPTIONS.engines,
     chassisTypes: [],
     chassisFinishes: DEFAULT_OPTIONS.chassisFinishes,
@@ -77,12 +75,11 @@ export default function ConfiguratorNomadicPage() {
     accessories: options.accessories,
   }
   const [step, setStep] = useState(0)
-  const [selectedEngine, setSelectedEngine] = useState(DEFAULT_OPTIONS.engines[0].id)
+  const [selectedEngine, setSelectedEngine] = useState('no-engine')
   const [selectedFinish, setSelectedFinish] = useState(DEFAULT_OPTIONS.chassisFinishes[0].id)
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
   const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
-  const [selectedAccentColor, setSelectedAccentColor] = useState(DEFAULT_OPTIONS.colors[0].name)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -103,13 +100,13 @@ export default function ConfiguratorNomadicPage() {
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
-    const baseChassis = basePrice ?? 8950
+    const baseChassis = NOMADIC_BASE_PRICE
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
     const finishPrice = finish?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
     return baseChassis + enginePrice + propellerPrice + finishPrice + upgradesPrice
-  }, [engine, propeller, finish, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories])
+  }, [engine, propeller, finish, selectedUpgrades, CONFIG_OPTIONS.accessories])
 
   const goToPreviousImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
@@ -138,7 +135,6 @@ export default function ConfiguratorNomadicPage() {
         finish: selectedFinish,
         propeller: selectedPropeller,
         chassisColor: selectedChassisColor,
-        accentColor: selectedAccentColor,
         upgrades: selectedUpgrades,
         totalPrice,
       })
@@ -154,7 +150,7 @@ export default function ConfiguratorNomadicPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-4 sm:py-6 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/paratrike/nomadic"
@@ -184,12 +180,13 @@ export default function ConfiguratorNomadicPage() {
             className="space-y-6">
 
             <div className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-lg">
-              <Image
+              <SafeImage
                 src={PRODUCT_IMAGES[selectedImageIndex].src}
                 alt={PRODUCT_IMAGES[selectedImageIndex].alt}
                 fill
                 className="object-cover"
                 priority
+                fallbackSrc={FALLBACK_IMAGES.product}
               />
 
               {PRODUCT_IMAGES.length > 1 && (
@@ -227,13 +224,13 @@ export default function ConfiguratorNomadicPage() {
                       selectedImageIndex === index ? 'border-brand' : 'border-borderline hover:border-brand/50'
                     }`}
                   >
-                    <Image src={image.src} alt={image.alt} fill className="object-cover" />
+                    <SafeImage src={image.src} alt={image.alt} fill className="object-cover" fallbackSrc={FALLBACK_IMAGES.product} />
                   </motion.button>
                 ))}
               </div>
             )}
 
-            {/* Color Selectors */}
+            {/* Color Selector */}
             <div className="space-y-4">
               <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
                 <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
@@ -251,27 +248,6 @@ export default function ConfiguratorNomadicPage() {
                       style={{ backgroundColor: c.hex }}
                       title={c.name}>
                       {selectedChassisColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
-                    </motion.button>
-                  ))}
-                </div>
-              </details>
-
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
-                <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
-                  Accent Color
-                  <ChevronDown className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-4 flex gap-3 flex-wrap">
-                  {CONFIG_OPTIONS.colors.map(c => (
-                    <motion.button
-                      key={c.name}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSelectedAccentColor(c.name)}
-                      className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center
-                        ${selectedAccentColor === c.name ? 'border-brand scale-110' : 'border-borderline hover:border-brand/50'}`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}>
-                      {selectedAccentColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
                     </motion.button>
                   ))}
                 </div>
@@ -321,7 +297,10 @@ export default function ConfiguratorNomadicPage() {
                       {CONFIG_OPTIONS.engines.map(e => (
                         <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => setSelectedEngine(e.id)}>
                           <p className="font-bold uppercase text-ink">{e.name}</p>
-                          <p className="text-sm text-ink2 mt-1">{e.power} — +${e.basePrice.toLocaleString()}</p>
+                          <p className="text-sm text-ink2 mt-1">
+                            {e.power ? `${e.power} — ` : ''}
+                            {e.basePrice === 0 ? 'Included' : `+$${e.basePrice.toLocaleString()}`}
+                          </p>
                           {selectedEngine === e.id && e.image && (
                             <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
                               <OptionThumb src={e.image} alt={e.name} />
@@ -483,8 +462,8 @@ function OptionCard({ selected, onClick, children }) {
 
 function SummaryRow({ label, value, price }) {
   return (
-    <div className="flex justify-between items-center py-1 border-b border-borderline/60">
-      <span className="text-ink2">{value ? `${label} — ${value}` : label}</span>
+    <div className="flex justify-between items-start gap-3 py-1 border-b border-borderline/60">
+      <span className="text-ink2 min-w-0 pr-2 break-words">{value ? `${label} — ${value}` : label}</span>
       {typeof price === 'number' && (
         <span className="font-semibold text-ink">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</span>
       )}
@@ -493,16 +472,9 @@ function SummaryRow({ label, value, price }) {
 }
 
 function OptionThumb({ src, alt }) {
-  const [imgError, setImgError] = useState(false)
   return (
     <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      {!imgError ? (
-        <Image src={src} alt={alt} fill className="object-cover" onError={() => setImgError(true)} />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <Package className="w-8 h-8 text-ink2/40" />
-        </div>
-      )}
+      <SafeImage src={src} alt={alt} fill className="object-cover" fallbackSrc={FALLBACK_IMAGES.accessory} />
     </div>
   )
 }

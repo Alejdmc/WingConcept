@@ -5,6 +5,9 @@ import SafeImage from '@/components/ui/SafeImage'
 import Reveal from '@/components/ui/Reveal'
 import Link from 'next/link'
 import { api } from '@/lib/api'
+import { PARATRIKE_HREFS } from '@/lib/cmsLabels'
+import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE, NOMADIC_PRICE_LABEL } from '@/lib/nomadicContent'
+import { resolveProductImage } from '@/lib/productImages'
 import { ArrowRight, Zap } from 'lucide-react'
 
 const EXCLUDED_FEATURED_SLUGS = ['i-pro']
@@ -14,48 +17,54 @@ const fallbackProducts = [
     id: 1,
     name: 'Vanguard V8.0', 
     image: '/images/vanguard/1.png',
-    price: '$5,950', 
+    price: '$5,950.25', 
     desc: 'Ultimate High-Performance Trike', 
     specs: 'Premium Aluminum | Advanced Aerodynamics',
     badge: 'Premium',
-    href: '/paratrike/vanguard'
+    href: '/paratrike/vanguard',
+    slug: 'vanguard-v8',
   },
   { 
     id: 2,
     name: 'Nomadic Trike', 
-    image: '/images/nomadic/1.jpg',
-    price: '$8,950', 
+    image: NOMADIC_HERO_IMAGE,
+    price: NOMADIC_PRICE_LABEL, 
     desc: 'The Ultimate Off-Grid Adventure Machine', 
     specs: 'Stainless Steel | All-Terrain Capability',
     badge: 'Expedition Ready',
-    href: '/paratrike/nomadic'
+    href: '/paratrike/nomadic',
+    slug: 'nomadic-trike',
   },
 ]
 
 export default function FeaturedProducts() {
   const [selectedId, setSelectedId] = useState(null)
   const [products, setProducts] = useState(fallbackProducts)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
   useEffect(() => {
-    const loadFeatured = async () => {
-      try {
-        const featured = await api.productos.destacados()
-        if (featured && featured.length > 0) {
+    api.productos.destacados()
+      .then((featured) => {
+        if (featured?.length > 0) {
           setProducts(
-            featured.filter((p) => !EXCLUDED_FEATURED_SLUGS.includes(p.slug))
+            featured
+              .filter((p) => !EXCLUDED_FEATURED_SLUGS.includes(p.slug))
+              .map((p) => {
+                const fb = fallbackProducts.find((f) => f.slug === p.slug)
+                return {
+                  id: p.id,
+                  slug: p.slug,
+                  name: p.name || p.nombre,
+                  image: resolveProductImage(p, fb?.image),
+                  price: p.slug === 'nomadic-trike' ? NOMADIC_PRICE_LABEL : (p.price || fb?.price),
+                  desc: p.desc || p.descripcion_corta || fb?.desc,
+                  specs: p.specs || fb?.specs,
+                  badge: fb?.badge || 'Featured',
+                  href: PARATRIKE_HREFS[p.slug] || fb?.href || '#',
+                }
+              })
           )
         }
-      } catch (err) {
-        console.error('Error loading featured products:', err)
-        setError('Could not load featured products.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadFeatured()
+      })
+      .catch(() => {})
   }, [])
 
   const items = products.length > 0 ? products : fallbackProducts
@@ -104,7 +113,7 @@ export default function FeaturedProducts() {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                     className="bg-brand text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                    {product.badge}
+                    {product.badge || 'Featured'}
                   </motion.span>
                 </div>
 
@@ -116,6 +125,7 @@ export default function FeaturedProducts() {
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    fallbackSrc="/images/nomadic/2.jpg"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>

@@ -2,7 +2,9 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { ArrowLeft, Code2, Zap, Globe, BarChart3, ShoppingCart, FileText, Users, Award } from 'lucide-react'
+import { ZOMIDEV_PAGE_ENABLED } from '@/lib/featureFlags'
 
 const services = [
   {
@@ -61,10 +63,12 @@ const team = [
 ]
 
 export default function ZomiDevAboutPage() {
+  if (!ZOMIDEV_PAGE_ENABLED) notFound()
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-4 sm:py-6 px-4 sm:px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-4 sm:py-6 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <Link
             href="/"

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import { SECCIONES_CONTENIDO, TIPOS_CONTENIDO, tipoLabel } from '@/lib/cmsLabels'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const CARD_TIPOS = new Set(['expedicion', 'show', 'evento'])
 
@@ -116,10 +117,12 @@ function ContenidoForm({ seccion, initial, onSave, onCancel }) {
         <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={3} className="w-full p-2 border rounded" />
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold mb-1">Image (URL or path like /images/...)</label>
-        <input name="imagen" value={form.imagen} onChange={handleChange} placeholder="/images/..." className="w-full p-2 border rounded" />
-      </div>
+      <ImageUploadField
+        images={form.imagen ? [form.imagen] : []}
+        onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+        label="Image"
+        maxImages={1}
+      />
 
       {isCard && (
         <>

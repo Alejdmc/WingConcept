@@ -24,7 +24,7 @@ export default function EditProductPage({ params }) {
   const [pageContent, setPageContent] = useState({
     tagline: '',
     philosophy: '',
-    galleryText: '',
+    gallery: [],
     featuresJson: '[]',
   })
   const [variantes, setVariantes] = useState([])
@@ -52,7 +52,7 @@ export default function EditProductPage({ params }) {
         setPageContent({
           tagline: extra.tagline || '',
           philosophy: extra.philosophy || '',
-          galleryText: (extra.gallery || []).join('\n'),
+          gallery: extra.gallery || [],
           featuresJson: JSON.stringify(extra.features || [], null, 2),
         })
         setVariantes(data.variantes || [])
@@ -87,7 +87,7 @@ export default function EditProductPage({ params }) {
         ...(form.contenido_extra || {}),
         tagline: pageContent.tagline || null,
         philosophy: pageContent.philosophy || null,
-        gallery: pageContent.galleryText.split('\n').map((s) => s.trim()).filter(Boolean),
+        gallery: pageContent.gallery.filter(Boolean),
         features,
       }
       await api.admin.actualizarProducto(id, { ...form, contenido_extra })
@@ -213,10 +213,13 @@ export default function EditProductPage({ params }) {
             <label className="block text-sm font-semibold mb-1">Philosophy line</label>
             <input value={pageContent.philosophy} onChange={(e) => setPageContent({ ...pageContent, philosophy: e.target.value })} className="w-full p-3 border rounded" />
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1">Gallery images (one URL per line)</label>
-            <textarea value={pageContent.galleryText} onChange={(e) => setPageContent({ ...pageContent, galleryText: e.target.value })} rows={4} className="w-full p-3 border rounded font-mono text-sm" placeholder="/images/vanguard/1.png" />
-          </div>
+          <ImageUploadField
+            images={pageContent.gallery}
+            onChange={(gallery) => setPageContent({ ...pageContent, gallery })}
+            productoId={id}
+            label="Gallery images"
+            maxImages={20}
+          />
           <div>
             <label className="block text-sm font-semibold mb-1">Features (JSON array: title, desc, icon)</label>
             <textarea value={pageContent.featuresJson} onChange={(e) => setPageContent({ ...pageContent, featuresJson: e.target.value })} rows={8} className="w-full p-3 border rounded font-mono text-xs" />

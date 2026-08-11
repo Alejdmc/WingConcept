@@ -65,6 +65,7 @@ export function hasStoredSession() {
  */
 export async function ensureValidSession() {
   if (typeof window === 'undefined') return false
+  if (!hasStoredSession()) return false
 
   const refreshToken = localStorage.getItem('refresh_token')
 

@@ -6,12 +6,11 @@ import SafeImage from '@/components/ui/SafeImage'
 import Reveal from '@/components/ui/Reveal'
 import { api } from '@/lib/api'
 import { useContenido } from '@/hooks/useContenido'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 
-const FALLBACK = {
-  hero: { titulo: 'W.C Shows', descripcion: 'Witness the Art of Paramotor Flight', imagen: '/images/front1.jpg' },
-  intro: { descripcion: 'Experience the thrill of elite paramotor competitions and world-class aerial demonstrations.' },
-  shows: [],
-}
+import { SHOWS_FALLBACK } from '@/lib/staticContent'
+
+const FALLBACK = SHOWS_FALLBACK
 
 export default function ShowsPage() {
   const { content, loading } = useContenido('shows', () => api.contenidos.shows(), FALLBACK)
@@ -22,7 +21,7 @@ export default function ShowsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-40 bg-white border-b border-borderline py-6 px-6">
+      <div className="sticky-below-nav bg-white border-b border-borderline py-6 px-6">
         <div className="max-w-7xl mx-auto">
           <Link
             href="/"
@@ -80,7 +79,13 @@ export default function ShowsPage() {
                   transition={{ delay: i * 0.1 }}
                   className="bg-white rounded-2xl overflow-hidden border border-borderline hover:shadow-lg hover:border-brand transition-all">
                   <div className="relative h-64 bg-bg2">
-                    {show.imagen && <Image src={show.imagen} alt={show.titulo} fill className="object-cover" />}
+                    <SafeImage
+                      src={show.imagen}
+                      alt={show.titulo}
+                      fill
+                      className="object-cover"
+                      fallbackSrc={FALLBACK_IMAGES.show}
+                    />
                   </div>
                   <div className="p-8">
                     <h3 className="text-2xl font-black text-ink mb-4 uppercase">{show.titulo}</h3>
