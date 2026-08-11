@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { api } from '@/lib/api'
 import { pickText, sleep } from '@/lib/contentUtils'
+import { normalizeAccessoryId, resolveAccessoryImage } from '@/lib/accessoryImages'
 
 import { HOMEPAGE_BLOCKS } from '@/lib/staticContent'
 
@@ -97,7 +98,9 @@ export function useConfigOptions(productoId, fallbackOptions) {
           chassisFinishes: catalog.finishes?.length ? catalog.finishes.map(mapFinish) : fallbackOptions.chassisFinishes,
           propellers: catalog.propellers?.length ? catalog.propellers.map(mapPropeller) : fallbackOptions.propellers,
           colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
-          accessories: catalog.accessories?.length ? catalog.accessories.map(mapAccessory) : fallbackOptions.accessories,
+          accessories: catalog.accessories?.length
+            ? catalog.accessories.map((o) => mapAccessory(o, productoId, fallbackOptions.accessories))
+            : fallbackOptions.accessories,
         })
       } catch {
         if (attempt + 1 < MAX_ATTEMPTS && !cancelled) {
@@ -149,8 +152,18 @@ function mapPropeller(o) {
 function mapColor(o) {
   return { name: o.name, hex: o.hex }
 }
-function mapAccessory(o) {
-  return { id: o.id, name: o.name, price: o.price ?? 0, description: o.description, image: o.image }
+function mapAccessory(o, productoId, fallbackAccessories = []) {
+  const key = normalizeAccessoryId(o.id)
+  const fallback = (fallbackAccessories || []).find(
+    (item) => item.id === o.id || normalizeAccessoryId(item.id) === key,
+  )
+  return {
+    id: o.id,
+    name: o.name,
+    price: o.price ?? fallback?.price ?? 0,
+    description: o.description || fallback?.description || '',
+    image: resolveAccessoryImage(o.id, o.image, productoId, fallback?.image),
+  }
 }
 
 export function formatConfigSummary(config) {

@@ -89,11 +89,7 @@ async def agregar_item(
         db=db,
         variante_nombre=variante.nombre,
         producto_nombre=variante.producto.nombre if variante.producto else "",
-        imagen=(
-            variante.producto.imagenes[0]
-            if variante.producto and variante.producto.imagenes
-            else ""
-        ),
+        imagen=carrito_service._imagen_producto(variante.producto) or "",
         configuracion=data.configuracion,
         stock_disponible=variante.stock,
     )

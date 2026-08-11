@@ -8,6 +8,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { formatConfigSummary } from '@/hooks/useCms'
+import { resolveCartItemImage } from '@/lib/cartImages'
 
 export default function CartPage() {
   const router = useRouter()
@@ -99,7 +100,7 @@ export default function CartPage() {
 
                     <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
                       <SafeImage
-                        src={item.producto_imagen}
+                        src={resolveCartItemImage(item)}
                         alt={item.name || 'Product'}
                         fill
                         className="object-cover"

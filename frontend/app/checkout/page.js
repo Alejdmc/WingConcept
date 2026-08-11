@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/ui/SafeImage'
+import { resolveCartItemImage } from '@/lib/cartImages'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
@@ -316,9 +317,13 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
             <div key={item.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
               {/* Image */}
               <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
-                {item.producto_imagen && (
-                  <Image src={item.producto_imagen} alt={item.producto_nombre || ''} fill className="object-cover" />
-                )}
+                <SafeImage
+                  src={resolveCartItemImage(item)}
+                  alt={item.producto_nombre || ''}
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                />
               </div>
 
               {/* Details */}

@@ -17,12 +17,63 @@ from app.models.carrito import Carrito, ItemCarrito
 from app.models.variante import Variante
 from app.schemas.carrito import CarritoResponse, ItemCarritoResponse
 from app.services.configurador_service import configurador_service
+from app.services.producto_service import (
+    _resolve_product_image,
+    _sanitize_nomadic_product,
+)
 from app.utils.redis_client import carrito_delete, carrito_get, carrito_set
 
 logger = logging.getLogger(__name__)
 
 
 class CarritoService:
+
+    @staticmethod
+    def _imagen_producto(producto) -> Optional[str]:
+        if not producto:
+            return None
+        _sanitize_nomadic_product(producto)
+        return _resolve_product_image(producto)
+
+    async def _enriquecer_imagenes_anonimo(
+        self, db: AsyncSession, carrito_data: Optional[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Refresh product thumbnails from DB so each line shows the right image."""
+        if not carrito_data or not carrito_data.get("items"):
+            return carrito_data
+
+        items = carrito_data["items"]
+        variant_ids: List[UUID] = []
+        for item in items:
+            try:
+                variant_ids.append(UUID(str(item["variante_id"])))
+            except (ValueError, TypeError, KeyError):
+                continue
+
+        if not variant_ids:
+            return carrito_data
+
+        result = await db.execute(
+            select(Variante)
+            .options(selectinload(Variante.producto))
+            .where(Variante.id.in_(variant_ids))
+        )
+        variantes_map = {str(v.id): v for v in result.scalars().all()}
+
+        dirty = False
+        for item in items:
+            variante = variantes_map.get(str(item.get("variante_id")))
+            if not variante or not variante.producto:
+                continue
+            imagen = self._imagen_producto(variante.producto)
+            if imagen and imagen != item.get("producto_imagen"):
+                item["producto_imagen"] = imagen
+                dirty = True
+
+        if not dirty:
+            return carrito_data
+
+        return carrito_data
 
     @staticmethod
     def _config_key(configuracion: Optional[Dict[str, Any]]) -> Optional[str]:
@@ -194,6 +245,10 @@ class CarritoService:
         if synced is not carrito_data and synced is not None:
             await carrito_set(session_id, synced)
             carrito_data = synced
+        enriched = await self._enriquecer_imagenes_anonimo(db, carrito_data)
+        if enriched is not carrito_data and enriched is not None:
+            await carrito_set(session_id, enriched)
+            carrito_data = enriched
         return self._carrito_anonimo_a_response(carrito_data)
 
     def _carrito_anonimo_a_response(self, data: Optional[Dict[str, Any]]) -> CarritoResponse:
@@ -397,8 +452,7 @@ class CarritoService:
 
             if variante and variante.producto:
                 producto_nombre = variante.producto.nombre
-                imagenes = variante.producto.imagenes
-                imagen = imagenes[0] if imagenes else None
+                imagen = self._imagen_producto(variante.producto)
 
             subtotal = float(item.precio_unitario) * item.cantidad
             total += subtotal

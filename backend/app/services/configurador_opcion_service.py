@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import RecursoNoEncontradoError, ValidacionError
+from app.data.accessory_images import resolve_accessory_image
 from app.models.configurador_opcion import ConfiguradorOpcion
 from app.models.producto import Producto
 from app.models.variante import Variante
@@ -154,6 +154,7 @@ class ConfiguradorOpcionService:
             elif op.grupo == "color":
                 grouped["colors"].append({"name": op.extra.get("displayName", op.nombre) if op.extra else op.nombre, "hex": op.extra.get("hex") if op.extra else None, "id": op.slug})
             elif op.grupo == "accessory":
+                item["image"] = resolve_accessory_image(op.slug, op.imagen, producto_id)
                 grouped["accessories"].append(item)
 
         return ConfiguradorCatalogResponse(

@@ -9,6 +9,7 @@ import { useCart } from '@/hooks/useCart'
 import { api } from '@/lib/api'
 import { PARTS as STATIC_PARTS } from '@/lib/parts'
 import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
+import { resolveAccessoryImage, normalizeAccessoryId } from '@/lib/accessoryImages'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
@@ -24,12 +25,13 @@ function parsePrice(item) {
 
 function mapApiProduct(item) {
   const price = parsePrice(item)
+  const accessoryId = normalizeAccessoryId(item.slug || item.id)
   return {
     id: item.id,
     productoId: item.id,
     name: item.name || item.nombre,
     price,
-    image: item.image || item.imagenes?.[0] || '/images/logo.png',
+    image: resolveAccessoryImage(accessoryId, item.image || item.imagenes?.[0]),
     description: item.desc || item.descripcion_corta || item.descripcion || '',
     compatibleWith: item.compatible_with?.length ? item.compatible_with : ['vanguard', 'nomadic'],
   }
@@ -39,6 +41,7 @@ function mapStaticItem(item) {
   return {
     ...item,
     productoId: item.productoId || null,
+    image: resolveAccessoryImage(item.id, item.image),
   }
 }
 

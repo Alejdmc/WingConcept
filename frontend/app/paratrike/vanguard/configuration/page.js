@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
+import { resolveAccessoryImage } from '@/lib/accessoryImages'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
@@ -342,7 +343,7 @@ export default function ConfiguratorPage() {
                             </div>
                             {isSelected && (
                               <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                                <OptionThumb src={a.image} alt={a.name} />
+                                <OptionThumb src={resolveAccessoryImage(a.id, a.image, VANGUARD_PRODUCTO_ID)} alt={a.name} />
                                 <p className="text-sm text-ink2 text-left">{a.description}</p>
                               </div>
                             )}
@@ -471,9 +472,18 @@ function SummaryRow({ label, value, price }) {
 }
 
 function OptionThumb({ src, alt }) {
+  const [imgError, setImgError] = useState(false)
+  const hasSrc = typeof src === 'string' && src.trim().length > 0
+
   return (
     <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      <SafeImage src={src} alt={alt} fill className="object-cover" fallbackSrc={FALLBACK_IMAGES.accessory} />
+      {hasSrc && !imgError ? (
+        <Image src={src.trim()} alt={alt} fill className="object-cover" onError={() => setImgError(true)} />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <Package className="w-8 h-8 text-ink2/40" />
+        </div>
+      )}
     </div>
   )
 }
