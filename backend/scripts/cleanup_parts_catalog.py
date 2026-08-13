@@ -4,11 +4,11 @@ Desactiva partes/accesorios duplicados o fuera del catálogo oficial de /parts.
 Mantiene activos:
   - repuestos con slug part-* (seed_parts_catalog.py)
   - accesorios con slug acc-* (seed)
-  - aliases legacy: cruise-control, sun-roof-netting (si existen sin prefijo acc-)
+  - aliases legacy sin prefijo (rear-mirror, cruise-control, etc.)
 
 Desactiva:
   - vanguard-*, nomadic-* (catálogo viejo / pruebas)
-  - test-*, slugs sueltos duplicados (camel-back-for-pilot-hydration, trike-cover-*, etc.)
+  - test-*, slugs sueltos duplicados
 
 Uso:
   cd backend && python3 scripts/cleanup_parts_catalog.py
@@ -19,28 +19,21 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-import uuid
 from urllib.parse import urlparse
 
 import psycopg2
 from dotenv import load_dotenv
 
-# Slugs canónicos (debe coincidir con seed_parts_catalog.py)
-PART_IDS = [
-    "front-axle", "front-fork", "front-bar-protection", "parachute-container",
-    "pilot-harness", "passenger-harness", "pilot-dynamic-cage", "pilot-hunter-cage",
-    "back-axle", "rock-guard",
-]
-ACCESSORY_IDS = [
-    "cruise-control", "camel-back", "sun-roof-netting", "cockpit-liner", "lateral-bag",
-    "instrument-kit-vanguard", "lateral-bag-explorer", "bottom-explorer-bag",
-    "instrument-kit-nomadic",
-]
-CANONICAL_PARTS = {f"part-{pid}" for pid in PART_IDS}
-CANONICAL_ACCESSORIES = {f"acc-{aid}" for aid in ACCESSORY_IDS}
-# Slugs legacy sin prefijo acc- (creados antes del seed unificado)
-LEGACY_ACCESSORY_ALIASES = {"cruise-control", "sun-roof-netting"}
-KEEP_ACCESSORIES = CANONICAL_ACCESSORIES | LEGACY_ACCESSORY_ALIASES
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from parts_catalog_data import (  # noqa: E402
+    CANONICAL_ACCESSORY_SLUGS,
+    CANONICAL_PART_SLUGS,
+    LEGACY_ACCESSORY_ALIASES,
+    LEGACY_PART_ALIASES,
+)
+
+KEEP_PARTS = CANONICAL_PART_SLUGS | LEGACY_PART_ALIASES
+KEEP_ACCESSORIES = CANONICAL_ACCESSORY_SLUGS | LEGACY_ACCESSORY_ALIASES
 
 JUNK_PREFIXES = ("vanguard-", "nomadic-", "test-")
 
@@ -102,7 +95,7 @@ def main() -> None:
     for pid, slug, nombre, categoria, activo, precio in rows:
         slug = slug or ""
         keep = False
-        if categoria == "repuestos" and slug in CANONICAL_PARTS:
+        if categoria == "repuestos" and slug in KEEP_PARTS:
             keep = True
         elif categoria == "accesorios" and slug in KEEP_ACCESSORIES:
             keep = True
@@ -136,7 +129,6 @@ def main() -> None:
         print("\n(dry-run: no se guardaron cambios)")
         conn.rollback()
     else:
-        # Si existe cruise-control legacy ($25), quitar duplicados acc-/vanguard-
         cur.execute(
             """
             UPDATE productos SET activo = false

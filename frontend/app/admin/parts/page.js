@@ -1,8 +1,11 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import ImageUploadField from '@/components/admin/ImageUploadField'
+import { PARTS as STATIC_PARTS } from '@/lib/parts'
+import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
+import { normalizeAccessoryId } from '@/lib/accessoryImages'
 
 const DEFAULT_STOCK = 10
 const DEFAULT_STOCK_MINIMO = 2
@@ -182,6 +185,39 @@ function CatalogForm({ initial, onSave, onCancel }) {
   )
 }
 
+async function loadAllByCategory(categoria) {
+  const rows = []
+  let pagina = 1
+  let paginas = 1
+  while (pagina <= paginas) {
+    const res = await api.admin.productos({ categoria, por_pagina: 100, pagina })
+    rows.push(...(res.items || []))
+    paginas = res.paginas || 1
+    pagina += 1
+  }
+  return rows
+}
+
+function catalogSlugMatches(itemSlug, catalogId) {
+  if (!itemSlug) return false
+  const key = normalizeAccessoryId(itemSlug)
+  return key === catalogId || itemSlug === catalogId
+}
+
+function findMissingCatalogItems(dbItems) {
+  const expected = [
+    ...STATIC_PARTS.map((p) => ({ id: p.id, name: p.name, categoria: 'repuestos' })),
+    ...STATIC_ACCESSORIES.filter((a) => a.price != null).map((a) => ({
+      id: a.id,
+      name: a.name,
+      categoria: 'accesorios',
+    })),
+  ]
+  return expected.filter((entry) => {
+    return !dbItems.some((row) => catalogSlugMatches(row.slug, entry.id))
+  })
+}
+
 export default function AdminPartsPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -190,16 +226,17 @@ export default function AdminPartsPage() {
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
   const [lowStockAlerts, setLowStockAlerts] = useState([])
+  const [missingCatalog, setMissingCatalog] = useState([])
 
   const load = async () => {
     setLoading(true)
     setError('')
     try {
-      const [partsRes, accRes] = await Promise.all([
-        api.admin.productos({ categoria: 'repuestos', por_pagina: 100 }),
-        api.admin.productos({ categoria: 'accesorios', por_pagina: 100 }),
+      const [partsRows, accRows] = await Promise.all([
+        loadAllByCategory('repuestos'),
+        loadAllByCategory('accesorios'),
       ])
-      const combined = [...(partsRes.items || []), ...(accRes.items || [])]
+      const combined = [...partsRows, ...accRows]
       const detailed = await Promise.all(
         combined.map(async (row) => {
           try {
@@ -209,7 +246,9 @@ export default function AdminPartsPage() {
           }
         })
       )
-      setItems(detailed.filter(Boolean).sort((a, b) => (a.orden_display ?? 0) - (b.orden_display ?? 0)))
+      const loaded = detailed.filter(Boolean).sort((a, b) => (a.orden_display ?? 0) - (b.orden_display ?? 0))
+      setItems(loaded)
+      setMissingCatalog(findMissingCatalogItems(loaded))
       try {
         const alertData = await api.admin.stockAlertas()
         setLowStockAlerts(alertData.items || [])
@@ -292,6 +331,8 @@ export default function AdminPartsPage() {
     return item.categoria === filter
   })
 
+  const inactiveCount = useMemo(() => items.filter((i) => !i.activo).length, [items])
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -311,6 +352,26 @@ export default function AdminPartsPage() {
       </div>
 
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
+
+      {missingCatalog.length > 0 && (
+        <div className="mb-6 p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm">
+          <p className="font-bold text-amber-900">
+            {missingCatalog.length} item{missingCatalog.length !== 1 ? 's' : ''} visible on /parts but missing from the database
+          </p>
+          <p className="text-amber-800 mt-1">
+            Examples: {missingCatalog.slice(0, 5).map((m) => m.name).join(', ')}
+            {missingCatalog.length > 5 ? '…' : ''}. Run{' '}
+            <code className="text-xs bg-white px-1 py-0.5 rounded">python scripts/seed_parts_catalog.py</code>{' '}
+            inside the backend container to import them.
+          </p>
+        </div>
+      )}
+
+      {inactiveCount > 0 && (
+        <div className="mb-6 p-4 rounded-lg border border-borderline bg-bg2 text-sm text-ink2">
+          {inactiveCount} inactive item{inactiveCount !== 1 ? 's' : ''} in database (shown dimmed below).
+        </div>
+      )}
 
       {lowStockAlerts.length > 0 && (
         <div className="mb-6 p-4 rounded-lg border border-orange-300 bg-orange-50 text-sm">
@@ -357,6 +418,7 @@ export default function AdminPartsPage() {
           <thead className="bg-bg2">
             <tr>
               <th className="text-left py-4 px-6 font-semibold">Name</th>
+              <th className="text-left py-4 px-6 font-semibold">Slug</th>
               <th className="text-left py-4 px-6 font-semibold">Category</th>
               <th className="text-left py-4 px-6 font-semibold">Price</th>
               <th className="text-left py-4 px-6 font-semibold">Stock</th>
@@ -367,9 +429,9 @@ export default function AdminPartsPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" className="py-8 text-center text-ink2">Loading...</td></tr>
+              <tr><td colSpan="8" className="py-8 text-center text-ink2">Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan="7" className="py-8 text-center text-ink2">No items yet. Run seed_parts_catalog.py or create items here.</td></tr>
+              <tr><td colSpan="8" className="py-8 text-center text-ink2">No items yet. Run seed_parts_catalog.py or create items here.</td></tr>
             ) : (
               filtered.map((item) => {
                 const variante = item.variantes?.find((v) => v.es_principal) || item.variantes?.[0]
@@ -378,6 +440,7 @@ export default function AdminPartsPage() {
                 return (
                   <tr key={item.id} className={`border-t border-borderline hover:bg-bg2 ${!item.activo ? 'opacity-60' : ''} ${isLowStock ? 'bg-orange-50/60' : ''}`}>
                     <td className="py-4 px-6 font-semibold">{item.nombre}</td>
+                    <td className="py-4 px-6 text-xs text-ink2 font-mono">{item.slug || '—'}</td>
                     <td className="py-4 px-6 capitalize">{item.categoria}</td>
                     <td className="py-4 px-6">${variante?.precio?.toLocaleString() ?? '—'}</td>
                     <td className="py-4 px-6">

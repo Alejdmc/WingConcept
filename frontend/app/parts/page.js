@@ -13,6 +13,10 @@ import { resolveAccessoryImage, normalizeAccessoryId } from '@/lib/accessoryImag
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
+function catalogKey(slugOrId) {
+  return normalizeAccessoryId(slugOrId) || slugOrId
+}
+
 function parsePrice(item) {
   if (typeof item.precio_desde === 'number') return item.precio_desde
   if (typeof item.price === 'number') return item.price
@@ -46,6 +50,34 @@ function mapStaticItem(item) {
   }
 }
 
+function mergeCatalog(staticItems, apiItems) {
+  const apiByKey = new Map()
+  for (const item of apiItems) {
+    const key = catalogKey(item.slug || item.id)
+    if (key) apiByKey.set(key, item)
+  }
+
+  const merged = staticItems.map((staticItem) => {
+    const fromApi = apiByKey.get(staticItem.id)
+    if (fromApi) {
+      apiByKey.delete(staticItem.id)
+      return {
+        ...mapStaticItem(staticItem),
+        ...fromApi,
+        productoId: fromApi.productoId || fromApi.id,
+        inDatabase: true,
+      }
+    }
+    return { ...mapStaticItem(staticItem), inDatabase: false }
+  })
+
+  for (const extra of apiByKey.values()) {
+    merged.push({ ...extra, inDatabase: true })
+  }
+
+  return merged
+}
+
 export default function PartsPage() {
   const [parts, setParts] = useState(() => STATIC_PARTS.map(mapStaticItem))
   const [accessories, setAccessories] = useState(() => STATIC_ACCESSORIES.map(mapStaticItem))
@@ -57,21 +89,15 @@ export default function PartsPage() {
       setLoading(true)
       try {
         const [partsRes, accRes] = await Promise.all([
-          api.productos.listar({ categoria: 'repuestos', por_pagina: 50 }),
-          api.productos.listar({ categoria: 'accesorios', por_pagina: 50 }),
+          api.productos.listar({ categoria: 'repuestos', por_pagina: 100 }),
+          api.productos.listar({ categoria: 'accesorios', por_pagina: 100 }),
         ])
         const apiParts = (partsRes.items || []).map(mapApiProduct)
         const apiAcc = (accRes.items || []).map(mapApiProduct)
 
-        if (apiParts.length > 0 || apiAcc.length > 0) {
-          setParts(apiParts)
-          setAccessories(apiAcc)
-          setSource('api')
-        } else {
-          setParts(STATIC_PARTS.map(mapStaticItem))
-          setAccessories(STATIC_ACCESSORIES.map(mapStaticItem))
-          setSource('static')
-        }
+        setParts(mergeCatalog(STATIC_PARTS, apiParts))
+        setAccessories(mergeCatalog(STATIC_ACCESSORIES, apiAcc))
+        setSource(apiParts.length || apiAcc.length ? 'merged' : 'static')
       } catch {
         setParts(STATIC_PARTS.map(mapStaticItem))
         setAccessories(STATIC_ACCESSORIES.map(mapStaticItem))
@@ -104,6 +130,9 @@ export default function PartsPage() {
           <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
           {source === 'static' && !loading && (
             <p className="text-sm text-amber-700 mt-2">Could not load products from the server. Add items in Admin → Parts &amp; Accessories or run the parts seed script.</p>
+          )}
+          {source === 'merged' && !loading && (
+            <p className="text-sm text-ink2 mt-2">Showing full catalog. Items without stock in the database cannot be added to cart until seeded in admin.</p>
           )}
         </div>
 
@@ -147,7 +176,7 @@ function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
   const hasPrice = typeof part.price === 'number'
-  const canAddToCart = Boolean(part.productoId) && hasPrice
+  const canAddToCart = Boolean(part.productoId) && hasPrice && part.inDatabase !== false
 
   const handleAdd = async () => {
     if (!part.productoId) return
