@@ -324,6 +324,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
                   className="object-cover"
                   sizes="96px"
                   fallbackSrc={cartItemFallback(item)}
+                  unoptimized
                 />
               </div>
 
@@ -351,7 +352,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
               {/* Price & Remove */}
               <div className="text-left sm:text-right sm:ml-auto">
                 <p className="text-2xl font-black text-brand mb-4">
-                  ${(item.precio_unitario * item.cantidad).toLocaleString()}
+                  ${((item.precio_unitario ?? 0) * (item.cantidad || 1)).toLocaleString()}
                 </p>
                 <button
                   onClick={() => removeItem(item.id)}

@@ -70,7 +70,7 @@ export default function SafeImage({
     loading: priority ? undefined : 'lazy',
     sizes: sizes || (fill ? '(max-width: 768px) 100vw, 50vw' : undefined),
     onError: handleError,
-    unoptimized: displaySrc.startsWith('http'),
+    unoptimized: displaySrc.startsWith('http') || displaySrc.startsWith('/images/'),
     ...props,
   }
 

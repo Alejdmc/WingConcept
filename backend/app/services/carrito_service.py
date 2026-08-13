@@ -37,10 +37,10 @@ class CarritoService:
 
     async def _enriquecer_imagenes_anonimo(
         self, db: AsyncSession, carrito_data: Optional[Dict[str, Any]]
-    ) -> Optional[Dict[str, Any]]:
+    ) -> tuple[Optional[Dict[str, Any]], bool]:
         """Refresh product thumbnails from DB so each line shows the right image."""
         if not carrito_data or not carrito_data.get("items"):
-            return carrito_data
+            return carrito_data, False
 
         items = carrito_data["items"]
         variant_ids: List[UUID] = []
@@ -51,7 +51,7 @@ class CarritoService:
                 continue
 
         if not variant_ids:
-            return carrito_data
+            return carrito_data, False
 
         result = await db.execute(
             select(Variante)
@@ -79,9 +79,9 @@ class CarritoService:
                 dirty = True
 
         if not dirty:
-            return carrito_data
+            return carrito_data, False
 
-        return carrito_data
+        return carrito_data, True
 
     @staticmethod
     def _config_key(configuracion: Optional[Dict[str, Any]]) -> Optional[str]:
@@ -255,10 +255,16 @@ class CarritoService:
         if synced is not carrito_data and synced is not None:
             await carrito_set(session_id, synced)
             carrito_data = synced
-        enriched = await self._enriquecer_imagenes_anonimo(db, carrito_data)
-        if enriched is not carrito_data and enriched is not None:
-            await carrito_set(session_id, enriched)
-            carrito_data = enriched
+
+        needs_enrich = any(
+            not item.get("producto_slug") or not item.get("producto_categoria")
+            for item in carrito_data.get("items", [])
+        )
+        if needs_enrich:
+            carrito_data, dirty = await self._enriquecer_imagenes_anonimo(db, carrito_data)
+            if dirty:
+                await carrito_set(session_id, carrito_data)
+
         return self._carrito_anonimo_a_response(carrito_data)
 
     def _carrito_anonimo_a_response(self, data: Optional[Dict[str, Any]]) -> CarritoResponse:
@@ -518,6 +524,8 @@ class CarritoService:
         imagen: str = "",
         configuracion: Optional[Dict[str, Any]] = None,
         stock_disponible: Optional[int] = None,
+        producto_slug: str = "",
+        producto_categoria: str = "",
     ) -> CarritoResponse:
         """Agrega un item al carrito anónimo en Redis."""
         data = await carrito_get(session_id)
@@ -557,6 +565,8 @@ class CarritoService:
                 "variante_nombre": variante_nombre,
                 "producto_nombre": producto_nombre,
                 "producto_imagen": imagen,
+                "producto_slug": producto_slug or None,
+                "producto_categoria": producto_categoria or None,
                 "configuracion": configuracion,
                 "cartId": item_id,
                 "name": producto_nombre or variante_nombre,

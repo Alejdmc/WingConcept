@@ -3,48 +3,24 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
-import { filterNomadicImages, NOMADIC_GALLERY } from '@/lib/nomadicContent'
-import { filterVanguardImages, VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
+import { NOMADIC_GALLERY } from '@/lib/nomadicContent'
+import { VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
 
-const DEFAULT_IMAGES = VANGUARD_GALLERY
-
-function isVanguardGallery(images) {
-  return (images || []).some((img) => /vanguard/i.test(img?.src || ''))
-}
-
-function isNomadicGallery(images) {
-  return (images || []).some((img) => /nomadic/i.test(img?.src || ''))
-}
-
-function sanitizeGalleryImages(images) {
-  if (isVanguardGallery(images)) {
-    const local = filterVanguardImages((images || []).map((img) => img?.src)).filter((src) =>
-      /\/images\/vanguard\//.test(src),
-    )
-    const uniqueLocal = [...new Set(local)]
-    if (uniqueLocal.length >= 2) {
-      const allowed = new Set(uniqueLocal)
-      const cleaned = (images || []).filter((img) => img?.src && allowed.has(img.src))
-      if (cleaned.length >= 2) return cleaned
-    }
-    return VANGUARD_GALLERY
-  }
-
-  const srcs = (images || []).map((img) => img?.src).filter(Boolean)
-  const filteredSrcs = filterNomadicImages(srcs)
-  if (!filteredSrcs.length) {
-    if (isNomadicGallery(images)) return NOMADIC_GALLERY
-    return images?.length ? DEFAULT_IMAGES : NOMADIC_GALLERY
-  }
-  const allowed = new Set(filteredSrcs)
-  const cleaned = (images || []).filter((img) => img?.src && allowed.has(img.src))
-  if (cleaned.length) return cleaned
-  return isNomadicGallery(images) ? NOMADIC_GALLERY : VANGUARD_GALLERY
-}
-
-export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight', title = 'Gallery', bgClass = 'bg-white' }) {
+/** preset forces on-disk gallery — ignores CMS duplicates / broken Supabase URLs. */
+export default function Gallery({
+  images = VANGUARD_GALLERY,
+  preset,
+  eyebrow = 'In Flight',
+  title = 'Gallery',
+  bgClass = 'bg-white',
+}) {
   const [openIndex, setOpenIndex] = useState(null)
-  const galleryImages = useMemo(() => sanitizeGalleryImages(images), [images])
+
+  const galleryImages = useMemo(() => {
+    if (preset === 'vanguard') return VANGUARD_GALLERY
+    if (preset === 'nomadic') return NOMADIC_GALLERY
+    return images?.length ? images : VANGUARD_GALLERY
+  }, [images, preset])
 
   return (
     <section className={`py-24 px-6 ${bgClass}`}>
@@ -73,7 +49,8 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
                 alt={img.alt}
                 fill
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
-                fallbackSrc={/\/images\/vanguard\//.test(img.src) ? VANGUARD_HERO_IMAGE : undefined}
+                fallbackSrc={VANGUARD_HERO_IMAGE}
+                unoptimized
               />
             </motion.button>
           ))}
@@ -109,6 +86,8 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
                 alt={galleryImages[openIndex].alt}
                 fill
                 className="object-contain"
+                fallbackSrc={VANGUARD_HERO_IMAGE}
+                unoptimized
               />
             </motion.div>
           </motion.div>

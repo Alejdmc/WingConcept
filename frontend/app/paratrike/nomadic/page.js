@@ -257,7 +257,7 @@ export default function NomadicPage() {
         </div>
       </section>
 
-      <Gallery images={galleryItems} eyebrow="Nomadic Trike" title="Photo Gallery" bgClass="bg-white" />
+      <Gallery images={galleryItems} preset="nomadic" eyebrow="Nomadic Trike" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engines */}
       <section className="py-24 px-6 bg-white">

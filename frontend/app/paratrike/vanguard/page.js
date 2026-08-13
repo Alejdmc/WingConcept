@@ -256,7 +256,7 @@ export default function ParatrikePage() {
       </section>
 
       {/* Gallery */}
-      <Gallery images={galleryItems} eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
+      <Gallery images={galleryItems} preset="vanguard" eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engine Compatibility */}
       <section className="py-24 px-6 bg-bg2">

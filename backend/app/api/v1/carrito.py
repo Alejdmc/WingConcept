@@ -81,6 +81,7 @@ async def agregar_item(
             precio_unitario=precio,
         )
 
+    producto = variante.producto
     return await carrito_service.agregar_item_anonimo(
         session_id=session_id,
         variante_id=str(variante.id),
@@ -88,10 +89,12 @@ async def agregar_item(
         precio=precio,
         db=db,
         variante_nombre=variante.nombre,
-        producto_nombre=variante.producto.nombre if variante.producto else "",
-        imagen=carrito_service._imagen_producto(variante.producto) or "",
+        producto_nombre=producto.nombre if producto else "",
+        imagen=carrito_service._imagen_producto(producto) or "",
         configuracion=data.configuracion,
         stock_disponible=variante.stock,
+        producto_slug=producto.slug if producto else "",
+        producto_categoria=producto.categoria if producto else "",
     )
 
 

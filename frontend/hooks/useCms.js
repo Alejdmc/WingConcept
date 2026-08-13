@@ -194,14 +194,19 @@ function mapAccessory(o, productoId, fallbackAccessories = []) {
 export function formatConfigSummary(config) {
   if (!config || typeof config !== 'object') return []
   const lines = []
-  if (config.engine) lines.push({ label: 'Engine', value: String(config.engine).replace(/-/g, ' ') })
-  if (config.chassisType) lines.push({ label: 'Chassis', value: String(config.chassisType) })
-  if (config.finish) lines.push({ label: 'Finish', value: String(config.finish).replace(/-/g, ' ') })
-  if (config.propeller) lines.push({ label: 'Propeller', value: String(config.propeller) })
-  if (config.chassisColor) lines.push({ label: 'Chassis color', value: config.chassisColor })
-  if (config.accentColor) lines.push({ label: 'Accent color', value: config.accentColor })
+  const fmt = (value) => String(value ?? '').replace(/-/g, ' ').trim()
+
+  if (config.engine) lines.push({ label: 'Engine', value: fmt(config.engine) })
+  if (config.chassisType) lines.push({ label: 'Chassis', value: fmt(config.chassisType) })
+  if (config.finish) lines.push({ label: 'Finish', value: fmt(config.finish) })
+  if (config.propeller) lines.push({ label: 'Propeller', value: fmt(config.propeller) })
+  if (config.chassisColor) lines.push({ label: 'Chassis color', value: String(config.chassisColor) })
+  if (config.accentColor) lines.push({ label: 'Accent color', value: String(config.accentColor) })
   if (Array.isArray(config.upgrades) && config.upgrades.length) {
-    lines.push({ label: 'Accessories', value: config.upgrades.map((u) => u.replace(/-/g, ' ')).join(', ') })
+    lines.push({
+      label: 'Accessories',
+      value: config.upgrades.map((u) => fmt(typeof u === 'string' ? u : u?.id || u?.name || u)).filter(Boolean).join(', '),
+    })
   }
   return lines
 }

@@ -18,15 +18,23 @@ export function resolveCartItemImage(item) {
   const categoria = item?.producto_categoria
   const raw = item?.producto_imagen || item?.image
 
-  if (slug && (categoria === 'repuestos' || categoria === 'accesorios')) {
-    const mapped = resolveAccessoryImage(normalizeAccessoryId(slug), raw, null, null)
-    if (mapped) return mapped
-  }
-
   if (slug === 'vanguard-v8') return VANGUARD_HERO_IMAGE
   if (slug === 'nomadic-trike') return NOMADIC_HERO_IMAGE
 
+  if (slug && (categoria === 'repuestos' || categoria === 'accesorios')) {
+    const mapped = resolveAccessoryImage(normalizeAccessoryId(slug), null, null, null)
+    if (mapped) return mapped
+  }
+
+  if (slug) {
+    const mapped = resolveAccessoryImage(normalizeAccessoryId(slug), null, null, null)
+    if (mapped) return mapped
+  }
+
   if (isUsableImage(raw)) {
+    if (raw.startsWith('http')) {
+      return null
+    }
     if (raw.includes('/images/vanguard/')) return raw.trim()
     if (raw.includes('/images/nomadic/')) return raw.trim()
     if (raw.includes('/images/parts/')) return raw.trim()

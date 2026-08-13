@@ -1,4 +1,5 @@
 'use client'
+import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCart } from '@/hooks/useCart'
@@ -9,6 +10,20 @@ import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { formatConfigSummary } from '@/hooks/useCms'
 import { resolveCartItemImage, cartItemFallback } from '@/lib/cartImages'
+
+function CartItemConfig({ configuracion }) {
+  const lines = useMemo(() => formatConfigSummary(configuracion), [configuracion])
+  if (!lines.length) return null
+  return (
+    <ul className="text-xs text-ink2 space-y-0.5 mb-3">
+      {lines.map((line, idx) => (
+        <li key={`${line.label}-${idx}`}>
+          <span className="font-semibold text-ink">{line.label}:</span> {line.value}
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export default function CartPage() {
   const router = useRouter()
@@ -106,19 +121,14 @@ export default function CartPage() {
                   className="object-cover"
                   sizes="96px"
                   fallbackSrc={cartItemFallback(item)}
+                  unoptimized
                 />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-ink text-lg pr-8">{item.name || item.producto_nombre}</h3>
                       <p className="text-sm text-ink2 mb-2">{item.price}</p>
-                      {item.configuracion && formatConfigSummary(item.configuracion).length > 0 && (
-                        <ul className="text-xs text-ink2 space-y-0.5 mb-3">
-                          {formatConfigSummary(item.configuracion).map((line) => (
-                            <li key={line.label}><span className="font-semibold text-ink">{line.label}:</span> {line.value}</li>
-                          ))}
-                        </ul>
-                      )}
+                      {item.configuracion && <CartItemConfig configuracion={item.configuracion} />}
 
                       <div className="flex items-center gap-3 w-fit bg-bg2 rounded-lg p-1">
                         <button
