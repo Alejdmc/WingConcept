@@ -116,24 +116,15 @@ def _sanitize_nomadic_product(p: "Producto") -> None:
 
 def _resolve_product_image(p: "Producto") -> Optional[str]:
     """Listing/gallery first — avoids stale product.imagenes (e.g. nomadic1.png)."""
-    extra = p.contenido_extra or {}
-    listing = extra.get("listing") or {}
-    if listing.get("image") and not _is_legacy_nomadic_image(listing["image"]):
-        return listing["image"]
-    gallery = _filter_nomadic_images(extra.get("gallery"))
-    if gallery:
-        return gallery[0]
-    if p.imagenes:
-        filtered = _filter_nomadic_images(p.imagenes)
-        if filtered:
-            return filtered[0]
-        first = p.imagenes[0]
-        if p.slug == "nomadic-trike" and _is_legacy_nomadic_image(first):
-            return NOMADIC_HERO_IMAGE
-        return first
-    if p.slug == "nomadic-trike":
-        return NOMADIC_HERO_IMAGE
-    return None
+    from app.data.accessory_images import resolve_product_image
+
+    return resolve_product_image(
+        p.slug,
+        p.categoria,
+        p.id,
+        p.imagenes,
+        p.contenido_extra,
+    )
 
 
 def _build_list_response(p: "Producto", variantes_activas: list) -> "ProductoListResponse":

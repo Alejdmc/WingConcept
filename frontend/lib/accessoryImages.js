@@ -22,7 +22,7 @@ const GENERIC_CMS_IMAGES = new Set([
 /** Strip product / legacy prefixes (e.g. vanguard-parachute-container, acc-cruise-control). */
 export function normalizeAccessoryId(id) {
   if (!id) return null
-  const stripped = String(id).replace(/^(vanguard|nomadic|acc)-/, '')
+  const stripped = String(id).replace(/^(vanguard|nomadic|acc|part)-/, '')
   return SLUG_ALIASES[stripped] || stripped
 }
 
@@ -55,6 +55,10 @@ export function resolveAccessoryImage(id, cmsImage, productoId, fallbackImage) {
 
   const cms = normalizeImage(cmsImage)
   if (cms) return cms
+
+  if (key) {
+    return `/images/parts/${key}.png`
+  }
 
   return null
 }

@@ -69,6 +69,14 @@ class CarritoService:
             if imagen and imagen != item.get("producto_imagen"):
                 item["producto_imagen"] = imagen
                 dirty = True
+            slug = variante.producto.slug
+            if slug and slug != item.get("producto_slug"):
+                item["producto_slug"] = slug
+                dirty = True
+            categoria = variante.producto.categoria
+            if categoria and categoria != item.get("producto_categoria"):
+                item["producto_categoria"] = categoria
+                dirty = True
 
         if not dirty:
             return carrito_data
@@ -133,6 +141,8 @@ class CarritoService:
             "variante_nombre": item.get("variante_nombre"),
             "producto_nombre": item.get("producto_nombre"),
             "producto_imagen": item.get("producto_imagen"),
+            "producto_slug": item.get("producto_slug"),
+            "producto_categoria": item.get("producto_categoria"),
             "configuracion": item.get("configuracion"),
             "cartId": item_id,
             "name": nombre,
@@ -448,10 +458,14 @@ class CarritoService:
             variante = variantes_map.get(item.variante_id)
             producto_nombre = None
             imagen = None
+            producto_slug = None
+            producto_categoria = None
             variante_nombre = variante.nombre if variante else None
 
             if variante and variante.producto:
                 producto_nombre = variante.producto.nombre
+                producto_slug = variante.producto.slug
+                producto_categoria = variante.producto.categoria
                 imagen = self._imagen_producto(variante.producto)
 
             subtotal = float(item.precio_unitario) * item.cantidad
@@ -467,6 +481,8 @@ class CarritoService:
                     variante_nombre=variante_nombre,
                     producto_nombre=producto_nombre,
                     producto_imagen=imagen,
+                    producto_slug=producto_slug,
+                    producto_categoria=producto_categoria,
                     cartId=item.id,
                     name=producto_nombre or variante_nombre,
                     price=f"${float(item.precio_unitario):,.0f}",

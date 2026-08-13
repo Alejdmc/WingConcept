@@ -6,6 +6,28 @@ import uuid
 from typing import Optional
 
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
+
+VANGUARD_HERO_IMAGE = "/images/vanguard/1.png"
+NOMADIC_HERO_IMAGE = "/images/nomadic/2.jpg"
+
+SLUG_ALIASES = {
+    "mirror": "rear-mirror",
+    "rear-view-mirror": "rear-mirror",
+}
+
+PART_IMAGE_BY_SLUG = {
+    "front-axle": "/images/parts/front-axle.png",
+    "front-fork": "/images/parts/front-fork.png",
+    "front-bar-protection": "/images/parts/front-bar-protection.png",
+    "parachute-container": "/images/parts/parachute-container.png",
+    "pilot-harness": "/images/parts/pilot-harness.png",
+    "passenger-harness": "/images/parts/passenger-harness.png",
+    "pilot-dynamic-cage": "/images/parts/pilot-dynamic-cage.png",
+    "pilot-hunter-cage": "/images/parts/pilot-hunter-cage.png",
+    "back-axle": "/images/parts/back-axle.png",
+    "rock-guard": "/images/parts/rock-guard.png",
+}
 
 ACCESSORY_IMAGE_BY_SLUG = {
     "cruise-control": "/images/parts/front-bar-protection.png",
@@ -14,7 +36,6 @@ ACCESSORY_IMAGE_BY_SLUG = {
     "front-bar-protection": "/images/parts/front-bar-protection.png",
     "front-brake": "/images/parts/front-fork.png",
     "rear-mirror": "/images/parts/instrument-kit-vanguard.png",
-    "mirror": "/images/parts/instrument-kit-vanguard.png",
     "cockpit-liner": "/images/parts/cockpit-liner.png",
     "parachute-container": "/images/parts/parachute-container.png",
     "lateral-bag": "/images/parts/lateral-bag-explorer.png",
@@ -22,6 +43,9 @@ ACCESSORY_IMAGE_BY_SLUG = {
     "bottom-explorer-bag": "/images/parts/bottom-explorer-bag.png",
     "fuel-gauge-vanguard": "/images/parts/instrument-kit-vanguard.png",
     "auxiliary-lights": "/images/parts/instrument-kit-vanguard.png",
+    "instrument-kit-vanguard": "/images/parts/instrument-kit-vanguard.png",
+    "instrument-kit-nomadic": "/images/parts/instrument-kit-nomadic.png",
+    "electrical-kit": "/images/parts/instrument-kit-vanguard.png",
     "carabiners": "/images/parts/front-axle.png",
     "propeller-guard": "/images/parts/pilot-dynamic-cage.png",
     "ballistic-parachute": "/images/parts/parachute-container.png",
@@ -31,11 +55,41 @@ GENERIC_IMAGES = {
     "/images/parts/cockpit-liner.png",
 }
 
+LEGACY_VANGUARD_IMAGES = frozenset({
+    "/images/1vanguard.png",
+    "/images/paramotor_trike_ejemplo.PNG",
+})
+
+LEGACY_NOMADIC_IMAGES = frozenset({
+    "/images/nomadic/1.jpg",
+    "/images/nomadic1.png",
+    "/images/paramotor_trike_ejemplo.PNG",
+})
+
+
+def _is_legacy_nomadic_image(url: Optional[str]) -> bool:
+    if not url or not isinstance(url, str):
+        return True
+    trimmed = url.strip().split("?")[0]
+    if trimmed in LEGACY_NOMADIC_IMAGES:
+        return True
+    basename = trimmed.rsplit("/", 1)[-1].lower()
+    if basename in {"1.jpg", "nomadic1.png", "paramotor_trike_ejemplo.png"}:
+        return True
+    return trimmed.lower().endswith("/nomadic/1.jpg")
+
+
+def _filter_nomadic_images(urls: Optional[list]) -> list:
+    if not urls:
+        return []
+    return [u for u in urls if u and not _is_legacy_nomadic_image(u)]
+
 
 def normalize_accessory_slug(slug: str) -> str:
     if not slug:
         return ""
-    return re.sub(r"^(vanguard|nomadic|acc)-", "", slug)
+    key = re.sub(r"^(vanguard|nomadic|acc|part)-", "", slug)
+    return SLUG_ALIASES.get(key, key)
 
 
 def _is_generic_image(src: Optional[str]) -> bool:
@@ -43,6 +97,18 @@ def _is_generic_image(src: Optional[str]) -> bool:
         return True
     normalized = str(src).strip().split("?")[0]
     return normalized in GENERIC_IMAGES or "cockpit-liner" in normalized
+
+
+def is_legacy_vanguard_image(url: Optional[str]) -> bool:
+    if not url or not isinstance(url, str):
+        return True
+    trimmed = url.strip().split("?")[0]
+    if trimmed in LEGACY_VANGUARD_IMAGES:
+        return True
+    basename = trimmed.rsplit("/", 1)[-1].lower()
+    if re.match(r"^\d+vanguard\.png$", basename):
+        return True
+    return False
 
 
 def resolve_accessory_image(
@@ -57,10 +123,71 @@ def resolve_accessory_image(
             return "/images/parts/instrument-kit-nomadic.png"
         return "/images/parts/instrument-kit-vanguard.png"
 
+    if key in PART_IMAGE_BY_SLUG:
+        return PART_IMAGE_BY_SLUG[key]
+
     if key in ACCESSORY_IMAGE_BY_SLUG:
         return ACCESSORY_IMAGE_BY_SLUG[key]
 
     cms = (cms_image or "").strip()
     if cms and not _is_generic_image(cms):
         return cms
+
+    if key:
+        return f"/images/parts/{key}.png"
+
     return cms or None
+
+
+def resolve_product_image(
+    slug: str,
+    categoria: Optional[str],
+    producto_id: uuid.UUID,
+    imagenes: Optional[list],
+    contenido_extra: Optional[dict],
+) -> Optional[str]:
+    """Single source of truth for product thumbnails (API + cart)."""
+    extra = contenido_extra or {}
+    cms = imagenes[0] if imagenes else None
+
+    if categoria in ("repuestos", "accesorios"):
+        return resolve_accessory_image(slug, cms, producto_id)
+
+    if slug == "vanguard-v8":
+        listing = extra.get("listing") or {}
+        listing_img = listing.get("image")
+        if listing_img and not is_legacy_vanguard_image(listing_img):
+            if "/images/vanguard/" in listing_img:
+                return listing_img
+        gallery = [
+            u for u in (extra.get("gallery") or [])
+            if u and "/images/vanguard/" in u and not is_legacy_vanguard_image(u)
+        ]
+        if gallery:
+            return gallery[0]
+        if imagenes:
+            local = [u for u in imagenes if u and "/images/vanguard/" in u and not is_legacy_vanguard_image(u)]
+            if local:
+                return local[0]
+        return VANGUARD_HERO_IMAGE
+
+    if slug == "nomadic-trike":
+        listing = extra.get("listing") or {}
+        listing_img = listing.get("image")
+        if listing_img and not _is_legacy_nomadic_image(listing_img):
+            return listing_img
+        gallery = _filter_nomadic_images(extra.get("gallery"))
+        if gallery:
+            return gallery[0]
+        if imagenes:
+            filtered = _filter_nomadic_images(imagenes)
+            if filtered:
+                return filtered[0]
+        return NOMADIC_HERO_IMAGE
+
+    listing = extra.get("listing") or {}
+    if listing.get("image"):
+        return listing["image"]
+    if imagenes:
+        return imagenes[0]
+    return None

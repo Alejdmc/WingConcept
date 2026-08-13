@@ -29,6 +29,7 @@ function mapApiProduct(item) {
   return {
     id: item.id,
     productoId: item.id,
+    slug: item.slug,
     name: item.name || item.nombre,
     price,
     image: resolveAccessoryImage(accessoryId, item.image || item.imagenes?.[0]),

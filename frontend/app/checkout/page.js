@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
-import { resolveCartItemImage } from '@/lib/cartImages'
+import { resolveCartItemImage, cartItemFallback } from '@/lib/cartImages'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Trash2, Plus, Minus, Tag, X } from 'lucide-react'
 import { useCart } from '@/hooks/useCart'
@@ -323,6 +323,7 @@ function CartStep({ cart, updateQuantity, removeItem, setStep }) {
                   fill
                   className="object-cover"
                   sizes="96px"
+                  fallbackSrc={cartItemFallback(item)}
                 />
               </div>
 

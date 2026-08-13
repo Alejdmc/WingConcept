@@ -8,7 +8,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { formatConfigSummary } from '@/hooks/useCms'
-import { resolveCartItemImage } from '@/lib/cartImages'
+import { resolveCartItemImage, cartItemFallback } from '@/lib/cartImages'
 
 export default function CartPage() {
   const router = useRouter()
@@ -99,13 +99,14 @@ export default function CartPage() {
                     </button>
 
                     <div className="relative w-24 h-24 bg-bg2 rounded-lg flex-shrink-0 overflow-hidden">
-                      <SafeImage
-                        src={resolveCartItemImage(item)}
-                        alt={item.name || 'Product'}
-                        fill
-                        className="object-cover"
-                        sizes="96px"
-                      />
+                <SafeImage
+                  src={resolveCartItemImage(item)}
+                  alt={item.producto_nombre || item.name || 'Product'}
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                  fallbackSrc={cartItemFallback(item)}
+                />
                     </div>
 
                     <div className="flex-1 min-w-0">
