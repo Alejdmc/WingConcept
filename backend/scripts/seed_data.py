@@ -134,7 +134,7 @@ def main() -> None:
         cur, VANGUARD_ID, "Vanguard V8.0", "vanguard-v8",
         "High-performance trike developed with pilots and engineers. Benchmark in adventure flying.",
         "The benchmark in high-performance trikes", "paratrike", "vanguard",
-        ["/images/1vanguard.png"], 10, True,
+        [f"/images/vanguard/{i}.png" for i in range(1, 11)], 10, True,
     )
     _upsert_variante(
         cur, VANGUARD_VARIANT_ID, vanguard_id, "Vanguard Chassis Base", "VANG-BASE-001",

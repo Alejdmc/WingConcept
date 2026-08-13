@@ -474,13 +474,18 @@ function SummaryRow({ label, value, price }) {
 }
 
 function OptionThumb({ src, alt }) {
-  const [imgError, setImgError] = useState(false)
   const hasSrc = typeof src === 'string' && src.trim().length > 0
 
   return (
     <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      {hasSrc && !imgError ? (
-        <Image src={src.trim()} alt={alt} fill className="object-cover" onError={() => setImgError(true)} />
+      {hasSrc ? (
+        <SafeImage
+          src={src.trim()}
+          alt={alt}
+          fill
+          className="object-cover"
+          fallbackSrc={FALLBACK_IMAGES.engine}
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <Package className="w-8 h-8 text-ink2/40" />

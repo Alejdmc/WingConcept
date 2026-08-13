@@ -9,6 +9,7 @@ export const FALLBACK_IMAGES = {
   engine: '/images/motor.png',
   accessory: '/images/parts/cockpit-liner.png',
   hero: '/images/front1.jpg',
+  founder: '/images/front1.jpg',
 }
 
 /** Resolve CMS / catalog image paths; empty values use the section fallback. */
@@ -16,3 +17,4 @@ export function resolveImage(src, fallback = FALLBACK_IMAGES.product) {
   if (typeof src === 'string' && src.trim()) return src.trim()
   return fallback
 }
+

@@ -1,6 +1,8 @@
 'use client'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import SafeImage from '@/components/ui/SafeImage'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
@@ -261,11 +263,12 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-2xl">
-              <Image
+              <SafeImage
                 src="/images/founder-portrait.jpg"
                 alt="Andrés Arango"
                 fill
                 className="object-cover"
+                fallbackSrc={FALLBACK_IMAGES.founder}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             </motion.div>

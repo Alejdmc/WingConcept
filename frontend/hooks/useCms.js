@@ -74,14 +74,48 @@ export function useSiteBlocks(seccion = null) {
   return { blocks, loading, get }
 }
 
+function sortNoOptionFirst(items, noId) {
+  return [...(items || [])].sort((a, b) => {
+    if (a.id === noId) return -1
+    if (b.id === noId) return 1
+    return 0
+  })
+}
+
+function pickDefaultId(items, preferredId) {
+  if ((items || []).some((item) => item.id === preferredId)) return preferredId
+  return items?.[0]?.id ?? null
+}
+
+function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
+  const engines = sortNoOptionFirst(
+    catalog.engines?.length ? catalog.engines.map(mapEngine) : fallbackOptions.engines,
+    'no-engine',
+  )
+  const propellers = sortNoOptionFirst(
+    catalog.propellers?.length ? catalog.propellers.map(mapPropeller) : fallbackOptions.propellers,
+    'no-propeller',
+  )
+  return {
+    engines,
+    chassisTypes: catalog.chassis_types?.length ? catalog.chassis_types.map(mapChassis) : fallbackOptions.chassisTypes,
+    chassisFinishes: catalog.finishes?.length ? catalog.finishes.map(mapFinish) : fallbackOptions.chassisFinishes,
+    propellers,
+    colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
+    accessories: catalog.accessories?.length
+      ? catalog.accessories.map((o) => mapAccessory(o, productoId, fallbackOptions.accessories))
+      : fallbackOptions.accessories,
+  }
+}
+
 export function useConfigOptions(productoId, fallbackOptions) {
-  const [options, setOptions] = useState(fallbackOptions)
+  const [options, setOptions] = useState(() => normalizeConfigOptions({}, productoId, fallbackOptions))
   const [basePrice, setBasePrice] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!productoId) {
-      setOptions(fallbackOptions)
+      setOptions(normalizeConfigOptions({}, productoId, fallbackOptions))
       setLoading(false)
       return
     }
@@ -92,22 +126,13 @@ export function useConfigOptions(productoId, fallbackOptions) {
         const catalog = await api.cms.configurador(productoId)
         if (cancelled || !catalog) return
         setBasePrice(catalog.base_chassis_price ?? null)
-        setOptions({
-          engines: catalog.engines?.length ? catalog.engines.map(mapEngine) : fallbackOptions.engines,
-          chassisTypes: catalog.chassis_types?.length ? catalog.chassis_types.map(mapChassis) : fallbackOptions.chassisTypes,
-          chassisFinishes: catalog.finishes?.length ? catalog.finishes.map(mapFinish) : fallbackOptions.chassisFinishes,
-          propellers: catalog.propellers?.length ? catalog.propellers.map(mapPropeller) : fallbackOptions.propellers,
-          colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
-          accessories: catalog.accessories?.length
-            ? catalog.accessories.map((o) => mapAccessory(o, productoId, fallbackOptions.accessories))
-            : fallbackOptions.accessories,
-        })
+        setOptions(normalizeConfigOptions(catalog, productoId, fallbackOptions))
       } catch {
         if (attempt + 1 < MAX_ATTEMPTS && !cancelled) {
           await sleep(400 * (attempt + 1))
           return load(attempt + 1)
         }
-        if (!cancelled) setOptions(fallbackOptions)
+        if (!cancelled) setOptions(normalizeConfigOptions({}, productoId, fallbackOptions))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -118,8 +143,8 @@ export function useConfigOptions(productoId, fallbackOptions) {
   }, [productoId])
 
   const defaultSelections = {
-    engineId: options.engines?.[0]?.id ?? null,
-    propellerId: options.propellers?.[0]?.id ?? null,
+    engineId: pickDefaultId(options.engines, 'no-engine'),
+    propellerId: pickDefaultId(options.propellers, 'no-propeller'),
     chassisTypeId: options.chassisTypes?.[0]?.id ?? null,
     finishId: options.chassisFinishes?.[0]?.id ?? null,
   }

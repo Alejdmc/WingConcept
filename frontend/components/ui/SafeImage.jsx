@@ -1,12 +1,27 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { isLegacyNomadicImage } from '@/lib/nomadicContent'
+import { isLegacyVanguardImage } from '@/lib/vanguardContent'
+
+/** Local paths referenced in code but not yet uploaded to public/images. */
+const PENDING_LOCAL_IMAGES = new Set([
+  '/images/founder-portrait.jpg',
+])
+
+function normalizeSrc(src) {
+  if (typeof src !== 'string' || !src.trim()) return null
+  const trimmed = src.trim()
+  const pathOnly = trimmed.split('?')[0]
+  if (isLegacyNomadicImage(pathOnly) || isLegacyVanguardImage(pathOnly)) return null
+  if (pathOnly.startsWith('/images/') && PENDING_LOCAL_IMAGES.has(pathOnly)) return null
+  return trimmed
+}
 
 /**
- * next/image wrapper: always renders an image when fallbackSrc is set.
- * Retries the primary src once, then falls back — never leaves an empty slot.
+ * next/image wrapper: skips known-bad URLs, falls back once on load failure.
+ * Avoids cache-bust retries that only produced extra 404 noise in the console.
  */
 export default function SafeImage({
   src,
@@ -20,17 +35,17 @@ export default function SafeImage({
   fallbackSrc = FALLBACK_IMAGES.product,
   ...props
 }) {
-  const [attempt, setAttempt] = useState(0)
+  const primary = useMemo(() => normalizeSrc(src), [src])
+  const fallback = normalizeSrc(fallbackSrc) || FALLBACK_IMAGES.product
+  const [failedPrimary, setFailedPrimary] = useState(false)
 
-  const rawSrc = typeof src === 'string' && src.trim().length > 0 ? src.trim() : null
-  const baseSrc = rawSrc && isLegacyNomadicImage(rawSrc) ? null : rawSrc
-  const primary = baseSrc || fallbackSrc
-  const retrySrc = attempt === 1 && primary && !primary.includes('?')
-    ? `${primary}${primary.includes('?') ? '&' : '?'}_r=1`
-    : primary
-  const validSrc = attempt >= 2 && fallbackSrc ? fallbackSrc : retrySrc
+  useEffect(() => {
+    setFailedPrimary(false)
+  }, [primary])
 
-  if (!validSrc) {
+  const displaySrc = !primary || failedPrimary ? fallback : primary
+
+  if (!displaySrc) {
     return (
       <div
         className={`bg-bg2 flex items-center justify-center text-ink2/40 text-xs uppercase tracking-widest ${className}`}
@@ -42,28 +57,20 @@ export default function SafeImage({
   }
 
   const handleError = () => {
-    if (attempt === 0) {
-      setAttempt(1)
-      return
-    }
-    if (fallbackSrc && validSrc !== fallbackSrc) {
-      setAttempt(2)
-      return
-    }
-    if (attempt < 3 && fallbackSrc) {
-      setAttempt(3)
+    if (!failedPrimary && primary && fallback && primary !== fallback) {
+      setFailedPrimary(true)
     }
   }
 
   const imageProps = {
-    src: validSrc,
+    src: displaySrc,
     alt,
     className,
     priority,
     loading: priority ? undefined : 'lazy',
     sizes: sizes || (fill ? '(max-width: 768px) 100vw, 50vw' : undefined),
     onError: handleError,
-    unoptimized: validSrc.startsWith('http'),
+    unoptimized: displaySrc.startsWith('http'),
     ...props,
   }
 

@@ -1,12 +1,11 @@
 import { FALLBACK_IMAGES } from './imageDefaults'
 import { NOMADIC_HERO_IMAGE, isLegacyNomadicImage } from './nomadicContent'
-
-const VANGUARD_HERO_IMAGE = '/images/vanguard/1.png'
+import { VANGUARD_HERO_IMAGE, isLegacyVanguardImage } from './vanguardContent'
 
 /** Pick the correct thumbnail for a cart line item. */
 export function resolveCartItemImage(item) {
   const raw = item?.producto_imagen || item?.image
-  if (typeof raw === 'string' && raw.trim() && !isLegacyNomadicImage(raw)) {
+  if (typeof raw === 'string' && raw.trim() && !isLegacyNomadicImage(raw) && !isLegacyVanguardImage(raw)) {
     return raw.trim()
   }
 

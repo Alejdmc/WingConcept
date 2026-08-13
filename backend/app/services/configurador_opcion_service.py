@@ -157,6 +157,9 @@ class ConfiguradorOpcionService:
                 item["image"] = resolve_accessory_image(op.slug, op.imagen, producto_id)
                 grouped["accessories"].append(item)
 
+        grouped["engines"].sort(key=lambda x: (0 if x.get("id") == "no-engine" else 1, x.get("name") or ""))
+        grouped["propellers"].sort(key=lambda x: (0 if x.get("id") == "no-propeller" else 1, x.get("name") or ""))
+
         return ConfiguradorCatalogResponse(
             producto_id=producto_id,
             base_chassis_price=await self._precio_base(db, producto_id),
@@ -185,14 +188,17 @@ class ConfiguradorOpcionService:
         for op in opciones:
             if op.grupo == "engine":
                 catalog["engines"][op.slug] = op.precio
-                if catalog["default_engine"] is None:
-                    catalog["default_engine"] = op.slug
             elif op.grupo == "finish":
                 catalog["finishes"][op.slug] = op.precio
             elif op.grupo == "propeller":
                 catalog["propellers"][op.slug] = op.precio
             elif op.grupo == "accessory":
                 catalog["accessories"][op.slug] = op.precio
+
+        if "no-engine" in catalog["engines"]:
+            catalog["default_engine"] = "no-engine"
+        elif catalog["engines"]:
+            catalog["default_engine"] = next(iter(catalog["engines"]))
 
         if not catalog["engines"]:
             return None

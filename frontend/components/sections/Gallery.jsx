@@ -4,30 +4,42 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { filterNomadicImages, NOMADIC_GALLERY } from '@/lib/nomadicContent'
+import { filterVanguardImages, VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
 
-const DEFAULT_IMAGES = [
-  { src: '/images/vanguard/1.png', alt: 'Vanguard V8.0' },
-  { src: '/images/nomadic/2.jpg', alt: 'Nomadic Trike' },
-  { src: '/images/vanguard/2.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/3.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/4.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/5.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/6.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/7.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/8.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/9.png', alt: 'Vanguard V8.0' },
-  { src: '/images/vanguard/10.png', alt: 'Vanguard V8.0' },
-]
+const DEFAULT_IMAGES = VANGUARD_GALLERY
+
+function isVanguardGallery(images) {
+  return (images || []).some((img) => /vanguard/i.test(img?.src || ''))
+}
+
+function isNomadicGallery(images) {
+  return (images || []).some((img) => /nomadic/i.test(img?.src || ''))
+}
 
 function sanitizeGalleryImages(images) {
+  if (isVanguardGallery(images)) {
+    const local = filterVanguardImages((images || []).map((img) => img?.src)).filter((src) =>
+      /\/images\/vanguard\//.test(src),
+    )
+    const uniqueLocal = [...new Set(local)]
+    if (uniqueLocal.length >= 2) {
+      const allowed = new Set(uniqueLocal)
+      const cleaned = (images || []).filter((img) => img?.src && allowed.has(img.src))
+      if (cleaned.length >= 2) return cleaned
+    }
+    return VANGUARD_GALLERY
+  }
+
   const srcs = (images || []).map((img) => img?.src).filter(Boolean)
   const filteredSrcs = filterNomadicImages(srcs)
   if (!filteredSrcs.length) {
+    if (isNomadicGallery(images)) return NOMADIC_GALLERY
     return images?.length ? DEFAULT_IMAGES : NOMADIC_GALLERY
   }
   const allowed = new Set(filteredSrcs)
   const cleaned = (images || []).filter((img) => img?.src && allowed.has(img.src))
-  return cleaned.length ? cleaned : NOMADIC_GALLERY
+  if (cleaned.length) return cleaned
+  return isNomadicGallery(images) ? NOMADIC_GALLERY : VANGUARD_GALLERY
 }
 
 export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight', title = 'Gallery', bgClass = 'bg-white' }) {
@@ -61,6 +73,7 @@ export default function Gallery({ images = DEFAULT_IMAGES, eyebrow = 'In Flight'
                 alt={img.alt}
                 fill
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
+                fallbackSrc={/\/images\/vanguard\//.test(img.src) ? VANGUARD_HERO_IMAGE : undefined}
               />
             </motion.button>
           ))}

@@ -2,6 +2,51 @@
 
 export const VANGUARD_BASE_PRICE = 5950.25
 
+/** Old flat filenames / placeholder renders — never use in UI. */
+export const EXCLUDED_VANGUARD_IMAGES = new Set([
+  '/images/1vanguard.png',
+  '/images/paramotor_trike_ejemplo.PNG',
+  '/images/nomadic/1.jpg',
+  '/images/nomadic1.png',
+])
+
+const LEGACY_VANGUARD_BASENAMES = new Set([
+  '1vanguard.png',
+  'paramotor_trike_ejemplo.png',
+  'nomadic1.png',
+])
+
+export function isLegacyVanguardImage(url) {
+  if (!url || typeof url !== 'string') return true
+  const trimmed = url.trim().split('?')[0]
+  if (EXCLUDED_VANGUARD_IMAGES.has(trimmed)) return true
+  const basename = trimmed.split('/').pop()?.toLowerCase() || ''
+  if (LEGACY_VANGUARD_BASENAMES.has(basename)) return true
+  if (/^\d+vanguard\.png$/i.test(basename)) return true
+  return false
+}
+
+/** Real product gallery (photos 1–10 on disk under /images/vanguard/). */
+export const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
+  src: `/images/vanguard/${i + 1}.png`,
+  alt: `Vanguard V8.0 ${i + 1}`,
+}))
+
+export const VANGUARD_HERO_IMAGE = VANGUARD_GALLERY[0].src
+
+export const VANGUARD_GALLERY_URLS = VANGUARD_GALLERY.map((item) => item.src)
+
+export function filterVanguardImages(urls = []) {
+  return (urls || []).filter((url) => url && !isLegacyVanguardImage(url))
+}
+
+export function pickVanguardImage(urls = [], fallback = VANGUARD_HERO_IMAGE) {
+  const filtered = filterVanguardImages(urls)
+  const local = filtered.find((url) => /\/images\/vanguard\//.test(url))
+  if (local) return local
+  return filtered[0] || fallback
+}
+
 export const VANGUARD_CHASSIS_SUMMARY = {
   model: 'Vanguard V8.0',
   subtitle: 'Basic Style — No Engine, No Propeller & No Accessories',

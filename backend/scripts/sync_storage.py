@@ -27,7 +27,7 @@ IMAGES_DIR = ROOT / "frontend" / "public" / "images"
 # slug → archivos locales en frontend/public/images
 PRODUCT_IMAGES_BY_SLUG: dict[str, list[str]] = {
     "i-pro": ["ipro_ejemplo.PNG"],
-    "vanguard-v8": [f"{i}vanguard.png" for i in range(1, 11)],
+    "vanguard-v8": [f"vanguard/{i}.png" for i in range(1, 11)],
     "nomadic-trike": [f"nomadic/{i}.jpg" for i in range(2, 7)],
 }
 

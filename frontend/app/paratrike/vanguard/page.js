@@ -6,26 +6,25 @@ import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feathe
 import SafeImage from '@/components/ui/SafeImage'
 import Gallery from '@/components/sections/Gallery'
 import { api } from '@/lib/api'
-import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import {
   VANGUARD_BASE_PRICE,
   VANGUARD_CHASSIS_SUMMARY,
   VANGUARD_INCLUDED,
+  VANGUARD_GALLERY,
+  VANGUARD_HERO_IMAGE,
+  pickVanguardImage,
 } from '@/lib/vanguardContent'
+import { resolveVanguardGallery } from '@/lib/productImages'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link: Link2, Settings }
-
-const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
-  src: `/images/vanguard/${i + 1}.png`,
-  alt: `Vanguard V8.0 ${i + 1}`,
-}))
 
 const vanguardFallback = {
   id: 1,
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
   description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
-  image: '/images/vanguard/1.png',
+  image: VANGUARD_HERO_IMAGE,
+  gallery: VANGUARD_GALLERY,
   year: 2020,
   brand: 'Wing Concept',
   philosophy: 'Passion, Science, and Freedom',
@@ -110,21 +109,24 @@ export default function ParatrikePage() {
   useEffect(() => {
     api.productos.obtener('vanguard-v8').then((p) => {
       const extra = p.contenido_extra || {}
+      const heroImage = pickVanguardImage(
+        [extra.listing?.image, ...(extra.gallery || []), ...(p.imagenes || [])].filter(Boolean),
+        VANGUARD_HERO_IMAGE,
+      )
       setVanguard((prev) => ({
         ...prev,
         name: p.nombre || prev.name,
         description: p.descripcion || prev.description,
         tagline: extra.tagline || prev.tagline,
         philosophy: extra.philosophy || prev.philosophy,
+        image: heroImage,
         features: (extra.features || prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,
         })),
         engines: extra.engines_list?.length ? extra.engines_list : prev.engines,
         specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
-        gallery: extra.gallery?.length
-          ? extra.gallery.map((src, i) => ({ src, alt: `Vanguard ${i + 1}` }))
-          : VANGUARD_GALLERY,
+        gallery: resolveVanguardGallery(extra),
       }))
     }).catch(() => {})
   }, [])
@@ -157,7 +159,7 @@ export default function ParatrikePage() {
 
           <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="relative h-96 lg:h-full lg:min-h-[600px]">
             <div className="relative w-full h-full bg-transparent rounded-xl overflow-hidden">
-              <SafeImage src={vanguard.image} alt={vanguard.name} fill className="object-contain" priority fallbackSrc={FALLBACK_IMAGES.product} />
+              <SafeImage src={vanguard.image} alt={vanguard.name} fill className="object-contain" priority fallbackSrc={VANGUARD_HERO_IMAGE} />
             </div>
           </motion.div>
         </div>
