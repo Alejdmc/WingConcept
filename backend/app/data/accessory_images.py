@@ -44,6 +44,7 @@ ACCESSORY_IMAGE_BY_SLUG = {
     "fuel-gauge-vanguard": "/images/parts/instrument-kit-vanguard.png",
     "auxiliary-lights": "/images/parts/instrument-kit-vanguard.png",
     "instrument-kit-vanguard": "/images/parts/instrument-kit-vanguard.png",
+    "instrument-kit": "/images/parts/instrument-kit-vanguard.png",
     "instrument-kit-nomadic": "/images/parts/instrument-kit-nomadic.png",
     "electrical-kit": "/images/parts/instrument-kit-vanguard.png",
     "carabiners": "/images/parts/front-axle.png",

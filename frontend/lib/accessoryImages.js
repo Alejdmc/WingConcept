@@ -3,16 +3,22 @@ import { PARTS } from './parts'
 import { FALLBACK_IMAGES } from './imageDefaults'
 import { PRODUCT_IDS } from './products'
 
-const IMAGE_BY_ID = Object.fromEntries(
-  [...ACCESSORIES, ...PARTS]
-    .filter((item) => item.id && item.image)
-    .map((item) => [item.id, item.image]),
-)
-
 const SLUG_ALIASES = {
   mirror: 'rear-mirror',
   'rear-view-mirror': 'rear-mirror',
 }
+
+const IMAGE_BY_ID = Object.fromEntries(
+  [...ACCESSORIES, ...PARTS]
+    .filter((item) => item.id && item.image)
+    .flatMap((item) => {
+      const entries = [[item.id, item.image]]
+      if (item.id === 'instrument-kit-vanguard') {
+        entries.push(['instrument-kit', item.image])
+      }
+      return entries
+    }),
+)
 
 const GENERIC_CMS_IMAGES = new Set([
   FALLBACK_IMAGES.accessory,

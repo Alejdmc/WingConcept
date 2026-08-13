@@ -22,7 +22,7 @@ PARTS = [
      "Heavy-duty utility cage for tactical or media operations."),
     ("back-axle", "Back Axle No Suspension", 95, ["nomadic"], "/images/parts/back-axle.png",
      "Rear axle for Nomadic without integrated suspension."),
-    ("rock-guard", "Nomadic Rock Guard", 95, ["nomadic"], "/images/parts/rock-guard.png",
+    ("rock-guard", "Nomadic Rock Guard", 85, ["nomadic"], "/images/parts/rock-guard.png",
      "Guard to protect the lower trike body from rocks and debris."),
 ]
 
@@ -63,7 +63,18 @@ ACCESSORIES = [
      "/images/parts/bottom-explorer-bag.png", "Bottom-mounted adventure bag for long expeditions."),
     ("instrument-kit-nomadic", "Basic Instrument Kit (Nomadic)", 350, ["nomadic"],
      "/images/parts/instrument-kit-nomadic.png", "USB charger and TTO digital sensors."),
+    ("ballistic-parachute", "Ballistic Parachute", 1, ["vanguard", "nomadic"],
+     "/images/parts/parachute-container.png",
+     "Dedicated structural compartment for a ballistic parachute. Price on request — contact for quote."),
 ]
+
+# Extra slug aliases when matching existing DB rows (configurator id → canonical acc slug)
+ACCESSORY_SLUG_ALIASES = {
+    "acc-instrument-kit-vanguard": ["instrument-kit", "instrument-kit-vanguard"],
+    "acc-instrument-kit-nomadic": ["instrument-kit"],
+    "acc-fuel-gauge-vanguard": ["fuel-gauge"],
+    "acc-lateral-bag": ["lateral-bag-explorer"],
+}
 
 PART_IDS = [row[0] for row in PARTS]
 ACCESSORY_IDS = [row[0] for row in ACCESSORIES]

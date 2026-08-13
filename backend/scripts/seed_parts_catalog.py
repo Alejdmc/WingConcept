@@ -22,7 +22,7 @@ load_dotenv()
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from app.data.parts_catalog import ACCESSORIES, DEFAULT_STOCK, DEFAULT_STOCK_MINIMO, PARTS  # noqa: E402
+from app.data.parts_catalog import ACCESSORIES, ACCESSORY_SLUG_ALIASES, DEFAULT_STOCK, DEFAULT_STOCK_MINIMO, PARTS  # noqa: E402
 STOCK_RESET = os.environ.get("STOCK_RESET", "1") == "1"
 
 NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
@@ -62,6 +62,15 @@ def _find_producto_id(cur, slug: str, pid: str) -> Optional[str]:
         bare = slug[4:]
         for candidate in (bare, f"vanguard-{bare}", f"nomadic-{bare}"):
             cur.execute("SELECT id FROM productos WHERE slug = %s", (candidate,))
+            row = cur.fetchone()
+            if row:
+                return str(row[0])
+        for candidate in ACCESSORY_SLUG_ALIASES.get(slug, []):
+            cur.execute("SELECT id FROM productos WHERE slug = %s", (candidate,))
+            row = cur.fetchone()
+            if row:
+                return str(row[0])
+            cur.execute("SELECT id FROM productos WHERE slug = %s", (f"acc-{candidate}",))
             row = cur.fetchone()
             if row:
                 return str(row[0])

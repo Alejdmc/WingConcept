@@ -222,5 +222,6 @@ class PartsCatalogSyncResponse(BaseModel):
     total: int
     created: int
     updated: int
+    reactivated: int = 0
     stock_reset: bool
 

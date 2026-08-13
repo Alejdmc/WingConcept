@@ -89,7 +89,9 @@ function pickDefaultId(items, preferredId) {
 
 function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
   const engines = sortNoOptionFirst(
-    catalog.engines?.length ? catalog.engines.map(mapEngine) : fallbackOptions.engines,
+    catalog.engines?.length
+      ? catalog.engines.map((o) => mapEngine(o, fallbackOptions.engines))
+      : fallbackOptions.engines,
     'no-engine',
   )
   const propellers = sortNoOptionFirst(
@@ -98,7 +100,9 @@ function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
   )
   return {
     engines,
-    chassisTypes: catalog.chassis_types?.length ? catalog.chassis_types.map(mapChassis) : fallbackOptions.chassisTypes,
+    chassisTypes: catalog.chassis_types?.length
+      ? catalog.chassis_types.map((o) => mapChassis(o, fallbackOptions.chassisTypes))
+      : fallbackOptions.chassisTypes,
     chassisFinishes: catalog.finishes?.length ? catalog.finishes.map(mapFinish) : fallbackOptions.chassisFinishes,
     propellers,
     colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
@@ -162,11 +166,29 @@ export function useApplyConfigDefaults(defaultSelections, loading, apply) {
   }, [loading, defaultSelections, apply])
 }
 
-function mapEngine(o) {
-  return { id: o.id, name: o.name, basePrice: o.basePrice ?? o.price ?? 0, image: o.image, power: o.power }
+function resolveOptionImage(cmsImage, fallbackImage, conventionPath) {
+  const pick = (src) => (typeof src === 'string' && src.startsWith('/images/') ? src.trim() : null)
+  return pick(fallbackImage) || pick(cmsImage) || pick(conventionPath) || fallbackImage || cmsImage || null
 }
-function mapChassis(o) {
-  return { id: o.id, name: o.name, description: o.description, image: o.image }
+
+function mapEngine(o, fallbackEngines = []) {
+  const fb = (fallbackEngines || []).find((item) => item.id === o.id)
+  return {
+    id: o.id,
+    name: o.name,
+    basePrice: o.basePrice ?? o.price ?? 0,
+    image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/engines/${String(o.id).toLowerCase()}.jpg` : null),
+    power: o.power,
+  }
+}
+function mapChassis(o, fallbackChassis = []) {
+  const fb = (fallbackChassis || []).find((item) => item.id === o.id)
+  return {
+    id: o.id,
+    name: o.name,
+    description: o.description,
+    image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/chassis/${o.id}.jpg` : null),
+  }
 }
 function mapFinish(o) {
   return { id: o.id, name: o.name, description: o.description, swatch: o.swatch, price: o.price ?? 0 }

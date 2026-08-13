@@ -2,11 +2,10 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
-import Link from 'next/link'
+import SafeImage from '@/components/ui/SafeImage'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
-import SafeImage from '@/components/ui/SafeImage'
+import { VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
@@ -62,18 +61,7 @@ const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
 
 const VANGUARD_PRODUCTO_ID = PRODUCT_IDS.vanguard
 
-const PRODUCT_IMAGES = [
-  { src: '/images/vanguard/1.png', alt: 'Vanguard 1' },
-  { src: '/images/vanguard/2.png', alt: 'Vanguard 2' },
-  { src: '/images/vanguard/3.png', alt: 'Vanguard 3' },
-  { src: '/images/vanguard/4.png', alt: 'Vanguard 4' },
-  { src: '/images/vanguard/5.png', alt: 'Vanguard 5' },
-  { src: '/images/vanguard/6.png', alt: 'Vanguard 6' },
-  { src: '/images/vanguard/7.png', alt: 'Vanguard 7' },
-  { src: '/images/vanguard/8.png', alt: 'Vanguard 8' },
-  { src: '/images/vanguard/9.png', alt: 'Vanguard 9' },
-  { src: '/images/vanguard/10.png', alt: 'Vanguard 10' },
-]
+const PRODUCT_IMAGES = VANGUARD_GALLERY
 
 export default function ConfiguratorPage() {
   const router = useRouter()
@@ -184,12 +172,14 @@ export default function ConfiguratorPage() {
             className="space-y-6">
 
             <div className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-lg">
-              <Image
+              <SafeImage
                 src={PRODUCT_IMAGES[selectedImageIndex].src}
                 alt={PRODUCT_IMAGES[selectedImageIndex].alt}
                 fill
                 className="object-cover"
                 priority
+                fallbackSrc={VANGUARD_HERO_IMAGE}
+                unoptimized
               />
 
               {PRODUCT_IMAGES.length > 1 && (
@@ -227,7 +217,14 @@ export default function ConfiguratorPage() {
                       selectedImageIndex === index ? 'border-brand' : 'border-borderline hover:border-brand/50'
                     }`}
                   >
-                    <Image src={image.src} alt={image.alt} fill className="object-cover" />
+                    <SafeImage
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-cover"
+                      fallbackSrc={VANGUARD_HERO_IMAGE}
+                      unoptimized
+                    />
                   </motion.button>
                 ))}
               </div>
@@ -483,6 +480,7 @@ function OptionThumb({ src, alt }) {
           fill
           className="object-cover"
           fallbackSrc={FALLBACK_IMAGES.engine}
+          unoptimized
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">

@@ -5,11 +5,12 @@ import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.parts_catalog import (
     ACCESSORIES,
+    ACCESSORY_SLUG_ALIASES,
     CATALOG_NAMESPACE,
     DEFAULT_STOCK,
     DEFAULT_STOCK_MINIMO,
@@ -31,12 +32,13 @@ def _vid(slug: str) -> UUID:
 
 
 def _legacy_slugs(canonical_slug: str) -> List[str]:
+    aliases = list(ACCESSORY_SLUG_ALIASES.get(canonical_slug, []))
     if canonical_slug.startswith("part-"):
-        return [canonical_slug[5:]]
+        aliases.append(canonical_slug[5:])
     if canonical_slug.startswith("acc-"):
         bare = canonical_slug[4:]
-        return [bare, f"vanguard-{bare}", f"nomadic-{bare}"]
-    return []
+        aliases.extend([bare, f"vanguard-{bare}", f"nomadic-{bare}"])
+    return aliases
 
 
 class PartsCatalogSyncService:
@@ -202,6 +204,24 @@ class PartsCatalogSyncService:
             )
         return {"created": created, "updated": updated, "total": len(items)}
 
+    async def _reactivate_non_junk(self, db: AsyncSession) -> int:
+        """Restore items wrongly deactivated by older cleanup scripts."""
+        junk = or_(
+            Producto.slug.startswith("vanguard-"),
+            Producto.slug.startswith("nomadic-"),
+            Producto.slug.startswith("test-"),
+        )
+        result = await db.execute(
+            update(Producto)
+            .where(
+                Producto.categoria.in_(["repuestos", "accesorios"]),
+                Producto.activo.is_(False),
+                ~junk,
+            )
+            .values(activo=True)
+        )
+        return result.rowcount or 0
+
     async def sync_catalog(
         self, db: AsyncSession, *, stock_reset: bool = True
     ) -> Dict[str, Any]:
@@ -211,6 +231,7 @@ class PartsCatalogSyncService:
         acc_stats = await self._seed_group(
             db, ACCESSORIES, "accesorios", "acc", "ACC", 200, stock_reset
         )
+        reactivated = await self._reactivate_non_junk(db)
         await db.commit()
         await cache_delete_pattern("productos:*")
 
@@ -220,6 +241,7 @@ class PartsCatalogSyncService:
             "total": parts_stats["total"] + acc_stats["total"],
             "created": parts_stats["created"] + acc_stats["created"],
             "updated": parts_stats["updated"] + acc_stats["updated"],
+            "reactivated": reactivated,
             "stock_reset": stock_reset,
         }
 

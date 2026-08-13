@@ -200,8 +200,16 @@ async function loadAllByCategory(categoria) {
 
 function catalogSlugMatches(itemSlug, catalogId) {
   if (!itemSlug) return false
-  const key = normalizeAccessoryId(itemSlug)
-  return key === catalogId || itemSlug === catalogId
+  const itemKey = normalizeAccessoryId(itemSlug)
+  const catalogKey = normalizeAccessoryId(catalogId)
+  if (itemKey === catalogKey) return true
+  if (itemSlug === catalogId) return true
+  if (itemSlug === `part-${catalogId}` || itemSlug === `acc-${catalogId}`) return true
+  // Configurator uses instrument-kit; /parts uses instrument-kit-vanguard|nomadic
+  if (catalogId === 'instrument-kit-vanguard' && itemKey === 'instrument-kit') return true
+  if (catalogId === 'instrument-kit-nomadic' && itemKey === 'instrument-kit') return true
+  if (catalogId === 'instrument-kit' && itemKey.startsWith('instrument-kit')) return true
+  return false
 }
 
 function findMissingCatalogItems(dbItems) {
@@ -335,7 +343,7 @@ export default function AdminPartsPage() {
     try {
       const res = await api.admin.syncPartsCatalog(resetStock)
       setSyncMessage(
-        `Imported ${res.total} items (${res.created} new, ${res.updated} updated).`
+        `Imported ${res.total} catalog items (${res.created} new, ${res.updated} updated${res.reactivated ? `, ${res.reactivated} reactivated` : ''}).`
       )
       await load()
     } catch (err) {
