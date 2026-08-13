@@ -24,8 +24,9 @@ from urllib.parse import urlparse
 import psycopg2
 from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from parts_catalog_data import (  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+from app.data.parts_catalog import (  # noqa: E402
     CANONICAL_ACCESSORY_SLUGS,
     CANONICAL_PART_SLUGS,
     LEGACY_ACCESSORY_ALIASES,

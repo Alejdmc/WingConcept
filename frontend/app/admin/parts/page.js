@@ -227,6 +227,8 @@ export default function AdminPartsPage() {
   const [creating, setCreating] = useState(false)
   const [lowStockAlerts, setLowStockAlerts] = useState([])
   const [missingCatalog, setMissingCatalog] = useState([])
+  const [syncing, setSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState('')
 
   const load = async () => {
     setLoading(true)
@@ -326,6 +328,23 @@ export default function AdminPartsPage() {
     }
   }
 
+  const handleSyncCatalog = async (resetStock = true) => {
+    setSyncing(true)
+    setSyncMessage('')
+    setError('')
+    try {
+      const res = await api.admin.syncPartsCatalog(resetStock)
+      setSyncMessage(
+        `Imported ${res.total} items (${res.created} new, ${res.updated} updated).`
+      )
+      await load()
+    } catch (err) {
+      setError(err?.detail || 'Could not import catalog items.')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const filtered = items.filter((item) => {
     if (filter === 'all') return true
     return item.categoria === filter
@@ -360,10 +379,32 @@ export default function AdminPartsPage() {
           </p>
           <p className="text-amber-800 mt-1">
             Examples: {missingCatalog.slice(0, 5).map((m) => m.name).join(', ')}
-            {missingCatalog.length > 5 ? '…' : ''}. Run{' '}
-            <code className="text-xs bg-white px-1 py-0.5 rounded">python scripts/seed_parts_catalog.py</code>{' '}
-            inside the backend container to import them.
+            {missingCatalog.length > 5 ? '…' : ''}.
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={syncing}
+              onClick={() => handleSyncCatalog(true)}
+              className="px-4 py-2 bg-brand text-white rounded font-semibold text-sm hover:bg-brand/90 disabled:opacity-50"
+            >
+              {syncing ? 'Importing…' : 'Import missing items'}
+            </button>
+            <button
+              type="button"
+              disabled={syncing}
+              onClick={() => handleSyncCatalog(false)}
+              className="px-4 py-2 border border-amber-400 text-amber-900 rounded font-semibold text-sm hover:bg-amber-100 disabled:opacity-50"
+            >
+              Import without resetting stock
+            </button>
+          </div>
+        </div>
+      )}
+
+      {syncMessage && (
+        <div className="mb-6 p-4 rounded-lg border border-green-300 bg-green-50 text-sm text-green-800">
+          {syncMessage}
         </div>
       )}
 

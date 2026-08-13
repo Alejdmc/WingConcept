@@ -20,13 +20,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from parts_catalog_data import ACCESSORIES, PARTS  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+from app.data.parts_catalog import ACCESSORIES, DEFAULT_STOCK, DEFAULT_STOCK_MINIMO, PARTS  # noqa: E402
+STOCK_RESET = os.environ.get("STOCK_RESET", "1") == "1"
 
 NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-DEFAULT_STOCK = 10
-DEFAULT_STOCK_MINIMO = 2
-STOCK_RESET = os.environ.get("STOCK_RESET", "1") == "1"
 
 
 def _pid(slug: str) -> str:

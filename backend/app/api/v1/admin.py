@@ -27,6 +27,7 @@ from app.schemas.orden import (
 )
 from app.schemas.producto import (
     PaginatedAdminProductos,
+    PartsCatalogSyncResponse,
     ProductoCreate,
     ProductoResponse,
     ProductoUpdate,
@@ -41,6 +42,7 @@ from app.schemas.cupon import CuponCreateAdmin, CuponResponse, PaginatedCupones
 from app.schemas.dealer import DealerCreate, DealerResponse, DealerUpdate
 from app.schemas.manual import ManualCreate, ManualResponse, ManualUpdate
 from app.services.orden_service import orden_service
+from app.services.parts_catalog_sync_service import parts_catalog_sync_service
 from app.services.producto_service import producto_service
 from app.services.contenido_service import contenido_service
 from app.services.cupon_service import cupon_service
@@ -311,6 +313,16 @@ async def eliminar_producto_admin(
 ):
     """Desactiva un producto (soft delete). Alias para el panel admin."""
     await producto_service.eliminar(db, producto_id)
+
+
+@router.post("/parts/sync-catalog", response_model=PartsCatalogSyncResponse)
+async def sync_parts_catalog_admin(
+    stock_reset: bool = Query(True, description="Reset stock to 10 for catalog items"),
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Importa o actualiza el catálogo oficial de /parts (repuestos + accesorios)."""
+    return await parts_catalog_sync_service.sync_catalog(db, stock_reset=stock_reset)
 
 
 @router.post(

@@ -361,6 +361,8 @@ export const api = {
     obtenerProducto: (productoId) => request(`/admin/productos/${productoId}`),
     crearProducto: (data) => request('/admin/productos', { method: 'POST', body: JSON.stringify(data) }),
     actualizarProducto: (productoId, data) => request(`/admin/productos/${productoId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    syncPartsCatalog: (stockReset = true) =>
+      request(`/admin/parts/sync-catalog?stock_reset=${stockReset ? 'true' : 'false'}`, { method: 'POST' }),
     eliminarProducto: (productoId) => request(`/admin/productos/${productoId}`, { method: 'DELETE' }),
     crearVariante: (productoId, data) => request(`/admin/productos/${productoId}/variantes`, { method: 'POST', body: JSON.stringify(data) }),
     actualizarStock: (varianteId, data) => request(`/admin/variantes/${varianteId}/stock`, { method: 'PATCH', body: JSON.stringify(data) }),

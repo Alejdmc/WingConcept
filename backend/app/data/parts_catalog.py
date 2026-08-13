@@ -1,5 +1,5 @@
 """
-Catálogo canónico de /parts — fuente única para seed y cleanup.
+Catálogo canónico de /parts — fuente única para seed, cleanup y sync admin.
 Debe coincidir con frontend/lib/parts.js y frontend/lib/accessories.js.
 """
 
@@ -70,6 +70,9 @@ ACCESSORY_IDS = [row[0] for row in ACCESSORIES]
 
 CANONICAL_PART_SLUGS = {f"part-{pid}" for pid in PART_IDS}
 CANONICAL_ACCESSORY_SLUGS = {f"acc-{aid}" for aid in ACCESSORY_IDS}
-# Slugs legacy sin prefijo acc-/part- (creados antes del seed unificado)
 LEGACY_ACCESSORY_ALIASES = set(ACCESSORY_IDS)
 LEGACY_PART_ALIASES = set(PART_IDS)
+
+DEFAULT_STOCK = 10
+DEFAULT_STOCK_MINIMO = 2
+CATALOG_NAMESPACE = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"

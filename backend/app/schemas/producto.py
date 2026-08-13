@@ -216,3 +216,11 @@ class PaginatedAdminProductos(BaseModel):
     paginas: int
 
 
+class PartsCatalogSyncResponse(BaseModel):
+    parts: int
+    accessories: int
+    total: int
+    created: int
+    updated: int
+    stock_reset: bool
+
