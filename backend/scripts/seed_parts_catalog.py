@@ -131,18 +131,15 @@ def _find_variante_id(cur, sku: str, vid: str) -> Optional[str]:
 def _upsert_variante(cur, vid, producto_id, nombre, sku, precio, stock, stock_minimo, compatible_with):
     atributos = json.dumps({"compatible_with": compatible_with})
     existing_id = _find_variante_id(cur, sku, vid)
-    stock_clause = ", stock = %s" if STOCK_RESET else ""
 
     if existing_id:
-        params = [producto_id, nombre, precio, stock_minimo, atributos, existing_id]
-        if STOCK_RESET:
-            params = [producto_id, nombre, precio, stock, stock_minimo, atributos, existing_id]
         cur.execute(
-            f"""
+            """
             UPDATE variantes SET
                 producto_id = %s,
                 nombre = %s,
-                precio = %s{stock_clause},
+                precio = %s,
+                stock = %s,
                 stock_minimo = %s,
                 atributos = %s::jsonb,
                 activo = true,
@@ -150,7 +147,7 @@ def _upsert_variante(cur, vid, producto_id, nombre, sku, precio, stock, stock_mi
                 updated_at = NOW()
             WHERE id = %s
             """,
-            tuple(params),
+            (producto_id, nombre, precio, DEFAULT_STOCK, stock_minimo, atributos, existing_id),
         )
         return
 
@@ -159,7 +156,7 @@ def _upsert_variante(cur, vid, producto_id, nombre, sku, precio, stock, stock_mi
         INSERT INTO variantes (id, producto_id, nombre, sku, precio, stock, stock_minimo, atributos, activo, es_principal, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, true, true, NOW(), NOW())
         """,
-        (vid, producto_id, nombre, sku, precio, stock, stock_minimo, atributos),
+        (vid, producto_id, nombre, sku, precio, DEFAULT_STOCK, stock_minimo, atributos),
     )
 
 

@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.parts_catalog import (
@@ -131,7 +131,6 @@ class PartsCatalogSyncService:
         sku: str,
         precio: float,
         compatible_with: List[str],
-        stock_reset: bool,
     ) -> None:
         vid = _vid(canonical_slug)
         variante = await self._find_variante(db, sku, vid)
@@ -141,8 +140,7 @@ class PartsCatalogSyncService:
             variante.producto_id = producto_id
             variante.nombre = "Standard"
             variante.precio = precio
-            if stock_reset:
-                variante.stock = DEFAULT_STOCK
+            variante.stock = DEFAULT_STOCK
             variante.stock_minimo = DEFAULT_STOCK_MINIMO
             variante.atributos = atributos
             variante.activo = True
@@ -173,7 +171,6 @@ class PartsCatalogSyncService:
         slug_prefix: str,
         sku_prefix: str,
         start_order: int,
-        stock_reset: bool,
     ) -> Dict[str, int]:
         created = 0
         updated = 0
@@ -200,38 +197,18 @@ class PartsCatalogSyncService:
                 sku=sku,
                 precio=float(precio),
                 compatible_with=compatible,
-                stock_reset=stock_reset,
             )
         return {"created": created, "updated": updated, "total": len(items)}
-
-    async def _reactivate_non_junk(self, db: AsyncSession) -> int:
-        """Restore items wrongly deactivated by older cleanup scripts."""
-        junk = or_(
-            Producto.slug.startswith("vanguard-"),
-            Producto.slug.startswith("nomadic-"),
-            Producto.slug.startswith("test-"),
-        )
-        result = await db.execute(
-            update(Producto)
-            .where(
-                Producto.categoria.in_(["repuestos", "accesorios"]),
-                Producto.activo.is_(False),
-                ~junk,
-            )
-            .values(activo=True)
-        )
-        return result.rowcount or 0
 
     async def sync_catalog(
         self, db: AsyncSession, *, stock_reset: bool = True
     ) -> Dict[str, Any]:
         parts_stats = await self._seed_group(
-            db, PARTS, "repuestos", "part", "PART", 100, stock_reset
+            db, PARTS, "repuestos", "part", "PART", 100
         )
         acc_stats = await self._seed_group(
-            db, ACCESSORIES, "accesorios", "acc", "ACC", 200, stock_reset
+            db, ACCESSORIES, "accesorios", "acc", "ACC", 200
         )
-        reactivated = await self._reactivate_non_junk(db)
         await db.commit()
         await cache_delete_pattern("productos:*")
 
@@ -241,7 +218,6 @@ class PartsCatalogSyncService:
             "total": parts_stats["total"] + acc_stats["total"],
             "created": parts_stats["created"] + acc_stats["created"],
             "updated": parts_stats["updated"] + acc_stats["updated"],
-            "reactivated": reactivated,
             "stock_reset": stock_reset,
         }
 

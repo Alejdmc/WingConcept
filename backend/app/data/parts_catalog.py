@@ -8,8 +8,8 @@ PARTS = [
      "Easy-to-assemble aluminum front axle engineered specifically for 20mm bearings."),
     ("front-fork", "Front Fork", 280, ["vanguard", "nomadic"], "/images/parts/front-fork.png",
      "Reinforced front fork assembly weighted for ideal stability."),
-    ("front-bar-protection", "Protection with Front Bar Handle", 80, ["vanguard", "nomadic"],
-     "/images/parts/front-bar-protection.png", "Structural front protection bar and handgrip."),
+    ("front-bar-protection", "Protection with Front Bar Handle", 47, ["vanguard", "nomadic"],
+     "/images/parts/front-bar-protection.png", "Structural front protection bar that serves as a convenient handgrip or handle."),
     ("parachute-container", "Parachute Container", 55, ["vanguard", "nomadic"],
      "/images/parts/parachute-container.png", "Emergency parachute container for quick mounting."),
     ("pilot-harness", "Pilot Harness", 190, ["vanguard", "nomadic"], "/images/parts/pilot-harness.png",
@@ -63,9 +63,6 @@ ACCESSORIES = [
      "/images/parts/bottom-explorer-bag.png", "Bottom-mounted adventure bag for long expeditions."),
     ("instrument-kit-nomadic", "Basic Instrument Kit (Nomadic)", 350, ["nomadic"],
      "/images/parts/instrument-kit-nomadic.png", "USB charger and TTO digital sensors."),
-    ("ballistic-parachute", "Ballistic Parachute", 1, ["vanguard", "nomadic"],
-     "/images/parts/parachute-container.png",
-     "Dedicated structural compartment for a ballistic parachute. Price on request — contact for quote."),
 ]
 
 # Extra slug aliases when matching existing DB rows (configurator id → canonical acc slug)

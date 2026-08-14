@@ -445,12 +445,14 @@ class ProductoService:
             items.append(AdminProductoResponse(
                 id=p.id,
                 name=p.nombre,
+                slug=p.slug,
                 price=_format_price(precio_desde),
                 stock=stock_total,
                 sales=ventas,
                 activo=p.activo,
                 categoria=p.categoria,
                 subcategoria=p.subcategoria,
+                orden_display=p.orden_display or 0,
             ))
 
         result = PaginatedAdminProductos(

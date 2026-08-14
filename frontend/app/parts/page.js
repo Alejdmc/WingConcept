@@ -6,30 +6,14 @@ import { ArrowLeft, ShoppingCart, Check } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { useCart } from '@/hooks/useCart'
-import { api } from '@/lib/api'
-import { PARTS as STATIC_PARTS } from '@/lib/parts'
-import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
+import { loadPublicCatalog, parseListPrice } from '@/lib/loadPartsCatalog'
 import { resolveAccessoryImage, normalizeAccessoryId } from '@/lib/accessoryImages'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
-function catalogKey(slugOrId) {
-  return normalizeAccessoryId(slugOrId) || slugOrId
-}
-
-function parsePrice(item) {
-  if (typeof item.precio_desde === 'number') return item.precio_desde
-  if (typeof item.price === 'number') return item.price
-  if (typeof item.price === 'string') {
-    const n = parseFloat(item.price.replace(/[^0-9.]/g, ''))
-    return Number.isFinite(n) ? n : null
-  }
-  return null
-}
-
 function mapApiProduct(item) {
-  const price = parsePrice(item)
   const accessoryId = normalizeAccessoryId(item.slug || item.id)
+  const price = parseListPrice(item)
   return {
     id: item.id,
     productoId: item.id,
@@ -42,66 +26,27 @@ function mapApiProduct(item) {
   }
 }
 
-function mapStaticItem(item) {
-  return {
-    ...item,
-    productoId: item.productoId || null,
-    image: resolveAccessoryImage(item.id, item.image),
-  }
-}
-
-function mergeCatalog(staticItems, apiItems) {
-  const apiByKey = new Map()
-  for (const item of apiItems) {
-    const key = catalogKey(item.slug || item.id)
-    if (key) apiByKey.set(key, item)
-  }
-
-  const merged = staticItems.map((staticItem) => {
-    const fromApi = apiByKey.get(staticItem.id)
-    if (fromApi) {
-      apiByKey.delete(staticItem.id)
-      return {
-        ...mapStaticItem(staticItem),
-        ...fromApi,
-        productoId: fromApi.productoId || fromApi.id,
-        inDatabase: true,
-      }
-    }
-    return { ...mapStaticItem(staticItem), inDatabase: false }
-  })
-
-  for (const extra of apiByKey.values()) {
-    merged.push({ ...extra, inDatabase: true })
-  }
-
-  return merged
-}
-
 export default function PartsPage() {
-  const [parts, setParts] = useState(() => STATIC_PARTS.map(mapStaticItem))
-  const [accessories, setAccessories] = useState(() => STATIC_ACCESSORIES.map(mapStaticItem))
+  const [parts, setParts] = useState([])
+  const [accessories, setAccessories] = useState([])
   const [loading, setLoading] = useState(true)
-  const [source, setSource] = useState('static')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
       setLoading(true)
+      setError('')
       try {
-        const [partsRes, accRes] = await Promise.all([
-          api.productos.listar({ categoria: 'repuestos', por_pagina: 100 }),
-          api.productos.listar({ categoria: 'accesorios', por_pagina: 100 }),
+        const [partsRows, accRows] = await Promise.all([
+          loadPublicCatalog('repuestos'),
+          loadPublicCatalog('accesorios'),
         ])
-        const apiParts = (partsRes.items || []).map(mapApiProduct)
-        const apiAcc = (accRes.items || []).map(mapApiProduct)
-
-        setParts(mergeCatalog(STATIC_PARTS, apiParts))
-        setAccessories(mergeCatalog(STATIC_ACCESSORIES, apiAcc))
-        setSource(apiParts.length || apiAcc.length ? 'merged' : 'static')
+        setParts(partsRows.map(mapApiProduct))
+        setAccessories(accRows.map(mapApiProduct))
       } catch {
-        setParts(STATIC_PARTS.map(mapStaticItem))
-        setAccessories(STATIC_ACCESSORIES.map(mapStaticItem))
-        setSource('static')
+        setParts([])
+        setAccessories([])
+        setError('Could not load catalog from the server.')
       } finally {
         setLoading(false)
       }
@@ -128,44 +73,41 @@ export default function PartsPage() {
         <div className="mb-12">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
           <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
-          {source === 'static' && !loading && (
-            <p className="text-sm text-amber-700 mt-2">Could not load products from the server. Add items in Admin → Parts &amp; Accessories or run the parts seed script.</p>
-          )}
-          {source === 'merged' && !loading && (
-            <p className="text-sm text-ink2 mt-2">Showing full catalog. Items without stock in the database cannot be added to cart until seeded in admin.</p>
+          {error && (
+            <p className="text-sm text-amber-700 mt-2">{error}</p>
           )}
         </div>
 
         {loading && (
-          <p className="text-sm text-ink2 mb-4">Updating catalog...</p>
+          <p className="text-sm text-ink2 mb-4">Loading catalog...</p>
         )}
 
         <>
           <section className="mb-16">
-              <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
-              {parts.length === 0 ? (
-                <p className="text-ink2">No parts listed yet.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {parts.map((part) => (
-                    <PartCard key={part.productoId || part.id} part={part} />
-                  ))}
-                </div>
-              )}
-            </section>
+            <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Parts</h2>
+            {!loading && parts.length === 0 ? (
+              <p className="text-ink2">No parts listed yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {parts.map((part) => (
+                  <PartCard key={part.productoId || part.id} part={part} />
+                ))}
+              </div>
+            )}
+          </section>
 
-            <section>
-              <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
-              {accessories.length === 0 ? (
-                <p className="text-ink2">No accessories listed yet.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {accessories.map((accessory) => (
-                    <PartCard key={accessory.productoId || accessory.id} part={accessory} />
-                  ))}
-                </div>
-              )}
-            </section>
+          <section>
+            <h2 className="text-xl font-black uppercase tracking-tight text-ink mb-6">Accessories</h2>
+            {!loading && accessories.length === 0 ? (
+              <p className="text-ink2">No accessories listed yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {accessories.map((accessory) => (
+                  <PartCard key={accessory.productoId || accessory.id} part={accessory} />
+                ))}
+              </div>
+            )}
+          </section>
         </>
       </div>
     </div>
@@ -175,8 +117,8 @@ export default function PartsPage() {
 function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
-  const hasPrice = typeof part.price === 'number'
-  const canAddToCart = Boolean(part.productoId) && hasPrice && part.inDatabase !== false
+  const hasPrice = typeof part.price === 'number' && part.price > 0
+  const canAddToCart = Boolean(part.productoId) && hasPrice
 
   const handleAdd = async () => {
     if (!part.productoId) return
@@ -206,7 +148,7 @@ function PartCard({ part }) {
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
           className="object-contain p-3"
           fallbackSrc={FALLBACK_IMAGES.part}
-          unoptimized={part.image?.startsWith('http')}
+          unoptimized
         />
       </div>
 
@@ -252,8 +194,7 @@ function PartCard({ part }) {
           <button
             type="button"
             disabled
-            className="mt-auto inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-bg2 text-ink2 font-black uppercase tracking-wide text-xs w-full cursor-not-allowed"
-            title="Product not linked yet">
+            className="mt-auto inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-bg2 text-ink2 font-black uppercase tracking-wide text-xs w-full cursor-not-allowed">
             <ShoppingCart className="w-4 h-4 opacity-50" />
             Unavailable
           </button>
@@ -266,7 +207,7 @@ function PartCard({ part }) {
         )}
 
         {status === 'error' && canAddToCart && (
-          <p className="text-red-600 text-xs font-semibold mt-2">Could not add to cart. Check that the backend is running.</p>
+          <p className="text-red-600 text-xs font-semibold mt-2">Could not add to cart.</p>
         )}
       </div>
     </motion.div>

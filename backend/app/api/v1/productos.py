@@ -37,7 +37,7 @@ router = APIRouter(prefix="/productos", tags=["Productos"])
 @router.get("", response_model=PaginatedProductos)
 async def listar_productos(
     pagina: int = Query(1, ge=1),
-    por_pagina: int = Query(12, ge=1, le=50),
+    por_pagina: int = Query(12, ge=1, le=100),
     categoria: Optional[str] = Query(None),
     buscar: Optional[str] = Query(None, max_length=100),
     db: AsyncSession = Depends(get_db),

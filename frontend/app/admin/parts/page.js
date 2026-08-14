@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import ImageUploadField from '@/components/admin/ImageUploadField'
-import { PARTS as STATIC_PARTS } from '@/lib/parts'
-import { ACCESSORIES as STATIC_ACCESSORIES } from '@/lib/accessories'
-import { normalizeAccessoryId } from '@/lib/accessoryImages'
+import { loadAdminCatalog, parseListPrice } from '@/lib/loadPartsCatalog'
 
 const DEFAULT_STOCK = 10
 const DEFAULT_STOCK_MINIMO = 2
@@ -32,7 +30,7 @@ function emptyForm(categoria = 'repuestos') {
     imagenes: [],
     orden_display: 0,
     precio: '',
-    stock: 10,
+    stock: DEFAULT_STOCK,
     compatibleWith: ['vanguard', 'nomadic'],
     activo: true,
   }
@@ -51,9 +49,25 @@ function fromProduct(product) {
     imagenes: product.imagenes || [],
     orden_display: product.orden_display ?? 0,
     precio: variante?.precio ?? '',
-    stock: variante?.stock ?? 0,
+    stock: variante?.stock ?? DEFAULT_STOCK,
     compatibleWith: Array.isArray(compatible) ? compatible : ['vanguard', 'nomadic'],
     activo: product.activo ?? true,
+  }
+}
+
+function adminRowToTableItem(row) {
+  return {
+    id: row.id,
+    nombre: row.name,
+    slug: row.slug,
+    categoria: row.categoria,
+    activo: row.activo,
+    orden_display: row.orden_display ?? 0,
+    variantes: [{
+      es_principal: true,
+      precio: parseListPrice(row),
+      stock: row.stock ?? 0,
+    }],
   }
 }
 
@@ -170,7 +184,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} />
-        Active (visible on site and addable to cart)
+        Active (visible on /parts and addable to cart)
       </label>
 
       <div className="flex gap-3">
@@ -185,47 +199,6 @@ function CatalogForm({ initial, onSave, onCancel }) {
   )
 }
 
-async function loadAllByCategory(categoria) {
-  const rows = []
-  let pagina = 1
-  let paginas = 1
-  while (pagina <= paginas) {
-    const res = await api.admin.productos({ categoria, por_pagina: 100, pagina })
-    rows.push(...(res.items || []))
-    paginas = res.paginas || 1
-    pagina += 1
-  }
-  return rows
-}
-
-function catalogSlugMatches(itemSlug, catalogId) {
-  if (!itemSlug) return false
-  const itemKey = normalizeAccessoryId(itemSlug)
-  const catalogKey = normalizeAccessoryId(catalogId)
-  if (itemKey === catalogKey) return true
-  if (itemSlug === catalogId) return true
-  if (itemSlug === `part-${catalogId}` || itemSlug === `acc-${catalogId}`) return true
-  // Configurator uses instrument-kit; /parts uses instrument-kit-vanguard|nomadic
-  if (catalogId === 'instrument-kit-vanguard' && itemKey === 'instrument-kit') return true
-  if (catalogId === 'instrument-kit-nomadic' && itemKey === 'instrument-kit') return true
-  if (catalogId === 'instrument-kit' && itemKey.startsWith('instrument-kit')) return true
-  return false
-}
-
-function findMissingCatalogItems(dbItems) {
-  const expected = [
-    ...STATIC_PARTS.map((p) => ({ id: p.id, name: p.name, categoria: 'repuestos' })),
-    ...STATIC_ACCESSORIES.filter((a) => a.price != null).map((a) => ({
-      id: a.id,
-      name: a.name,
-      categoria: 'accesorios',
-    })),
-  ]
-  return expected.filter((entry) => {
-    return !dbItems.some((row) => catalogSlugMatches(row.slug, entry.id))
-  })
-}
-
 export default function AdminPartsPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -234,31 +207,20 @@ export default function AdminPartsPage() {
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
   const [lowStockAlerts, setLowStockAlerts] = useState([])
-  const [missingCatalog, setMissingCatalog] = useState([])
-  const [syncing, setSyncing] = useState(false)
-  const [syncMessage, setSyncMessage] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
     setError('')
     try {
       const [partsRows, accRows] = await Promise.all([
-        loadAllByCategory('repuestos'),
-        loadAllByCategory('accesorios'),
+        loadAdminCatalog('repuestos'),
+        loadAdminCatalog('accesorios'),
       ])
       const combined = [...partsRows, ...accRows]
-      const detailed = await Promise.all(
-        combined.map(async (row) => {
-          try {
-            return await api.admin.obtenerProducto(row.id)
-          } catch {
-            return null
-          }
-        })
-      )
-      const loaded = detailed.filter(Boolean).sort((a, b) => (a.orden_display ?? 0) - (b.orden_display ?? 0))
-      setItems(loaded)
-      setMissingCatalog(findMissingCatalogItems(loaded))
+        .map(adminRowToTableItem)
+        .sort((a, b) => (a.orden_display ?? 0) - (b.orden_display ?? 0))
+      setItems(combined)
       try {
         const alertData = await api.admin.stockAlertas()
         setLowStockAlerts(alertData.items || [])
@@ -317,6 +279,20 @@ export default function AdminPartsPage() {
     load()
   }
 
+  const openEdit = async (item) => {
+    setCreating(false)
+    setEditLoading(true)
+    setError('')
+    try {
+      const full = await api.admin.obtenerProducto(item.id)
+      setEditing(full)
+    } catch {
+      setError('Could not load item for editing.')
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   const handleToggle = async (item) => {
     try {
       await api.admin.actualizarProducto(item.id, { activo: !item.activo })
@@ -327,7 +303,7 @@ export default function AdminPartsPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Deactivate this item? It will no longer appear on the site or in cart.')) return
+    if (!confirm('Deactivate this item? It will no longer appear on /parts or in cart.')) return
     try {
       await api.admin.eliminarProducto(id)
       load()
@@ -336,28 +312,12 @@ export default function AdminPartsPage() {
     }
   }
 
-  const handleSyncCatalog = async (resetStock = true) => {
-    setSyncing(true)
-    setSyncMessage('')
-    setError('')
-    try {
-      const res = await api.admin.syncPartsCatalog(resetStock)
-      setSyncMessage(
-        `Imported ${res.total} catalog items (${res.created} new, ${res.updated} updated${res.reactivated ? `, ${res.reactivated} reactivated` : ''}).`
-      )
-      await load()
-    } catch (err) {
-      setError(err?.detail || 'Could not import catalog items.')
-    } finally {
-      setSyncing(false)
-    }
-  }
-
   const filtered = items.filter((item) => {
     if (filter === 'all') return true
     return item.categoria === filter
   })
 
+  const activeCount = useMemo(() => items.filter((i) => i.activo).length, [items])
   const inactiveCount = useMemo(() => items.filter((i) => !i.activo).length, [items])
 
   return (
@@ -366,7 +326,7 @@ export default function AdminPartsPage() {
         <div>
           <h1 className="text-3xl font-black text-ink">Parts &amp; Accessories</h1>
           <p className="text-ink2 mt-2">
-            Manage parts and accessories shown on /parts — images, prices, stock, order and descriptions. Items here can be added to cart.
+            Same catalog as <code className="text-xs bg-bg2 px-1 py-0.5 rounded">/parts</code> — active items ({activeCount}) appear on the site. Inactive items are hidden from customers.
           </p>
         </div>
         <button
@@ -380,45 +340,9 @@ export default function AdminPartsPage() {
 
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
 
-      {missingCatalog.length > 0 && (
-        <div className="mb-6 p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm">
-          <p className="font-bold text-amber-900">
-            {missingCatalog.length} item{missingCatalog.length !== 1 ? 's' : ''} visible on /parts but missing from the database
-          </p>
-          <p className="text-amber-800 mt-1">
-            Examples: {missingCatalog.slice(0, 5).map((m) => m.name).join(', ')}
-            {missingCatalog.length > 5 ? '…' : ''}.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={syncing}
-              onClick={() => handleSyncCatalog(true)}
-              className="px-4 py-2 bg-brand text-white rounded font-semibold text-sm hover:bg-brand/90 disabled:opacity-50"
-            >
-              {syncing ? 'Importing…' : 'Import missing items'}
-            </button>
-            <button
-              type="button"
-              disabled={syncing}
-              onClick={() => handleSyncCatalog(false)}
-              className="px-4 py-2 border border-amber-400 text-amber-900 rounded font-semibold text-sm hover:bg-amber-100 disabled:opacity-50"
-            >
-              Import without resetting stock
-            </button>
-          </div>
-        </div>
-      )}
-
-      {syncMessage && (
-        <div className="mb-6 p-4 rounded-lg border border-green-300 bg-green-50 text-sm text-green-800">
-          {syncMessage}
-        </div>
-      )}
-
       {inactiveCount > 0 && (
         <div className="mb-6 p-4 rounded-lg border border-borderline bg-bg2 text-sm text-ink2">
-          {inactiveCount} inactive item{inactiveCount !== 1 ? 's' : ''} in database (shown dimmed below).
+          {inactiveCount} inactive item{inactiveCount !== 1 ? 's' : ''} (dimmed below — not shown on /parts).
         </div>
       )}
 
@@ -427,7 +351,6 @@ export default function AdminPartsPage() {
           <p className="font-bold text-orange-900">
             {lowStockAlerts.length} item{lowStockAlerts.length !== 1 ? 's' : ''} with low stock (≤ {LOW_STOCK_THRESHOLD} units)
           </p>
-          <p className="text-orange-800 mt-1">Stock updates automatically when orders are paid. Restock items highlighted below.</p>
         </div>
       )}
 
@@ -462,6 +385,10 @@ export default function AdminPartsPage() {
         </div>
       )}
 
+      {editLoading && (
+        <p className="text-sm text-ink2 mb-4">Loading item...</p>
+      )}
+
       <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
         <table className="w-full min-w-[800px] text-sm">
           <thead className="bg-bg2">
@@ -480,7 +407,7 @@ export default function AdminPartsPage() {
             {loading ? (
               <tr><td colSpan="8" className="py-8 text-center text-ink2">Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan="8" className="py-8 text-center text-ink2">No items yet. Run seed_parts_catalog.py or create items here.</td></tr>
+              <tr><td colSpan="8" className="py-8 text-center text-ink2">No items in this category. Run seed_parts_catalog.py in the backend container to populate the catalog.</td></tr>
             ) : (
               filtered.map((item) => {
                 const variante = item.variantes?.find((v) => v.es_principal) || item.variantes?.[0]
@@ -506,7 +433,7 @@ export default function AdminPartsPage() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex gap-2">
-                        <button title="Edit" onClick={() => { setEditing(item); setCreating(false) }} className="p-2 border rounded hover:border-brand">
+                        <button title="Edit" onClick={() => openEdit(item)} className="p-2 border rounded hover:border-brand">
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button title={item.activo ? 'Hide' : 'Activate'} onClick={() => handleToggle(item)} className="p-2 border rounded hover:border-brand">
