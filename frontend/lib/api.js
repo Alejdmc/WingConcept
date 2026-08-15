@@ -87,6 +87,15 @@ function clearSessionAndRedirect() {
 }
 
 async function parseErrorResponse(res) {
+  const fallbackByStatus = {
+    402: 'Payment could not be processed. Please try again or use another card.',
+    429: 'Too many requests. Please wait a moment and try again.',
+    500: 'Service temporarily unavailable. Please try again in a moment.',
+    502: 'Payment service is temporarily unavailable. Please try again.',
+    503: 'Service temporarily unavailable. Please try again in a moment.',
+    504: 'Payment request timed out. Please try again.',
+  }
+
   try {
     const data = await res.json()
     const detail = data?.detail
@@ -94,11 +103,9 @@ async function parseErrorResponse(res) {
     if (Array.isArray(detail)) {
       return detail.map((item) => item?.msg || item?.message || String(item)).join(', ')
     }
-    return data?.message || `Error ${res.status}`
+    return data?.message || fallbackByStatus[res.status] || `Error ${res.status}`
   } catch {
-    return res.status === 500
-      ? 'Service temporarily unavailable. Please try again in a moment.'
-      : `Error ${res.status}`
+    return fallbackByStatus[res.status] || `Error ${res.status}`
   }
 }
 

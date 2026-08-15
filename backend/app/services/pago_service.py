@@ -29,11 +29,89 @@ logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 MONEDA_DEFAULT = "usd"
+STRIPE_MIN_USD_CENTS = 50
 
 
 def _generar_referencia(orden_id: uuid.UUID) -> str:
     """Genera referencia única para Stripe."""
     return f"WC-{str(orden_id)[:8].upper()}-{uuid.uuid4().hex[:6].upper()}"
+
+
+def _stripe_text(value: str, max_len: int = 500) -> str:
+    return (value or "")[:max_len]
+
+
+def _build_stripe_line_items(orden: Orden, moneda: str) -> list[dict]:
+    """Construye line_items de Stripe respetando descuento e impuestos de la orden."""
+    items_linea: list[dict] = []
+    subtotal = sum(float(item.precio_unitario) * item.cantidad for item in orden.items)
+    descuento = float(orden.descuento or 0)
+
+    for item in orden.items:
+        nombre_producto = "Producto WingConcept"
+        if item.snapshot and "nombre" in item.snapshot:
+            nombre_producto = item.snapshot["nombre"]
+
+        line_subtotal = float(item.precio_unitario) * item.cantidad
+        if subtotal > 0 and descuento > 0:
+            line_net = line_subtotal - (descuento * line_subtotal / subtotal)
+            unit_amount = int(round((line_net / item.cantidad) * 100))
+        else:
+            unit_amount = int(round(float(item.precio_unitario) * 100))
+
+        if unit_amount < 1:
+            raise PagoFallidoError(
+                "El total de la orden es demasiado bajo para procesar el pago."
+            )
+
+        items_linea.append({
+            "price_data": {
+                "currency": moneda,
+                "unit_amount": unit_amount,
+                "product_data": {
+                    "name": _stripe_text(nombre_producto, 250),
+                    "description": _stripe_text(
+                        item.snapshot.get("variante", "") if item.snapshot else ""
+                    ),
+                },
+            },
+            "quantity": item.cantidad,
+        })
+
+    impuestos_cents = int(round(float(orden.impuestos or 0) * 100))
+    if impuestos_cents > 0:
+        items_linea.append({
+            "price_data": {
+                "currency": moneda,
+                "unit_amount": impuestos_cents,
+                "product_data": {"name": "Sales Tax"},
+            },
+            "quantity": 1,
+        })
+
+    if not items_linea:
+        raise PagoFallidoError("La orden no tiene productos para cobrar.")
+
+    total_cents = sum(
+        entry["price_data"]["unit_amount"] * entry["quantity"]
+        for entry in items_linea
+    )
+    if moneda == "usd" and total_cents < STRIPE_MIN_USD_CENTS:
+        raise PagoFallidoError(
+            "El total de la orden debe ser al menos $0.50 USD para pagar con tarjeta."
+        )
+
+    return items_linea
+
+
+def _checkout_response(pago: Pago, checkout_url: str) -> CheckoutResponse:
+    return CheckoutResponse(
+        pago_id=pago.id,
+        referencia=pago.referencia,
+        proveedor="stripe",
+        checkout_url=checkout_url,
+        estado=pago.estado,
+    )
 
 
 class PagoService:
@@ -47,41 +125,47 @@ class PagoService:
         """
         if not settings.STRIPE_SECRET_KEY:
             raise PagoFallidoError("Stripe no está configurado")
+        if not settings.STRIPE_SUCCESS_URL or not settings.STRIPE_CANCEL_URL:
+            raise PagoFallidoError(
+                "Stripe checkout URLs no están configuradas (STRIPE_SUCCESS_URL / STRIPE_CANCEL_URL)."
+            )
 
-        referencia = _generar_referencia(orden.id)
         moneda = (orden.moneda or MONEDA_DEFAULT).lower()
+        pago_result = await db.execute(select(Pago).where(Pago.orden_id == orden.id))
+        pago_existente = pago_result.scalar_one_or_none()
+
+        if pago_existente and pago_existente.estado == "approved":
+            raise PagoFallidoError("Esta orden ya fue pagada exitosamente.")
+
+        if (
+            pago_existente
+            and pago_existente.estado == "pending"
+            and pago_existente.stripe_session_id
+        ):
+            try:
+                session = stripe.checkout.Session.retrieve(pago_existente.stripe_session_id)
+                if session.status == "open" and session.url:
+                    logger.info(
+                        "Reutilizando sesión Stripe abierta: %s orden:%s",
+                        pago_existente.referencia,
+                        orden.numero_orden,
+                    )
+                    return _checkout_response(pago_existente, session.url)
+            except stripe.StripeError as e:
+                logger.warning(
+                    "No se pudo reutilizar sesión Stripe %s: %s",
+                    pago_existente.stripe_session_id,
+                    getattr(e, "user_message", str(e)),
+                )
+
+        referencia = (
+            pago_existente.referencia
+            if pago_existente
+            else _generar_referencia(orden.id)
+        )
 
         try:
-            items_linea = []
-            for item in orden.items:
-                nombre_producto = "Producto WingConcept"
-                if item.snapshot and "nombre" in item.snapshot:
-                    nombre_producto = item.snapshot["nombre"]
-
-                items_linea.append({
-                    "price_data": {
-                        "currency": moneda,
-                        "unit_amount": int(float(item.precio_unitario) * 100),
-                        "product_data": {
-                            "name": nombre_producto,
-                            "description": (
-                                item.snapshot.get("variante", "") if item.snapshot else ""
-                            ),
-                        },
-                    },
-                    "quantity": item.cantidad,
-                })
-
-            if float(orden.impuestos or 0) > 0:
-                items_linea.append({
-                    "price_data": {
-                        "currency": moneda,
-                        "unit_amount": int(round(float(orden.impuestos) * 100)),
-                        "product_data": {"name": "Sales Tax"},
-                    },
-                    "quantity": 1,
-                })
-
+            items_linea = _build_stripe_line_items(orden, moneda)
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=items_linea,
@@ -101,33 +185,53 @@ class PagoService:
                     }
                 },
             )
-
         except stripe.StripeError as e:
-            logger.error(f"Error creando sesión Stripe: {e.user_message}")
-            raise PagoFallidoError(f"Error procesando el pago: {e.user_message}")
+            logger.error(
+                "Error creando sesión Stripe para orden %s: %s",
+                orden.numero_orden,
+                getattr(e, "user_message", str(e)),
+            )
+            raise PagoFallidoError(
+                f"Error procesando el pago: {getattr(e, 'user_message', None) or str(e)}"
+            )
+        except PagoFallidoError:
+            raise
+        except Exception as e:
+            logger.exception(
+                "Error inesperado creando checkout Stripe para orden %s",
+                orden.numero_orden,
+            )
+            raise PagoFallidoError(f"Error procesando el pago: {e}") from e
 
-        pago = Pago(
-            orden_id=orden.id,
-            proveedor="stripe",
-            referencia=referencia,
-            estado="pending",
-            monto=float(orden.total),
-            moneda=moneda.upper(),
-            stripe_session_id=session.id,
-            respuesta_proveedor={"session_id": session.id, "session_url": session.url},
-        )
-        db.add(pago)
+        if pago_existente:
+            pago_existente.referencia = referencia
+            pago_existente.estado = "pending"
+            pago_existente.monto = float(orden.total)
+            pago_existente.moneda = moneda.upper()
+            pago_existente.stripe_session_id = session.id
+            pago_existente.respuesta_proveedor = {
+                "session_id": session.id,
+                "session_url": session.url,
+            }
+            pago = pago_existente
+        else:
+            pago = Pago(
+                orden_id=orden.id,
+                proveedor="stripe",
+                referencia=referencia,
+                estado="pending",
+                monto=float(orden.total),
+                moneda=moneda.upper(),
+                stripe_session_id=session.id,
+                respuesta_proveedor={"session_id": session.id, "session_url": session.url},
+            )
+            db.add(pago)
+
         await db.flush()
 
         logger.info(f"Checkout Stripe creado: {referencia} orden:{orden.numero_orden}")
 
-        return CheckoutResponse(
-            pago_id=pago.id,
-            referencia=referencia,
-            proveedor="stripe",
-            checkout_url=session.url,
-            estado="pending",
-        )
+        return _checkout_response(pago, session.url)
 
     def validar_webhook_stripe(self, payload: bytes, sig_header: str) -> object:
         """Valida firma HMAC del webhook Stripe."""

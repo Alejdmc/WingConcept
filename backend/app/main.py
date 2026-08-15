@@ -263,6 +263,15 @@ async def network_exception_handler(request: Request, exc: OSError):
     )
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Error no controlado en %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Error interno del servidor. Intenta de nuevo en un momento."},
+    )
+
+
 # ── Endpoints base ────────────────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
 async def root():
