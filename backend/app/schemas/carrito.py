@@ -51,6 +51,7 @@ class ItemCarritoResponse(BaseModel):
     producto_imagen: Optional[str] = None
     producto_slug: Optional[str] = None
     producto_categoria: Optional[str] = None
+    tasa_impuesto: Optional[float] = None
     configuracion: Optional[Dict[str, Any]] = None
 
     # ── Campos amigables para cart/page.js ────────────────────────────────

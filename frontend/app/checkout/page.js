@@ -11,6 +11,7 @@ import { getStoredUser, ensureValidSession } from '@/lib/auth'
 import { saveAuthNext } from '@/lib/authFlow'
 import { buildVerifyPendingUrl, shouldRequireEmailVerification } from '@/lib/validation'
 import { api } from '@/lib/api'
+import { calculateCartTax, formatTaxLabel } from '@/lib/tax'
 
 const COUPON_ERROR_EN = {
   'Cupón no encontrado': 'Coupon not found',
@@ -101,9 +102,9 @@ export default function CheckoutPage() {
 
   const subtotal = cartTotal
   const discount = appliedCoupon?.descuento_estimado || 0
-  const taxable = Math.max(subtotal - discount, 0)
-  const tax = Math.round(taxable * 0.19)
-  const orderTotal = taxable + tax
+  const tax = calculateCartTax(items, subtotal, discount)
+  const orderTotal = Math.max(subtotal - discount, 0) + tax
+  const taxLabel = formatTaxLabel(items)
 
   const applyCoupon = async () => {
     const code = couponCode.trim()
@@ -239,7 +240,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-ink2">Tax (19%)</span>
+                  <span className="text-ink2">{taxLabel}</span>
                   <span className="text-ink font-semibold">${tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-black border-t border-borderline pt-3">

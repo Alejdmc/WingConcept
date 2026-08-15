@@ -10,6 +10,7 @@ import SafeImage from '@/components/ui/SafeImage'
 import { ArrowLeft, X, Plus, Minus } from 'lucide-react'
 import { formatConfigSummary } from '@/hooks/useCms'
 import { resolveCartItemImage, cartItemFallback } from '@/lib/cartImages'
+import { calculateCartTax, formatTaxLabel } from '@/lib/tax'
 
 function CartItemConfig({ configuracion }) {
   const lines = useMemo(() => formatConfigSummary(configuracion), [configuracion])
@@ -72,8 +73,9 @@ export default function CartPage() {
   }
 
   const subtotal = total
-  const tax = Math.round(subtotal * 0.19)
+  const tax = calculateCartTax(items, subtotal)
   const finalTotal = subtotal + tax
+  const taxLabel = formatTaxLabel(items)
 
   return (
     <div className="min-h-screen bg-bg">
@@ -170,7 +172,7 @@ export default function CartPage() {
                   <span className="text-ink font-semibold">${subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-ink2">Tax (19%)</span>
+                  <span className="text-ink2">{taxLabel}</span>
                   <span className="text-ink font-semibold">${tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-black">

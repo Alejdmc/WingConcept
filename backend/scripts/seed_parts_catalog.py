@@ -83,8 +83,19 @@ def _find_producto_id(cur, slug: str, pid: str) -> Optional[str]:
     return None
 
 
-def _upsert_producto(cur, pid, nombre, slug, descripcion, categoria, imagenes, orden):
+def _parse_catalog_row(row):
+    """6 campos estándar + opcional dict contenido_extra."""
+    if len(row) == 7:
+        item_id, nombre, precio, compatible, imagen, descripcion, contenido_extra = row
+    else:
+        item_id, nombre, precio, compatible, imagen, descripcion = row
+        contenido_extra = None
+    return item_id, nombre, precio, compatible, imagen, descripcion, contenido_extra
+
+
+def _upsert_producto(cur, pid, nombre, slug, descripcion, categoria, imagenes, orden, contenido_extra=None):
     descripcion_corta = descripcion[:500] if descripcion else None
+    extra_json = json.dumps(contenido_extra) if contenido_extra else None
     existing_id = _find_producto_id(cur, slug, pid)
 
     if existing_id:
@@ -97,21 +108,22 @@ def _upsert_producto(cur, pid, nombre, slug, descripcion, categoria, imagenes, o
                 descripcion_corta = %s,
                 categoria = %s,
                 imagenes = %s,
+                contenido_extra = COALESCE(%s::jsonb, contenido_extra),
                 activo = true,
                 orden_display = %s,
                 updated_at = NOW()
             WHERE id = %s
             """,
-            (slug, nombre, descripcion, descripcion_corta, categoria, imagenes, orden, existing_id),
+            (slug, nombre, descripcion, descripcion_corta, categoria, imagenes, extra_json, orden, existing_id),
         )
         return existing_id
 
     cur.execute(
         """
-        INSERT INTO productos (id, nombre, slug, descripcion, descripcion_corta, categoria, imagenes, activo, destacado, orden_display, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, true, false, %s, NOW(), NOW())
+        INSERT INTO productos (id, nombre, slug, descripcion, descripcion_corta, categoria, imagenes, contenido_extra, activo, destacado, orden_display, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, true, false, %s, NOW(), NOW())
         """,
-        (pid, nombre, slug, descripcion, descripcion_corta, categoria, imagenes, orden),
+        (pid, nombre, slug, descripcion, descripcion_corta, categoria, imagenes, extra_json, orden),
     )
     return pid
 
@@ -162,13 +174,14 @@ def _upsert_variante(cur, vid, producto_id, nombre, sku, precio, stock, stock_mi
 
 def _seed_group(cur, items, categoria, slug_prefix, sku_prefix, start_order):
     created = 0
-    for i, (item_id, nombre, precio, compatible, imagen, descripcion) in enumerate(items, start=1):
+    for i, row in enumerate(items, start=1):
+        item_id, nombre, precio, compatible, imagen, descripcion, contenido_extra = _parse_catalog_row(row)
         slug = f"{slug_prefix}-{item_id}"
         sku = f"{sku_prefix}-{item_id.upper().replace('-', '_')}"
         pid = _pid(slug)
         vid = _vid(slug)
         producto_id = _upsert_producto(
-            cur, pid, nombre, slug, descripcion, categoria, [imagen], start_order + i,
+            cur, pid, nombre, slug, descripcion, categoria, [imagen], start_order + i, contenido_extra,
         )
         _upsert_variante(
             cur, vid, producto_id, "Standard", sku, precio,
@@ -177,6 +190,24 @@ def _seed_group(cur, items, categoria, slug_prefix, sku_prefix, start_order):
         created += 1
         print(f"  ✓ {nombre} → stock {DEFAULT_STOCK} (id {producto_id[:8]}…)")
     return created
+
+
+def _invalidate_product_cache() -> None:
+    """Evita listados stale en /api/v1/productos tras el seed."""
+    try:
+        import redis
+
+        host = os.environ.get("REDIS_HOST", "localhost")
+        port = int(os.environ.get("REDIS_PORT", "6379"))
+        password = os.environ.get("REDIS_PASSWORD") or None
+        db = int(os.environ.get("REDIS_DB", "0"))
+        client = redis.Redis(host=host, port=port, password=password, db=db)
+        keys = client.keys("productos:*")
+        if keys:
+            client.delete(*keys)
+            print(f"  ✓ Caché Redis productos invalidada ({len(keys)} claves)")
+    except Exception as exc:
+        print(f"  ⚠ No se pudo invalidar caché Redis: {exc}")
 
 
 def main() -> None:
@@ -200,6 +231,7 @@ def main() -> None:
     conn.commit()
     cur.close()
     conn.close()
+    _invalidate_product_cache()
     print(f"\nCompletado: {n_parts} partes + {n_acc} accesorios = {n_parts + n_acc} ítems en carrito")
     print("Tip: STOCK_RESET=0 evita resetear stock en re-ejecuciones.")
 

@@ -72,6 +72,16 @@ class PagoService:
                     "quantity": item.cantidad,
                 })
 
+            if float(orden.impuestos or 0) > 0:
+                items_linea.append({
+                    "price_data": {
+                        "currency": moneda,
+                        "unit_amount": int(round(float(orden.impuestos) * 100)),
+                        "product_data": {"name": "Sales Tax"},
+                    },
+                    "quantity": 1,
+                })
+
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=items_linea,

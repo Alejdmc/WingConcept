@@ -27,6 +27,7 @@ from app.schemas.carrito import (
 )
 from app.services.carrito_service import carrito_service
 from app.services.configurador_service import configurador_service
+from app.utils.tax import DEFAULT_TAX_RATE, get_tax_rate_from_producto
 
 router = APIRouter(prefix="/carrito", tags=["Carrito"])
 
@@ -82,6 +83,7 @@ async def agregar_item(
         )
 
     producto = variante.producto
+    tasa_impuesto = get_tax_rate_from_producto(producto) if producto else DEFAULT_TAX_RATE
     return await carrito_service.agregar_item_anonimo(
         session_id=session_id,
         variante_id=str(variante.id),
@@ -95,6 +97,7 @@ async def agregar_item(
         stock_disponible=variante.stock,
         producto_slug=producto.slug if producto else "",
         producto_categoria=producto.categoria if producto else "",
+        tasa_impuesto=tasa_impuesto,
     )
 
 

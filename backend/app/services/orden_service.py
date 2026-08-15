@@ -32,6 +32,7 @@ from app.schemas.orden import (
 )
 from app.services.orden_timeline_service import orden_timeline_service
 from app.services.orden_notification_service import orden_notification_service
+from app.utils.tax import calcular_impuestos, get_tax_rate_from_producto
 
 logger = logging.getLogger(__name__)
 
@@ -154,19 +155,19 @@ class OrdenService:
         # Calcular subtotal desde precios del carrito
         subtotal = 0.0
         items_orden = []
+        lineas_impuesto = []
 
         for item in carrito.items:
-            variante_result = await db.execute(
-                select(Variante)
-                .options(selectinload(Variante.producto))
-                .where(Variante.id == item.variante_id)
-            )
-            variante = variante_result.scalar_one_or_none()
+            variante = variantes_map.get(item.variante_id)
 
             if not variante or not variante.activo:
                 raise RecursoNoEncontradoError(f"Variante {item.variante_id}")
 
-            subtotal += float(item.precio_unitario) * item.cantidad
+            line_subtotal = float(item.precio_unitario) * item.cantidad
+            subtotal += line_subtotal
+            lineas_impuesto.append(
+                (line_subtotal, get_tax_rate_from_producto(variante.producto))
+            )
 
             # Snapshot del producto para auditoría histórica
             snapshot = {
@@ -190,7 +191,8 @@ class OrdenService:
 
         # Crear orden
         descuento = 0.0
-        total = subtotal
+        impuestos = calcular_impuestos(lineas_impuesto, subtotal, descuento)
+        total = subtotal + impuestos
 
         orden = Orden(
             numero_orden=_generar_numero_orden(),
@@ -200,7 +202,7 @@ class OrdenService:
             subtotal=subtotal,
             descuento=descuento,
             costo_envio=0,
-            impuestos=0,
+            impuestos=impuestos,
             total=total,
             moneda=data.moneda,
             notas_cliente=data.notas_cliente,
@@ -215,8 +217,10 @@ class OrdenService:
             descuento = await cupon_service.aplicar_en_orden(
                 db, usuario_id, data.codigo_cupon, subtotal, orden_id
             )
+            impuestos = calcular_impuestos(lineas_impuesto, subtotal, descuento)
             orden.descuento = descuento
-            orden.total = max(subtotal - descuento, 0)
+            orden.impuestos = impuestos
+            orden.total = max(subtotal - descuento, 0) + impuestos
             await db.flush()
 
         # Limpiar carrito tras crear la orden

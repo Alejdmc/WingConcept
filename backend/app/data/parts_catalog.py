@@ -24,6 +24,10 @@ PARTS = [
      "Rear axle for Nomadic without integrated suspension."),
     ("rock-guard", "Nomadic Rock Guard", 85, ["nomadic"], "/images/parts/rock-guard.png",
      "Guard to protect the lower trike body from rocks and debris."),
+    # Impuesto California (7.25%) — ver contenido_extra en seed
+    ("triker-mini-vanguard", "Triker Mini Vanguard", 2300, ["vanguard"],
+     "/images/parts/pilot-dynamic-cage.png",
+     "Compact Vanguard mini trike kit.", {"tax_rate": 0.0725}),
 ]
 
 ACCESSORIES = [

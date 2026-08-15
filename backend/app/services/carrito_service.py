@@ -22,6 +22,7 @@ from app.services.producto_service import (
     _sanitize_nomadic_product,
 )
 from app.utils.redis_client import carrito_delete, carrito_get, carrito_set
+from app.utils.tax import DEFAULT_TAX_RATE, get_tax_rate_from_producto
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,10 @@ class CarritoService:
             categoria = variante.producto.categoria
             if categoria and categoria != item.get("producto_categoria"):
                 item["producto_categoria"] = categoria
+                dirty = True
+            tasa = get_tax_rate_from_producto(variante.producto)
+            if tasa != item.get("tasa_impuesto"):
+                item["tasa_impuesto"] = tasa
                 dirty = True
 
         if not dirty:
@@ -143,6 +148,7 @@ class CarritoService:
             "producto_imagen": item.get("producto_imagen"),
             "producto_slug": item.get("producto_slug"),
             "producto_categoria": item.get("producto_categoria"),
+            "tasa_impuesto": item.get("tasa_impuesto", DEFAULT_TAX_RATE),
             "configuracion": item.get("configuracion"),
             "cartId": item_id,
             "name": nombre,
@@ -257,7 +263,9 @@ class CarritoService:
             carrito_data = synced
 
         needs_enrich = any(
-            not item.get("producto_slug") or not item.get("producto_categoria")
+            not item.get("producto_slug")
+            or not item.get("producto_categoria")
+            or item.get("tasa_impuesto") is None
             for item in carrito_data.get("items", [])
         )
         if needs_enrich:
@@ -466,12 +474,14 @@ class CarritoService:
             imagen = None
             producto_slug = None
             producto_categoria = None
+            tasa_impuesto = DEFAULT_TAX_RATE
             variante_nombre = variante.nombre if variante else None
 
             if variante and variante.producto:
                 producto_nombre = variante.producto.nombre
                 producto_slug = variante.producto.slug
                 producto_categoria = variante.producto.categoria
+                tasa_impuesto = get_tax_rate_from_producto(variante.producto)
                 imagen = self._imagen_producto(variante.producto)
 
             subtotal = float(item.precio_unitario) * item.cantidad
@@ -489,6 +499,7 @@ class CarritoService:
                     producto_imagen=imagen,
                     producto_slug=producto_slug,
                     producto_categoria=producto_categoria,
+                    tasa_impuesto=tasa_impuesto,
                     cartId=item.id,
                     name=producto_nombre or variante_nombre,
                     price=f"${float(item.precio_unitario):,.0f}",
@@ -526,6 +537,7 @@ class CarritoService:
         stock_disponible: Optional[int] = None,
         producto_slug: str = "",
         producto_categoria: str = "",
+        tasa_impuesto: Optional[float] = None,
     ) -> CarritoResponse:
         """Agrega un item al carrito anónimo en Redis."""
         data = await carrito_get(session_id)
@@ -567,6 +579,7 @@ class CarritoService:
                 "producto_imagen": imagen,
                 "producto_slug": producto_slug or None,
                 "producto_categoria": producto_categoria or None,
+                "tasa_impuesto": tasa_impuesto if tasa_impuesto is not None else DEFAULT_TAX_RATE,
                 "configuracion": configuracion,
                 "cartId": item_id,
                 "name": producto_nombre or variante_nombre,
