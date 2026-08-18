@@ -315,6 +315,9 @@ class PagoService:
             await orden_notification_service.notificar_estado(
                 db, pago.orden, estado_prev, proveedor_pago="stripe",
             )
+            await orden_notification_service.notificar_compra_admin(
+                db, pago.orden, proveedor_pago="stripe",
+            )
             if not stock_ok:
                 logger.error(
                     "Orden %s pagada pero sin stock — marcada error_stock",
