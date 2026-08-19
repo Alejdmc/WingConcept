@@ -18,7 +18,7 @@ from app.models.variante import Variante
 
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
-NOMADIC_DOCUMENT_BASE_PRICE = 4379.5
+NOMADIC_DOCUMENT_BASE_PRICE = 4879.5
 
 # Fallback legacy (solo si DB vacía)
 VANGUARD_ENGINES: Dict[str, float] = {
