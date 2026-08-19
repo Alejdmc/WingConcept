@@ -104,6 +104,9 @@ function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
       ? catalog.chassis_types.map((o) => mapChassis(o, fallbackOptions.chassisTypes))
       : fallbackOptions.chassisTypes,
     chassisFinishes: catalog.finishes?.length ? catalog.finishes.map(mapFinish) : fallbackOptions.chassisFinishes,
+    handThrottles: catalog.hand_throttles?.length
+      ? catalog.hand_throttles.map(mapHandThrottle)
+      : fallbackOptions.handThrottles || [],
     propellers,
     colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
     accessories: catalog.accessories?.length
@@ -151,6 +154,8 @@ export function useConfigOptions(productoId, fallbackOptions) {
     propellerId: pickDefaultId(options.propellers, 'no-propeller'),
     chassisTypeId: options.chassisTypes?.[0]?.id ?? null,
     finishId: options.chassisFinishes?.[0]?.id ?? null,
+    handThrottleId: pickDefaultId(options.handThrottles, 'no-throttle'),
+    colorId: options.colors?.[0]?.id ?? null,
   }
 
   return { options, basePrice, loading, defaultSelections }
@@ -179,7 +184,11 @@ function mapEngine(o, fallbackEngines = []) {
     basePrice: o.basePrice ?? o.price ?? 0,
     image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/engines/${String(o.id).toLowerCase()}.jpg` : null),
     power: o.power,
+    priceTbd: Boolean(o.price_tbd || o.priceTbd),
   }
+}
+function mapHandThrottle(o) {
+  return { id: o.id, name: o.name, description: o.description, price: o.price ?? 0 }
 }
 function mapChassis(o, fallbackChassis = []) {
   const fb = (fallbackChassis || []).find((item) => item.id === o.id)
@@ -197,7 +206,7 @@ function mapPropeller(o) {
   return { id: o.id, name: o.name, description: o.description, price: o.price ?? 0 }
 }
 function mapColor(o) {
-  return { name: o.name, hex: o.hex }
+  return { id: o.id, name: o.name, hex: o.hex, price: o.price ?? 0, accent: o.accent }
 }
 function mapAccessory(o, productoId, fallbackAccessories = []) {
   const key = normalizeAccessoryId(o.id)
@@ -220,8 +229,10 @@ export function formatConfigSummary(config) {
 
   if (config.engine) lines.push({ label: 'Engine', value: fmt(config.engine) })
   if (config.chassisType) lines.push({ label: 'Chassis', value: fmt(config.chassisType) })
-  if (config.finish) lines.push({ label: 'Finish', value: fmt(config.finish) })
+  if (config.finish) lines.push({ label: 'Flying style', value: fmt(config.finish) })
+  if (config.handThrottle) lines.push({ label: 'Hand throttle', value: fmt(config.handThrottle) })
   if (config.propeller) lines.push({ label: 'Propeller', value: fmt(config.propeller) })
+  if (config.color || config.colorId) lines.push({ label: 'Color', value: fmt(config.color || config.colorId) })
   if (config.chassisColor) lines.push({ label: 'Chassis color', value: String(config.chassisColor) })
   if (config.accentColor) lines.push({ label: 'Accent color', value: String(config.accentColor) })
   if (Array.isArray(config.upgrades) && config.upgrades.length) {

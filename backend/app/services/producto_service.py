@@ -369,6 +369,7 @@ class ProductoService:
                 Producto.activo == True,
                 Producto.destacado == True,
                 Producto.slug != "i-pro",
+                Producto.slug != "disruptor-trike",
             )
             .order_by(Producto.orden_display, Producto.created_at.desc())
             .limit(limite)

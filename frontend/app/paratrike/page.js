@@ -4,12 +4,12 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import SafeImage from '@/components/ui/SafeImage'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useSiteBlocks } from '@/hooks/useCms'
-import { PARATRIKE_HREFS } from '@/lib/cmsLabels'
+import { PARATRIKE_HREFS, resolveParatrikeHref } from '@/lib/cmsLabels'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
+import { DISRUPTOR_TRIKE_BASE_PRICE, DISRUPTOR_TRIKE_HERO, DISRUPTOR_TRIKE_SUMMARY } from '@/lib/disruptorTrikeContent'
 import { resolveProductImage } from '@/lib/productImages'
 
 const FALLBACK_TRIKES = [
@@ -43,6 +43,21 @@ const FALLBACK_TRIKES = [
       bullets: ['All-terrain capability', 'Expedition-ready features', 'Rugged construction'],
     },
   },
+  {
+    slug: 'disruptor-trike',
+    name: 'Disruptor Trike',
+    tagline: DISRUPTOR_TRIKE_SUMMARY.tagline,
+    description: DISRUPTOR_TRIKE_SUMMARY.description,
+    image: DISRUPTOR_TRIKE_HERO,
+    basePrice: DISRUPTOR_TRIKE_BASE_PRICE,
+    features: ['Tundra all-terrain wheels', 'Stainless steel chassis', 'Gravity Control System', 'Disruptor paramotor integration'],
+    href: '/paratrike/disruptor',
+    ctaLabel: 'Explore Disruptor Trike',
+    compare: {
+      description: 'Transform your Disruptor paramotor into a robust tandem aircraft with dual attachment points and expedition-ready design.',
+      bullets: ['Disruptor-specific integration', 'Tandem & single switching', 'Passive and active safety'],
+    },
+  },
 ]
 
 function mapProductToTrike(product, fallback) {
@@ -51,9 +66,13 @@ function mapProductToTrike(product, fallback) {
   const compare = extra.compare || fallback?.compare || { description: '', bullets: [] }
   const price = product.slug === 'nomadic-trike'
     ? NOMADIC_BASE_PRICE
-    : typeof product.precio_desde === 'number'
-      ? product.precio_desde
-      : fallback?.basePrice
+    : product.slug === 'disruptor-trike'
+      ? DISRUPTOR_TRIKE_BASE_PRICE
+      : typeof product.precio_desde === 'number'
+        ? product.precio_desde
+        : fallback?.basePrice
+
+  const href = resolveParatrikeHref(product.slug, fallback?.href)
 
   return {
     slug: product.slug,
@@ -63,31 +82,36 @@ function mapProductToTrike(product, fallback) {
     image: resolveProductImage(product, fallback?.image),
     basePrice: price,
     features: listing.features?.length ? listing.features : fallback?.features || [],
-    href: PARATRIKE_HREFS[product.slug] || fallback?.href || '#',
+    href: href || fallback?.href || PARATRIKE_HREFS[product.slug] || '/paratrike',
     ctaLabel: listing.cta_label || fallback?.ctaLabel || `Explore ${(product.nombre || '').split(' ')[0]}`,
     compare,
   }
 }
 
+const TRIKE_ORDER = ['vanguard-v8', 'nomadic-trike', 'disruptor-trike']
+
+function mergeTrikes(apiItems) {
+  const bySlug = new Map(FALLBACK_TRIKES.map((t) => [t.slug, { ...t }]))
+
+  for (const product of apiItems) {
+    const fallback = bySlug.get(product.slug) || FALLBACK_TRIKES.find((t) => t.slug === product.slug)
+    bySlug.set(product.slug, mapProductToTrike(product, fallback))
+  }
+
+  return TRIKE_ORDER.map((slug) => bySlug.get(slug)).filter(Boolean)
+}
+
 export default function ParaTrikeSelectionPage() {
-  const router = useRouter()
   const { get } = useSiteBlocks('paratrike')
   const [trikes, setTrikes] = useState(FALLBACK_TRIKES)
 
   useEffect(() => {
     api.productos.listar({ categoria: 'paratrike', por_pagina: 50 })
       .then((res) => {
-        const items = (res.items || []).filter((p) => p.activo !== false)
-        if (!items.length) return
-        const mapped = items.map((p) => {
-          const fb = FALLBACK_TRIKES.find((t) => t.slug === p.slug)
-          return mapProductToTrike(p, fb)
-        })
-        mapped.sort((a, b) => {
-          const order = ['vanguard-v8', 'nomadic-trike']
-          return order.indexOf(a.slug) - order.indexOf(b.slug)
-        })
-        setTrikes(mapped.length ? mapped : FALLBACK_TRIKES)
+        const items = (res.items || []).filter(
+          (p) => p.activo !== false && (PARATRIKE_HREFS[p.slug] || FALLBACK_TRIKES.some((t) => t.slug === p.slug)),
+        )
+        setTrikes(mergeTrikes(items))
       })
       .catch(() => {})
   }, [])
@@ -125,7 +149,7 @@ export default function ParaTrikeSelectionPage() {
 
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {trikes.map((trike, i) => (
               <motion.div
                 key={trike.slug || trike.name}
@@ -134,16 +158,16 @@ export default function ParaTrikeSelectionPage() {
                 transition={{ delay: i * 0.2, duration: 0.8 }}>
 
                 <div className="relative rounded-2xl overflow-hidden shadow-lg border border-borderline hover:shadow-2xl hover:border-brand transition-all h-full flex flex-col">
-                  <div className="relative h-96 overflow-hidden bg-white cursor-pointer" onClick={() => router.push(trike.href)}>
+                  <Link href={trike.href} className="relative block h-96 overflow-hidden bg-white">
                     <SafeImage src={trike.image} alt={trike.name} fill className="object-contain p-6 hover:scale-105 transition-transform duration-500" fallbackSrc="/images/logo.png" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 p-8 pointer-events-none">
                       <h2 className="text-3xl sm:text-5xl font-black uppercase text-white mb-2 leading-tight">{trike.name}</h2>
                       <p className="text-xl font-bold text-white/90">{trike.tagline}</p>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="p-8 flex flex-col flex-grow cursor-pointer" onClick={() => router.push(trike.href)}>
+                  <div className="p-8 flex flex-col flex-grow">
                     <p className="text-ink leading-relaxed mb-8 flex-grow">{trike.description}</p>
 
                     <div className="mb-8 space-y-3">
@@ -162,13 +186,12 @@ export default function ParaTrikeSelectionPage() {
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); router.push(trike.href) }}
+                    <Link
+                      href={trike.href}
                       className="w-full flex items-center justify-center gap-3 bg-brand text-white px-8 py-4 rounded-lg font-black uppercase tracking-widest hover:bg-brand/90 transition">
                       {trike.ctaLabel}
                       <ChevronRight className="w-5 h-5" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </motion.div>
@@ -180,7 +203,7 @@ export default function ParaTrikeSelectionPage() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="text-xl text-ink2 max-w-2xl mx-auto mt-16 text-center">
-            {get('paratrike.selection.footer', FALLBACK_TRIKES.length ? 'Two exceptional trike platforms designed for different flying styles.' : '')}
+            {get('paratrike.selection.footer', FALLBACK_TRIKES.length ? 'Three exceptional trike platforms designed for different flying styles.' : '')}
           </motion.p>
         </div>
       </section>
@@ -189,28 +212,30 @@ export default function ParaTrikeSelectionPage() {
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} className="text-center mb-16">
             <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink">{get('paratrike.compare.title', 'Choose Your Path')}</h2>
-            <p className="text-ink2 text-lg mt-4">{get('paratrike.compare.subtitle', 'Both platforms deliver exceptional performance in their respective domains')}</p>
+            <p className="text-ink2 text-lg mt-4">{get('paratrike.compare.subtitle', 'Three platforms — Vanguard performance, Nomadic expedition, and Disruptor integration — each built for a different kind of pilot.')}</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {trikes.map((trike, i) => (
               <motion.div
                 key={`compare-${trike.slug}`}
-                initial={{ opacity: 0, x: i === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
                 className="bg-white rounded-xl border border-borderline p-8 hover:shadow-lg transition-all">
-                <div className={`w-12 h-12 rounded-lg mb-4 ${i === 0 ? 'bg-blue-100' : 'bg-green-100'}`} />
-                <h3 className="text-2xl font-black text-ink mb-4 uppercase">{trike.name}</h3>
-                <p className="text-ink2 mb-6">{trike.compare?.description}</p>
-                <ul className="space-y-2">
-                  {(trike.compare?.bullets || []).map((bullet) => (
-                    <li key={bullet} className="flex items-center gap-2 text-ink">
-                      <span className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-blue-500' : 'bg-green-600'}`} />
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
+                <Link href={trike.href} className="block group">
+                  <div className={`w-12 h-12 rounded-lg mb-4 ${['bg-blue-100', 'bg-green-100', 'bg-brand-soft'][i % 3]}`} />
+                  <h3 className="text-2xl font-black text-ink mb-4 uppercase group-hover:text-brand transition-colors">{trike.name}</h3>
+                  <p className="text-ink2 mb-6">{trike.compare?.description}</p>
+                  <ul className="space-y-2">
+                    {(trike.compare?.bullets || []).map((bullet) => (
+                      <li key={bullet} className="flex items-center gap-2 text-ink">
+                        <span className={`w-1.5 h-1.5 rounded-full ${['bg-blue-500', 'bg-green-600', 'bg-brand'][i % 3]}`} />
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -220,16 +245,15 @@ export default function ParaTrikeSelectionPage() {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-5xl font-black uppercase text-ink mb-8">{get('paratrike.cta.title', 'Ready to Fly?')}</h2>
-          <p className="text-xl text-ink2 mb-12 max-w-2xl mx-auto">{get('paratrike.cta.text', 'Explore both platforms, customize your perfect configuration, and experience the freedom of flight.')}</p>
+          <p className="text-xl text-ink2 mb-12 max-w-2xl mx-auto">{get('paratrike.cta.text', 'Explore all three platforms, customize your perfect configuration, and experience the freedom of flight.')}</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             {trikes.map((trike) => (
-              <button
+              <Link
                 key={`cta-${trike.slug}`}
-                type="button"
-                onClick={() => router.push(trike.href)}
-                className="inline-block bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition">
+                href={trike.href}
+                className="inline-block bg-brand text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-brand/90 transition text-center">
                 {trike.name}
-              </button>
+              </Link>
             ))}
           </div>
         </div>

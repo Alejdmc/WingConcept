@@ -30,6 +30,7 @@ export const GRUPO_CONFIGURADOR = {
   finish: { label: 'Acabado', hint: 'Acabado del chasis (Nomadic)' },
   propeller: { label: 'Hélice', hint: 'Opciones de hélice y precio' },
   accessory: { label: 'Accesorio', hint: 'Extras que se pueden agregar al carrito' },
+  hand_throttle: { label: 'Hand Throttle', hint: 'Joystick throttle options' },
   color: { label: 'Color', hint: 'Colores disponibles (sin costo extra)' },
 }
 
@@ -41,6 +42,18 @@ export const SECCIONES_SITIO = {
 export const PARATRIKE_HREFS = {
   'vanguard-v8': '/paratrike/vanguard',
   'nomadic-trike': '/paratrike/nomadic',
+  'disruptor-trike': '/paratrike/disruptor',
+}
+
+/** Slug → public landing URL for paratrike cards and CTAs. */
+export function resolveParatrikeHref(slug, fallbackHref) {
+  if (slug && PARATRIKE_HREFS[slug]) return PARATRIKE_HREFS[slug]
+  if (fallbackHref && fallbackHref !== '#') return fallbackHref
+  return null
+}
+
+export const PARAMOTOR_HREFS = {
+  'disruptor-paramotor': '/paramotors/disruptor',
 }
 
 export function tipoLabel(seccion, tipo) {

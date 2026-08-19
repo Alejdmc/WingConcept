@@ -10,6 +10,10 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.data.disruptor_catalog import (
+    DISRUPTOR_PARAMOTOR_OPCIONES,
+    DISRUPTOR_TRIKE_OPCIONES,
+)
 from app.database import AsyncSessionLocal
 from app.models.configurador_opcion import ConfiguradorOpcion
 from app.models.producto import Producto
@@ -17,6 +21,8 @@ from app.models.site_block import SiteBlock
 
 VANGUARD_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 NOMADIC_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+DISRUPTOR_PARAMOTOR_ID = uuid.UUID("e1f2a3b4-c5d6-7890-1234-567890abcdef")
+DISRUPTOR_TRIKE_ID = uuid.UUID("f1e2a3b4-c5d6-7890-1234-567890abcdef")
 
 VANGUARD_CONTENIDO = {
     "tagline": "The Ultimate High-Performance Trike",
@@ -118,6 +124,76 @@ NOMADIC_CONTENIDO = {
     },
 }
 
+DISRUPTOR_PARAMOTOR_CONTENIDO = {
+    "tagline": "Break the status quo. Evolve with every flight.",
+    "philosophy": "Passion, Science, and Freedom",
+    "year": 2026,
+    "brand": "Wing Concept",
+    "features": [
+        {"icon": "Zap", "title": "In-Flight CG Correction", "desc": "Gravity Control System adjusts pivot height and lateral offset in flight."},
+        {"icon": "Shield", "title": "Spar Connectors", "desc": "Reinforced connectors with nylon terminals for wing lift and hard landings."},
+        {"icon": "Fuel", "title": "Integrated Fuel Tank", "desc": "Removable aerodynamic tank that reinforces structure and improves CG."},
+        {"icon": "Shield", "title": "Patented Tilting Arms", "desc": "No steel shackles — safer line clearance at takeoff."},
+    ],
+    "engines_list": [
+        {"name": "Polini Thor 303 EVO", "power": "303 cc"},
+        {"name": "Polini Thor 202 Racing", "power": "202 cc"},
+        {"name": "Polini Thor 130 EVO", "power": "130 cc"},
+        {"name": "Vittorazi Cosmos 300", "power": "TBD"},
+    ],
+    "specs": {
+        "Base Price": "$2,800 USD",
+        "CG System": "Gravity Control System",
+        "Fuel Tank": "Integrated, removable",
+        "Category": "Foot launch & trike adapter",
+    },
+    "gallery": [f"/images/disruptor/paramotor-{i}.jpg" for i in range(1, 5)],
+    "listing": {
+        "tagline": "Evolve With Every Flight",
+        "description": "The only paramotor with in-flight center-of-gravity correction and patented tilting arms.",
+        "features": ["Gravity Control System", "Spar Connectors", "Integrated fuel tank", "Tilting arms"],
+        "image": "/images/disruptor/paramotor-1.jpg",
+        "cta_label": "Explore Disruptor",
+    },
+    "compare": {
+        "description": "For pilots who want one platform from foot launch to trike tandem.",
+        "bullets": ["In-flight CG correction", "Patented tilting arms", "TBD engine lineup"],
+    },
+}
+
+DISRUPTOR_TRIKE_CONTENIDO = {
+    "tagline": "Conquer the sky with real passive and active safety.",
+    "philosophy": "Conquer the Sky",
+    "year": 2026,
+    "brand": "Wing Concept",
+    "body": "Designed for those who want to fly with family and friends. Two key attachment points — top pivot and rear axle — provide rigidity to the entire pilot and passenger cabin. Harnesses sold separately.",
+    "features": [
+        {"icon": "Shield", "title": "Dual Attachment Points", "desc": "Top pivot and rear axle mounts create a rigid pilot and passenger cabin."},
+        {"icon": "Users", "title": "Family & Friends Ready", "desc": "Transform your Disruptor paramotor into a robust aircraft for shared flights."},
+        {"icon": "Package", "title": "Expedition Ready", "desc": "Carry camping gear and excursion accessories with the Explorer Bag."},
+        {"icon": "Zap", "title": "Disruptor Integration", "desc": "Built exclusively for the Disruptor paramotor platform."},
+    ],
+    "specs": {
+        "Base Price": "$2,500 USD",
+        "Harnesses": "Sold separately",
+        "Wheels": "Tundra all-terrain",
+        "Chassis": "Stainless steel",
+        "Safety": "Gravity Control System included",
+    },
+    "gallery": [f"/images/disruptor/trike-{i}.jpg" for i in range(1, 5)],
+    "listing": {
+        "tagline": "Conquer the sky with real passive and active safety.",
+        "description": "Exclusive design for the Disruptor paratrike — aggressive styling, passive and active safety, and expedition-ready capability.",
+        "features": ["Tundra wheels", "Stainless chassis", "Main straps", "Gravity Control System"],
+        "image": "/images/disruptor/trike-1.jpg",
+        "cta_label": "Explore Disruptor Trike",
+    },
+    "compare": {
+        "description": "Lightweight trike platform built exclusively for the Disruptor paramotor — tandem-ready with dual attachment rigidity.",
+        "bullets": ["Disruptor-specific integration", "Tandem & single switching", "Expedition accessories"],
+    },
+}
+
 SITE_BLOCKS = [
     ("homepage.hero.eyebrow", "homepage", "Texto superior del banner principal", "text", "WING CONCEPT PARAMOTORS", 1),
     ("homepage.hero.line1", "homepage", "Título principal — línea 1", "text", "WHERE", 2),
@@ -131,11 +207,11 @@ SITE_BLOCKS = [
     ("paratrike.hero.title", "paratrike", "Título del banner principal", "text", "Paratrikes", 3),
     ("paratrike.hero.subtitle", "paratrike", "Frase bajo el título del banner", "text", "Choose Your Adventure", 4),
     ("paratrike.hero.background", "paratrike", "Imagen de fondo del banner (URL)", "text", "/images/front1.jpg", 5),
-    ("paratrike.selection.footer", "paratrike", "Texto debajo de las tarjetas de trikes", "textarea", "Two exceptional trike platforms designed for different flying styles. Whether you seek precision performance or rugged expedition capability, we have your perfect match.", 6),
+    ("paratrike.selection.footer", "paratrike", "Texto debajo de las tarjetas de trikes", "textarea", "Three exceptional trike platforms designed for different flying styles. Whether you seek precision performance, rugged expedition capability, or Disruptor integration, we have your perfect match.", 6),
     ("paratrike.compare.title", "paratrike", "Título de la sección comparación", "text", "Choose Your Path", 7),
-    ("paratrike.compare.subtitle", "paratrike", "Subtítulo de la comparación", "text", "Both platforms deliver exceptional performance in their respective domains", 8),
+    ("paratrike.compare.subtitle", "paratrike", "Subtítulo de la comparación", "text", "Three platforms — Vanguard performance, Nomadic expedition, and Disruptor integration — each built for a different kind of pilot.", 8),
     ("paratrike.cta.title", "paratrike", "Título del llamado a la acción final", "text", "Ready to Fly?", 9),
-    ("paratrike.cta.text", "paratrike", "Texto del llamado a la acción final", "textarea", "Explore both platforms, customize your perfect configuration, and experience the freedom of flight.", 10),
+    ("paratrike.cta.text", "paratrike", "Texto del llamado a la acción final", "textarea", "Explore all three platforms, customize your perfect configuration, and experience the freedom of flight.", 10),
 ]
 
 VANGUARD_OPCIONES = [
@@ -200,6 +276,40 @@ NOMADIC_OPCIONES = [
 ]
 
 
+async def _upsert_opciones(db: AsyncSession, producto_id: uuid.UUID, rows: list, start_orden: int = 0) -> None:
+    """Inserta o actualiza opciones Disruptor por (producto_id, grupo, slug)."""
+    for i, (grupo, slug, nombre, desc, precio, imagen, extra) in enumerate(rows):
+        result = await db.execute(
+            select(ConfiguradorOpcion).where(
+                ConfiguradorOpcion.producto_id == producto_id,
+                ConfiguradorOpcion.grupo == grupo,
+                ConfiguradorOpcion.slug == slug,
+            )
+        )
+        op = result.scalar_one_or_none()
+        if op:
+            op.nombre = nombre
+            op.descripcion = desc
+            op.precio = float(precio)
+            op.imagen = imagen
+            op.extra = extra or None
+            op.orden = start_orden + i
+            op.activo = True
+        else:
+            db.add(ConfiguradorOpcion(
+                producto_id=producto_id,
+                grupo=grupo,
+                slug=slug,
+                nombre=nombre,
+                descripcion=desc,
+                precio=float(precio),
+                imagen=imagen,
+                extra=extra or None,
+                orden=start_orden + i,
+                activo=True,
+            ))
+
+
 async def _seed_opciones(db: AsyncSession, producto_id: uuid.UUID, rows: list, start_orden: int = 0) -> None:
     existing = await db.execute(
         select(ConfiguradorOpcion.id).where(ConfiguradorOpcion.producto_id == producto_id).limit(1)
@@ -228,7 +338,12 @@ async def seed_cms_data(db: AsyncSession) -> None:
         if not exists.scalar_one_or_none():
             db.add(SiteBlock(clave=clave, seccion=seccion, etiqueta=etiqueta, tipo=tipo, valor=valor, orden=orden, activo=True))
 
-    for pid, contenido in [(VANGUARD_ID, VANGUARD_CONTENIDO), (NOMADIC_ID, NOMADIC_CONTENIDO)]:
+    for pid, contenido in [
+        (VANGUARD_ID, VANGUARD_CONTENIDO),
+        (NOMADIC_ID, NOMADIC_CONTENIDO),
+        (DISRUPTOR_PARAMOTOR_ID, DISRUPTOR_PARAMOTOR_CONTENIDO),
+        (DISRUPTOR_TRIKE_ID, DISRUPTOR_TRIKE_CONTENIDO),
+    ]:
         result = await db.execute(select(Producto).where(Producto.id == pid))
         producto = result.scalar_one_or_none()
         if not producto:
@@ -236,7 +351,7 @@ async def seed_cms_data(db: AsyncSession) -> None:
         existing = producto.contenido_extra or {}
         if not existing:
             producto.contenido_extra = contenido
-            if pid == NOMADIC_ID:
+            if pid in (NOMADIC_ID, DISRUPTOR_PARAMOTOR_ID, DISRUPTOR_TRIKE_ID):
                 producto.imagenes = contenido["gallery"]
         else:
             merged = {**existing}
@@ -252,10 +367,17 @@ async def seed_cms_data(db: AsyncSession) -> None:
                 legacy = {"/images/nomadic/1.jpg", "/images/nomadic1.png", "/images/paramotor_trike_ejemplo.PNG"}
                 filtered = [u for u in (producto.imagenes or []) if u not in legacy]
                 producto.imagenes = filtered if filtered else contenido["gallery"]
+            elif pid in (DISRUPTOR_PARAMOTOR_ID, DISRUPTOR_TRIKE_ID):
+                if not merged.get("features"):
+                    merged.update({k: v for k, v in contenido.items() if k not in merged or not merged.get(k)})
+                if not producto.imagenes:
+                    producto.imagenes = contenido["gallery"]
             producto.contenido_extra = merged
 
     await _seed_opciones(db, VANGUARD_ID, VANGUARD_OPCIONES)
     await _seed_opciones(db, NOMADIC_ID, NOMADIC_OPCIONES)
+    await _upsert_opciones(db, DISRUPTOR_PARAMOTOR_ID, DISRUPTOR_PARAMOTOR_OPCIONES)
+    await _upsert_opciones(db, DISRUPTOR_TRIKE_ID, DISRUPTOR_TRIKE_OPCIONES)
     await db.commit()
 
 
