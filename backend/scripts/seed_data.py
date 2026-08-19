@@ -165,7 +165,7 @@ def main() -> None:
     )
     _upsert_variante(
         cur, NOMADIC_VARIANT_ID, nomadic_id, "Nomadic Chassis Base", "NOM-BASE-001",
-        4379.50, 4, '{"peso_kg": 42, "empuje_kg": 110}', True,
+        4879.50, 4, '{"peso_kg": 42, "empuje_kg": 110}', True,
     )
 
     # ── Paratrike — Trike Disruptor ───────────────────────────────────

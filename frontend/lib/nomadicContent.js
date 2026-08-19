@@ -1,7 +1,7 @@
 /** Nomadic V15.0 content from archivos/Nomadic trike just chasis WING CONCEPT.docx.pdf */
 
 /** Base chassis price from archivos/Nomadic trike just chasis WING CONCEPT.docx.pdf */
-export const NOMADIC_BASE_PRICE = 4379.5
+export const NOMADIC_BASE_PRICE = 4879.5
 
 export const NOMADIC_PRICE_LABEL = `$${NOMADIC_BASE_PRICE.toLocaleString(undefined, {
   minimumFractionDigits: 2,
