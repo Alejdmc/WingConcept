@@ -106,6 +106,12 @@ TRIKE_COLORS = [
     ("color", "purple-candy", "Purple Candy", None, 0, None, {"hex": "#9b59b6", "displayName": "Purple Candy"}),
 ]
 
+TRIKE_FINISHES = [
+    ("finish", "disruptor-trike-standard", "Standard Trike Package",
+     "Tundra wheels, stainless chassis, basic adapters, main straps, and Gravity Control System.",
+     0, None, {}),
+]
+
 TRIKE_ACCESSORIES = [
     ("accessory", "disruptor-pilot-seat", "Disruptor Pilot Seat",
      "A lightweight, very compact seat with everything necessary for comfortable flight — keeping the trike as light as possible without sacrificing safety and comfort.",
@@ -132,4 +138,6 @@ DISRUPTOR_PARAMOTOR_OPCIONES = (
     + PARAMOTOR_HAND_THROTTLES + PARAMOTOR_PROPELLERS + PARAMOTOR_ACCESSORIES
 )
 
-DISRUPTOR_TRIKE_OPCIONES = TRIKE_COLORS + TRIKE_ACCESSORIES
+DISRUPTOR_TRIKE_OPCIONES = (
+    TRIKE_COLORS + TRIKE_FINISHES + PARAMOTOR_ENGINES + PARAMOTOR_PROPELLERS + TRIKE_ACCESSORIES
+)

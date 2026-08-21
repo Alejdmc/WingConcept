@@ -86,9 +86,9 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
     DISRUPTOR_TRIKE_PRODUCT_ID: {
         "fallback_base": DISRUPTOR_TRIKE_BASE,
         "engines": {"no-engine": 0},
-        "finishes": {},
+        "finishes": {"disruptor-trike-standard": 0},
         "accessories": {},
-        "propellers": {},
+        "propellers": {"no-propeller": 0, "bipala": 350, "tripala": 450},
         "colors": {},
         "default_engine": "no-engine",
     },

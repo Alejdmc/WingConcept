@@ -133,3 +133,13 @@ export const DISRUPTOR_TRIKE_SPECS = {
   'Chassis': 'Stainless steel',
   'Safety': 'Gravity Control System included',
 }
+
+export const DISRUPTOR_TRIKE_CHASSIS_FINISHES = [
+  {
+    id: 'disruptor-trike-standard',
+    name: 'Standard Trike Package',
+    description:
+      'Tundra wheels, stainless steel chassis, basic adapters, main straps, and Gravity Control System — everything in the base trike.',
+    price: 0,
+  },
+]
