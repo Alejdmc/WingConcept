@@ -104,6 +104,7 @@ class Settings(BaseSettings):
     FROM_EMAIL: str = "noreply@wingconcept.com"
     FROM_NAME: str = "WingConcept"
     CONTACT_EMAIL: str = ""  # Destino del formulario de contacto; default = FROM_EMAIL
+    ADMIN_ORDER_EMAIL: str = "andres@wingconcept.com"  # Aviso de nueva compra pagada
 
     # ── CORS ─────────────────────────────────────────────────
     ALLOWED_ORIGINS: str = "http://localhost:3000"

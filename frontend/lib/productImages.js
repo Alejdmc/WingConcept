@@ -26,6 +26,14 @@ export function resolveProductImage(product, fallback) {
     return fallback || VANGUARD_HERO_IMAGE
   }
 
+  if (slug === 'disruptor-trike') {
+    const hero = [listing.image, ...(extra.gallery || []), ...(product?.imagenes || [])].find(
+      (url) => url && typeof url === 'string' && url.includes('/disruptor/'),
+    )
+    if (hero) return hero
+    return fallback || '/images/disruptor/trike-1.jpg'
+  }
+
   if (slug === 'nomadic-trike') {
     const fromListing = pickNomadicImage([listing.image].filter(Boolean), null)
     if (fromListing) return fromListing

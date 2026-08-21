@@ -85,7 +85,11 @@ export function CartProvider({ children }) {
         configuracion: {
           engine: config.engine,
           chassisType: config.chassisType,
+          finish: config.finish,
+          handThrottle: config.handThrottle,
           propeller: config.propeller,
+          color: config.color,
+          colorId: config.colorId,
           chassisColor: config.chassisColor,
           accentColor: config.accentColor,
           upgrades: config.upgrades || [],

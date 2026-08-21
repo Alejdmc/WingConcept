@@ -9,6 +9,8 @@ import ImageUploadField from '@/components/admin/ImageUploadField'
 const PRODUCTOS = [
   { id: PRODUCT_IDS.vanguard, label: 'Vanguard V8.0' },
   { id: PRODUCT_IDS.nomadic, label: 'Nomadic Trike' },
+  { id: PRODUCT_IDS.disruptorParamotor, label: 'Disruptor Paramotor' },
+  { id: PRODUCT_IDS.disruptorTrike, label: 'Disruptor Trike' },
 ]
 
 const GRUPOS = Object.keys(GRUPO_CONFIGURADOR)

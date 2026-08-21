@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 GRUPOS_VALIDOS = frozenset({
-    "engine", "chassis_type", "finish", "propeller", "accessory", "color",
+    "engine", "chassis_type", "finish", "propeller", "accessory", "color", "hand_throttle",
 })
 
 
@@ -61,6 +61,7 @@ class ConfiguradorCatalogResponse(BaseModel):
     finishes: List[Dict[str, Any]] = []
     propellers: List[Dict[str, Any]] = []
     colors: List[Dict[str, Any]] = []
+    hand_throttles: List[Dict[str, Any]] = []
     accessories: List[Dict[str, Any]] = []
 
 

@@ -13,8 +13,12 @@ load_dotenv()
 IPRO_ID = "b2c3d4e5-f6a7-4890-b123-456789abcdef"
 VANGUARD_ID = "c1a2b3d4-e5f6-7890-1234-567890abcdef"
 NOMADIC_ID = "d1e2f3a4-b5c6-7890-1234-567890abcdef"
+DISRUPTOR_PARAMOTOR_ID = "e1f2a3b4-c5d6-7890-1234-567890abcdef"
+DISRUPTOR_TRIKE_ID = "f1e2a3b4-c5d6-7890-1234-567890abcdef"
 VANGUARD_VARIANT_ID = "c1a2b3d4-e5f6-7890-abcd-ef1234567890"
 NOMADIC_VARIANT_ID = "d1e2f3a4-b5c6-7890-abcd-ef1234567890"
+DISRUPTOR_PARAMOTOR_VARIANT_ID = "e1f2a3b4-c5d6-7890-abcd-ef1234567890"
+DISRUPTOR_TRIKE_VARIANT_ID = "f1e2a3b4-c5d6-7890-abcd-ef1234567890"
 
 NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
@@ -116,10 +120,21 @@ def main() -> None:
     # Desactivar productos que aún no están en catálogo
     cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'paramotor-trike'")
     cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'disruptor'")
-    cur.execute("UPDATE productos SET destacado = false WHERE slug = 'i-pro'")
+    cur.execute("UPDATE productos SET activo = false, destacado = false WHERE slug = 'i-pro'")
+    cur.execute("UPDATE productos SET destacado = false WHERE slug = 'disruptor-trike'")
 
     # ── Paramotors ────────────────────────────────────────────────────
-    # Disruptor: omitido — producto aún no disponible
+    disruptor_pm_id = _upsert_producto(
+        cur, DISRUPTOR_PARAMOTOR_ID, "Disruptor Paramotor", "disruptor-paramotor",
+        "The Disruptor breaks the status quo with in-flight CG correction, Spar Connectors, and patented tilting arms.",
+        "Evolve with every flight", "paramotor", "disruptor",
+        [f"/images/disruptor/paramotor-{i}.jpg" for i in range(1, 5)], 1, True,
+    )
+    _upsert_variante(
+        cur, DISRUPTOR_PARAMOTOR_VARIANT_ID, disruptor_pm_id, "Disruptor Paramotor Base", "DISR-PM-BASE",
+        2800.00, 10, '{"peso_kg": 26}', True,
+    )
+
     ipro_id = _upsert_producto(
         cur, IPRO_ID, "I-Pro", "i-pro",
         "El I-Pro redefine lo que significa volar ligero.",
@@ -153,6 +168,18 @@ def main() -> None:
         4879.50, 4, '{"peso_kg": 42, "empuje_kg": 110}', True,
     )
 
+    # ── Paratrike — Trike Disruptor ───────────────────────────────────
+    disruptor_trike_id = _upsert_producto(
+        cur, DISRUPTOR_TRIKE_ID, "Trike Disruptor", "disruptor-trike",
+        "Disruptor paratrike with Tundra wheels, stainless chassis, and Gravity Control System.",
+        "Designed for the Disruptor paramotor", "paratrike", "disruptor",
+        [f"/images/disruptor/trike-{i}.jpg" for i in range(1, 5)], 12, False,
+    )
+    _upsert_variante(
+        cur, DISRUPTOR_TRIKE_VARIANT_ID, disruptor_trike_id, "Trike Disruptor Base", "DISR-TRIKE-BASE",
+        2500.00, 10, '{"peso_kg": 35}', True,
+    )
+
     # ── Accesorios Vanguard ───────────────────────────────────────────
     for i, (acc_id, nombre, precio, stock) in enumerate(VANGUARD_ACCESSORIES, start=1):
         slug = f"vanguard-{acc_id}"
@@ -180,7 +207,9 @@ def main() -> None:
     conn.commit()
     cur.close()
     conn.close()
-    print("Seed completado: I-Pro, Vanguard, Nomadic + 13 accesorios")
+    print("Seed completado: Disruptor Paramotor, Disruptor Trike, I-Pro, Vanguard, Nomadic + accesorios")
+    print(f"  Disruptor Paramotor ID: {disruptor_pm_id}")
+    print(f"  Disruptor Trike ID:     {disruptor_trike_id}")
     print(f"  Vanguard ID: {vanguard_id}")
     print(f"  Nomadic ID:  {nomadic_id}")
 

@@ -39,6 +39,60 @@ class OrdenNotificationService:
         )
         return result.scalar_one_or_none()
 
+    async def _cargar_orden_con_detalle(self, db: AsyncSession, orden: Orden) -> Optional[Orden]:
+        result = await db.execute(
+            select(Orden)
+            .options(selectinload(Orden.usuario), selectinload(Orden.items))
+            .where(Orden.id == orden.id)
+        )
+        return result.scalar_one_or_none()
+
+    async def notificar_compra_admin(
+        self,
+        db: AsyncSession,
+        orden: Orden,
+        *,
+        proveedor_pago: str = "stripe",
+    ) -> bool:
+        """Avisa al admin cuando un pago se confirma (Stripe webhook)."""
+        try:
+            orden = await self._cargar_orden_con_detalle(db, orden)
+            if not orden or not orden.usuario:
+                logger.warning(
+                    "Aviso admin omitido: orden %s sin usuario",
+                    getattr(orden, "numero_orden", "?"),
+                )
+                return False
+
+            items = []
+            for item in orden.items or []:
+                snapshot = item.snapshot or {}
+                items.append({
+                    "nombre": snapshot.get("nombre") or "Product",
+                    "variante": snapshot.get("variante") or "",
+                    "cantidad": item.cantidad,
+                    "subtotal": float(item.precio_unitario) * item.cantidad,
+                })
+
+            return await email_service.enviar_nueva_compra_admin(
+                numero_orden=orden.numero_orden,
+                cliente_nombre=orden.usuario.nombre or "Customer",
+                cliente_email=orden.usuario.email,
+                total=float(orden.total),
+                moneda=orden.moneda,
+                proveedor=proveedor_pago,
+                items=items,
+                orden_id=str(orden.id),
+            )
+        except Exception as exc:
+            logger.error(
+                "Error enviando aviso admin de compra %s: %s",
+                getattr(orden, "numero_orden", "?"),
+                exc,
+                exc_info=True,
+            )
+            return False
+
     async def notificar_estado(
         self,
         db: AsyncSession,

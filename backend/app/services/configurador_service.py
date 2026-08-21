@@ -18,7 +18,11 @@ from app.models.variante import Variante
 
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+DISRUPTOR_PARAMOTOR_PRODUCT_ID = uuid.UUID("e1f2a3b4-c5d6-7890-1234-567890abcdef")
+DISRUPTOR_TRIKE_PRODUCT_ID = uuid.UUID("f1e2a3b4-c5d6-7890-1234-567890abcdef")
 NOMADIC_DOCUMENT_BASE_PRICE = 4879.5
+DISRUPTOR_PARAMOTOR_BASE = 2800.0
+DISRUPTOR_TRIKE_BASE = 2500.0
 
 # Fallback legacy (solo si DB vacía)
 VANGUARD_ENGINES: Dict[str, float] = {
@@ -69,6 +73,25 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "propellers": NOMADIC_PROPELLERS,
         "default_engine": "no-engine",
     },
+    DISRUPTOR_PARAMOTOR_PRODUCT_ID: {
+        "fallback_base": DISRUPTOR_PARAMOTOR_BASE,
+        "engines": {"no-engine": 0},
+        "finishes": {},
+        "accessories": {},
+        "propellers": {"no-propeller": 0, "bipala": 350, "tripala": 450},
+        "hand_throttles": {"no-throttle": 0},
+        "colors": {},
+        "default_engine": "no-engine",
+    },
+    DISRUPTOR_TRIKE_PRODUCT_ID: {
+        "fallback_base": DISRUPTOR_TRIKE_BASE,
+        "engines": {"no-engine": 0},
+        "finishes": {"disruptor-trike-standard": 0},
+        "accessories": {},
+        "propellers": {"no-propeller": 0, "bipala": 350, "tripala": 450},
+        "colors": {},
+        "default_engine": "no-engine",
+    },
 }
 
 
@@ -85,7 +108,7 @@ class ConfiguradorService:
             return {}
         if "opciones" in configuracion and isinstance(configuracion["opciones"], dict):
             merged = dict(configuracion["opciones"])
-            for key in ("engine", "finish", "upgrades", "propeller"):
+            for key in ("engine", "finish", "upgrades", "propeller", "handThrottle", "color", "colorId"):
                 if key in configuracion and configuracion[key] is not None:
                     merged[key] = configuracion[key]
             return merged
@@ -107,6 +130,10 @@ class ConfiguradorService:
                 db_catalog["finishes"] = legacy.get("finishes", {})
             if not db_catalog.get("propellers"):
                 db_catalog["propellers"] = legacy.get("propellers", {})
+            if not db_catalog.get("hand_throttles"):
+                db_catalog["hand_throttles"] = legacy.get("hand_throttles", {})
+            if not db_catalog.get("colors"):
+                db_catalog["colors"] = legacy.get("colors", {})
             return db_catalog
         return LEGACY_CATALOGS.get(producto_id)
 
@@ -115,6 +142,10 @@ class ConfiguradorService:
     ) -> float:
         if producto_id == NOMADIC_PRODUCT_ID:
             return NOMADIC_DOCUMENT_BASE_PRICE
+        if producto_id == DISRUPTOR_PARAMOTOR_PRODUCT_ID:
+            return DISRUPTOR_PARAMOTOR_BASE
+        if producto_id == DISRUPTOR_TRIKE_PRODUCT_ID:
+            return DISRUPTOR_TRIKE_BASE
         result = await db.execute(
             select(Variante)
             .where(Variante.producto_id == producto_id, Variante.activo == True)
@@ -126,26 +157,36 @@ class ConfiguradorService:
         return fallback
 
     def _precio_opciones(self, catalog: Dict[str, Any], opciones: Dict[str, Any]) -> PrecioConfiguracion:
-        engines: Dict[str, float] = catalog["engines"]
+        engines: Dict[str, float] = catalog.get("engines") or {}
         finishes: Dict[str, float] = catalog.get("finishes") or {}
-        accessories: Dict[str, float] = catalog["accessories"]
+        accessories: Dict[str, float] = catalog.get("accessories") or {}
         propellers: Dict[str, float] = catalog.get("propellers") or {}
+        hand_throttles: Dict[str, float] = catalog.get("hand_throttles") or {}
+        colors: Dict[str, float] = catalog.get("colors") or {}
 
-        engine_id = opciones.get("engine") or catalog["default_engine"]
+        engine_id = opciones.get("engine") or catalog.get("default_engine")
         finish_id = opciones.get("finish")
         propeller_id = opciones.get("propeller")
+        hand_id = opciones.get("handThrottle")
+        color_id = opciones.get("color") or opciones.get("colorId")
         upgrades: List[str] = opciones.get("upgrades") or []
 
-        if engine_id not in engines:
+        if engines and engine_id and engine_id not in engines:
             raise ValidacionError(f"Motor '{engine_id}' no válido para este producto")
-        if finish_id and finish_id not in finishes:
+        if finish_id and finishes and finish_id not in finishes:
             raise ValidacionError(f"Acabado '{finish_id}' no válido para este producto")
-        if propeller_id and propeller_id not in propellers:
+        if propeller_id and propellers and propeller_id not in propellers:
             raise ValidacionError(f"Hélice '{propeller_id}' no válida para este producto")
+        if hand_id and hand_throttles and hand_id not in hand_throttles:
+            raise ValidacionError(f"Hand throttle '{hand_id}' no válido para este producto")
+        if color_id and colors and color_id not in colors:
+            raise ValidacionError(f"Color '{color_id}' no válido para este producto")
 
-        engine_price = engines[engine_id]
+        engine_price = engines.get(engine_id, 0.0) if engine_id else 0.0
         finish_price = finishes.get(finish_id, 0.0) if finish_id else 0.0
         propeller_price = propellers.get(propeller_id, 0.0) if propeller_id else 0.0
+        hand_price = hand_throttles.get(hand_id, 0.0) if hand_id else 0.0
+        color_price = colors.get(color_id, 0.0) if color_id else 0.0
         accessories_price = 0.0
         for acc_id in upgrades:
             if acc_id not in accessories:
@@ -158,6 +199,8 @@ class ConfiguradorService:
                 "motor": engine_price,
                 "acabado": finish_price,
                 "helice": propeller_price,
+                "hand_throttle": hand_price,
+                "color": color_price,
                 "accesorios": accessories_price,
             },
         )
@@ -178,6 +221,9 @@ class ConfiguradorService:
             and not opciones.get("upgrades")
             and not opciones.get("finish")
             and not opciones.get("propeller")
+            and not opciones.get("handThrottle")
+            and not opciones.get("color")
+            and not opciones.get("colorId")
         ):
             return None
 

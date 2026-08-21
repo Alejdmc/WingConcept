@@ -430,6 +430,73 @@ class EmailService:
             "html": self._wrap(body, preheader="You've been invited to admin WingConcept."),
         }, "invitacion_admin", email)
 
+    def _admin_order_link(self, orden_id: str) -> str:
+        return f"{settings.FRONTEND_URL.rstrip('/')}/admin/orders/{orden_id}"
+
+    async def enviar_nueva_compra_admin(
+        self,
+        *,
+        numero_orden: str,
+        cliente_nombre: str,
+        cliente_email: str,
+        total: float,
+        moneda: str,
+        proveedor: str,
+        items: list[dict],
+        orden_id: str,
+    ) -> bool:
+        """Notifica al admin que se confirmó una compra."""
+        from html import escape
+
+        destino = settings.ADMIN_ORDER_EMAIL.strip()
+        if not destino:
+            logger.warning("ADMIN_ORDER_EMAIL vacío — aviso de compra no enviado")
+            return False
+
+        filas_items = ""
+        for item in items:
+            nombre = escape(item.get("nombre") or "Product")
+            variante = escape(item.get("variante") or "")
+            cantidad = item.get("cantidad") or 1
+            subtotal = item.get("subtotal")
+            detalle = f"{nombre}"
+            if variante:
+                detalle += f" ({variante})"
+            if subtotal is not None:
+                detalle += f" — {subtotal:,.2f} {moneda}"
+            filas_items += (
+                f'<li style="margin:0 0 8px;color:{_INK};">{detalle} × {cantidad}</li>'
+            )
+
+        items_html = (
+            f'<ul style="margin:12px 0 0;padding-left:20px;">{filas_items}</ul>'
+            if filas_items
+            else f'<p style="color:{_INK2};font-size:13px;">No line items recorded.</p>'
+        )
+
+        admin_url = self._admin_order_link(orden_id)
+        body = f"""
+        {self._heading("New paid order")}
+        <p>A customer completed payment on the store.</p>
+        {self._order_box([
+            ("Order", f"#{numero_orden}"),
+            ("Customer", f"{escape(cliente_nombre)}"),
+            ("Email", escape(cliente_email)),
+            ("Total", f"{total:,.2f} {moneda}"),
+            ("Payment", proveedor.upper()),
+        ], highlight_last=False)}
+        <p style="margin:16px 0 6px;font-size:13px;font-weight:700;color:{_INK};">Items</p>
+        {items_html}
+        {self._button(admin_url, "View in admin")}
+        """
+        return self._enviar({
+            "from": self._from_address(),
+            "to": [destino],
+            "reply_to": cliente_email,
+            "subject": f"New order #{numero_orden} — {total:,.2f} {moneda}",
+            "html": self._wrap(body, preheader=f"New paid order #{numero_orden} from {cliente_nombre}."),
+        }, "nueva_compra_admin", destino)
+
     async def enviar_contacto(
         self, nombre: str, email: str, asunto: str, mensaje: str
     ) -> bool:

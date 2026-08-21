@@ -20,7 +20,11 @@ from app.schemas.configurador_opcion import (
 )
 
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
+DISRUPTOR_PARAMOTOR_PRODUCT_ID = uuid.UUID("e1f2a3b4-c5d6-7890-1234-567890abcdef")
+DISRUPTOR_TRIKE_PRODUCT_ID = uuid.UUID("f1e2a3b4-c5d6-7890-1234-567890abcdef")
 NOMADIC_DOCUMENT_BASE_PRICE = 4879.5
+DISRUPTOR_PARAMOTOR_BASE = 2800.0
+DISRUPTOR_TRIKE_BASE = 2500.0
 
 
 def _opcion_to_dict(op: ConfiguradorOpcion) -> Dict[str, Any]:
@@ -111,6 +115,10 @@ class ConfiguradorOpcionService:
     async def _precio_base(self, db: AsyncSession, producto_id: uuid.UUID) -> Optional[float]:
         if producto_id == NOMADIC_PRODUCT_ID:
             return NOMADIC_DOCUMENT_BASE_PRICE
+        if producto_id == DISRUPTOR_PARAMOTOR_PRODUCT_ID:
+            return DISRUPTOR_PARAMOTOR_BASE
+        if producto_id == DISRUPTOR_TRIKE_PRODUCT_ID:
+            return DISRUPTOR_TRIKE_BASE
         result = await db.execute(
             select(Variante)
             .where(Variante.producto_id == producto_id, Variante.activo == True)
@@ -139,6 +147,7 @@ class ConfiguradorOpcionService:
             "finishes": [],
             "propellers": [],
             "colors": [],
+            "hand_throttles": [],
             "accessories": [],
         }
         for op in opciones:
@@ -152,7 +161,16 @@ class ConfiguradorOpcionService:
             elif op.grupo == "propeller":
                 grouped["propellers"].append(item)
             elif op.grupo == "color":
-                grouped["colors"].append({"name": op.extra.get("displayName", op.nombre) if op.extra else op.nombre, "hex": op.extra.get("hex") if op.extra else None, "id": op.slug})
+                extra = op.extra or {}
+                grouped["colors"].append({
+                    "id": op.slug,
+                    "name": extra.get("displayName", op.nombre),
+                    "hex": extra.get("hex"),
+                    "price": float(op.precio or 0),
+                    "accent": extra.get("accent"),
+                })
+            elif op.grupo == "hand_throttle":
+                grouped["hand_throttles"].append(item)
             elif op.grupo == "accessory":
                 item["image"] = resolve_accessory_image(op.slug, op.imagen, producto_id)
                 grouped["accessories"].append(item)
@@ -183,6 +201,8 @@ class ConfiguradorOpcionService:
             "finishes": {},
             "propellers": {},
             "accessories": {},
+            "hand_throttles": {},
+            "colors": {},
             "default_engine": None,
         }
         for op in opciones:
@@ -194,6 +214,10 @@ class ConfiguradorOpcionService:
                 catalog["propellers"][op.slug] = op.precio
             elif op.grupo == "accessory":
                 catalog["accessories"][op.slug] = op.precio
+            elif op.grupo == "hand_throttle":
+                catalog["hand_throttles"][op.slug] = op.precio
+            elif op.grupo == "color":
+                catalog["colors"][op.slug] = op.precio
 
         if "no-engine" in catalog["engines"]:
             catalog["default_engine"] = "no-engine"
@@ -201,7 +225,9 @@ class ConfiguradorOpcionService:
             catalog["default_engine"] = next(iter(catalog["engines"]))
 
         if not catalog["engines"]:
-            return None
+            catalog["engines"] = {"no-engine": 0}
+            catalog["default_engine"] = "no-engine"
+
         return catalog
 
 
