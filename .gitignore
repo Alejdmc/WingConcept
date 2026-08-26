@@ -18,6 +18,7 @@ dist/
 # Documentación interna (no publicar)
 *.md
 *.html
+archivos/
 
 # Variables de entorno (secrets — no commitear)
 .env
@@ -58,7 +59,4 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
-
-# Source docs too large for GitHub (>100MB)
-archivos/imagenes ajustes wingconcept.pages
 
