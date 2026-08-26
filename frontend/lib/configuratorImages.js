@@ -1,44 +1,181 @@
 /**
- * Galería de hasta 3 imágenes por opción del configurador.
- * Convención de archivos: /images/disruptor/options/{optionId}-1.jpg … -3.jpg
- * Hasta que existan, se usa primaryImage o la galería base del producto.
+ * Galería fija de 3 imágenes por opción del configurador.
+ * Rutas importadas desde archivos/imagenes ajustes wingconcept.pages
+ * Slots sin archivo quedan en blanco.
  */
 
-const MAX_OPTION_IMAGES = 3
+export const MAX_OPTION_IMAGES = 3
 
-export function buildOptionGallery(optionId, primaryImage, fallbackUrls = []) {
-  if (!optionId) {
-    return normalizeGallery(fallbackUrls)
-  }
+export const PROPELLER_BIPALA_IMAGE = '/images/propellers/bipala.jpg'
 
-  const urls = []
-  if (primaryImage && typeof primaryImage === 'string') {
-    urls.push(primaryImage.trim())
-  }
-
-  for (let i = 1; i <= MAX_OPTION_IMAGES; i++) {
-    urls.push(`/images/disruptor/options/${optionId}-${i}.jpg`)
-  }
-
-  const unique = [...new Set(urls.filter(Boolean))]
-  if (unique.length === 0) {
-    return normalizeGallery(fallbackUrls)
-  }
-
-  return unique.slice(0, MAX_OPTION_IMAGES).map((src, index) => ({
-    src,
-    alt: `${optionId} view ${index + 1}`,
-  }))
+function partTriplet(slug) {
+  return [
+    `/images/parts/${slug}-1.png`,
+    `/images/parts/${slug}-2.png`,
+    `/images/parts/${slug}-3.png`,
+  ]
 }
 
-function normalizeGallery(urls) {
-  const list = (urls || [])
-    .map((item, index) => {
-      if (typeof item === 'string') return { src: item, alt: `Product view ${index + 1}` }
-      if (item?.src) return { src: item.src, alt: item.alt || `Product view ${index + 1}` }
-      return null
-    })
-    .filter(Boolean)
+function engineTriplet(slug) {
+  return [
+    `/images/engines/${slug}-1.jpg`,
+    `/images/engines/${slug}-2.jpg`,
+    `/images/engines/${slug}-3.jpg`,
+  ]
+}
 
-  return list.slice(0, MAX_OPTION_IMAGES)
+/** Galerías completas (hasta 3) por slug de opción. */
+export const OPTION_GALLERY_BY_ID = {
+  'accelerator-pedal': partTriplet('accelerator-pedal'),
+  'cruise-control': partTriplet('cruise-control'),
+  'sun-roof-netting': partTriplet('sun-roof-netting'),
+  'sunroof-canopy': partTriplet('sunroof-canopy'),
+  'rear-mirror': partTriplet('rear-mirror'),
+  'carabiners': partTriplet('carabiners'),
+  'fuel-gauge-vanguard': partTriplet('fuel-gauge-vanguard'),
+  'auxiliary-lights': partTriplet('auxiliary-lights'),
+  'electrical-kit': partTriplet('electrical-kit'),
+  'cockpit-liner': partTriplet('cockpit-liner'),
+  'parachute-container': [
+    '/images/parts/parachute-container-1.png',
+    '/images/parts/parachute-container-2.png',
+    '/images/parts/parachute-container-3.png',
+  ],
+  'reserve-chute': [
+    '/images/parts/reserve-chute-1.jpg',
+    '/images/parts/reserve-chute-2.jpg',
+    '/images/parts/reserve-chute-3.jpg',
+  ],
+  'ballistic-parachute': [
+    '/images/parts/parachute-container-1.png',
+    '/images/parts/parachute-container-2.png',
+    '/images/parts/parachute-container-3.png',
+  ],
+  bipala: [PROPELLER_BIPALA_IMAGE],
+  tripala: [PROPELLER_BIPALA_IMAGE],
+  'rotax-912': engineTriplet('rotax-912'),
+  'hirth-3503': engineTriplet('hirth-3503'),
+  'simonini-v2': engineTriplet('simonini-v2'),
+  'polini-260': engineTriplet('polini-260'),
+  'polini-303': engineTriplet('polini-303'),
+  'vittorazi-300-my25': engineTriplet('vittorazi-300-my25'),
+  'zeus-300': engineTriplet('zeus-300'),
+  'simonini-victor-1': [
+    '/images/engines/simonini-victor-1-1.jpg',
+    '/images/engines/simonini-victor-1-2.jpg',
+  ],
+}
+
+/** Vista base configurador Vanguard — foto 3 fija. */
+export const VANGUARD_CONFIGURATOR_GALLERY = padGallery([
+  { src: '/images/vanguard/3.png', alt: 'Vanguard V8.0' },
+])
+
+/** Vista base configurador Nomadic — primera foto de galería. */
+export const NOMADIC_CONFIGURATOR_GALLERY = padGallery([
+  { src: '/images/nomadic/2.jpg', alt: 'Nomadic Trike' },
+])
+
+export function padGallery(items = []) {
+  const padded = (items || [])
+    .filter(Boolean)
+    .map((item, index) => {
+      if (typeof item === 'string') {
+        return item.trim() ? { src: item.trim(), alt: `View ${index + 1}` } : { src: null, alt: '', empty: true }
+      }
+      if (item?.src) {
+        return { src: item.src, alt: item.alt || `View ${index + 1}`, empty: false }
+      }
+      return { src: null, alt: '', empty: true }
+    })
+
+  while (padded.length < MAX_OPTION_IMAGES) {
+    padded.push({ src: null, alt: '', empty: true })
+  }
+
+  return padded.slice(0, MAX_OPTION_IMAGES)
+}
+
+export function resolvePropellerImage(optionId, primaryImage) {
+  if (optionId === 'tripala' || optionId === 'bipala') {
+    return primaryImage || PROPELLER_BIPALA_IMAGE
+  }
+  return primaryImage || null
+}
+
+export function galleryPathsForOption(optionId, primaryImage, cmsGallery = null) {
+  if (Array.isArray(cmsGallery) && cmsGallery.length) {
+    return cmsGallery.filter(Boolean).slice(0, MAX_OPTION_IMAGES)
+  }
+
+  if (optionId && OPTION_GALLERY_BY_ID[optionId]) {
+    return OPTION_GALLERY_BY_ID[optionId]
+  }
+
+  if (primaryImage && typeof primaryImage === 'string') {
+    return [primaryImage.trim()]
+  }
+
+  return []
+}
+
+export function buildOptionGallery(optionId, primaryImage, fallbackUrls = [], cmsGallery = null) {
+  if (!optionId) {
+    return padGallery(normalizeGallery(fallbackUrls))
+  }
+
+  const paths = galleryPathsForOption(optionId, primaryImage, cmsGallery)
+  if (paths.length === 0) {
+    return padGallery(normalizeGallery(fallbackUrls))
+  }
+
+  return padGallery(paths.map((src, index) => ({
+    src,
+    alt: `${optionId} view ${index + 1}`,
+  })))
+}
+
+export function normalizeGallery(urls) {
+  return (urls || [])
+    .map((item, index) => {
+      if (typeof item === 'string') {
+        const src = item.trim()
+        return src ? { src, alt: `Product view ${index + 1}` } : { src: null, alt: '', empty: true }
+      }
+      if (item?.src) return { src: item.src, alt: item.alt || `Product view ${index + 1}`, empty: false }
+      return { src: null, alt: '', empty: true }
+    })
+    .slice(0, MAX_OPTION_IMAGES)
+}
+
+export function trikeGalleryProductKey(step) {
+  if (step === 0) return 'chassis'
+  if (step === 1) return 'engines'
+  if (step === 2) return 'propellers'
+  if (step === 3) return 'parts'
+  return 'vanguard'
+}
+
+export function disruptorGalleryProductKey(step, variant = 'paramotor') {
+  if (step === 1) return 'engines'
+  if (variant === 'paramotor') {
+    if (step === 3) return 'propellers'
+    if (step === 4) return 'parts'
+  } else {
+    if (step === 2) return 'propellers'
+    if (step === 3) return 'parts'
+  }
+  if (step === 0) return 'chassis'
+  return 'disruptor'
+}
+
+export function firstGalleryIndex(gallery = []) {
+  const idx = gallery.findIndex((item) => item?.src && !item.empty)
+  return idx >= 0 ? idx : 0
+}
+
+/** Thumbnail principal de una opción (primera imagen del triplete). */
+export function optionPrimaryImage(optionId, fallbackImage) {
+  const paths = galleryPathsForOption(optionId, fallbackImage)
+  return paths[0] || fallbackImage || null
 }

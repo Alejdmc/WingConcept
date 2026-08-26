@@ -1,60 +1,79 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
-import { VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
+import { VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
+import QuoteButton from '@/components/configurator/QuoteButton'
+import OptionImageGallery from '@/components/configurator/OptionImageGallery'
+import { buildOptionGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 
 const DEFAULT_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', basePrice: 0 },
-    { id: 'rotax-912', name: 'Rotax 912 (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg' },
-    { id: 'RMZ500', name: 'RMZ500', basePrice: 15000, image: '/images/engines/rmz500.jpg' },
-    { id: 'simonini-v2', name: 'Simonini Victor 2 (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg' },
+    { id: 'rotax-503-preowned', name: 'Pre-Owned Rotax 503', basePrice: 0, priceTbd: true, image: '/images/engines/rotax-503.jpg', infoUrl: 'https://www.rotax.com/' },
+    { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html' },
+    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg' },
+    { id: 'simonini-v2', name: 'Simonini Victor 2 Super (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/127-victor-2.html' },
     { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg' },
   ],
   chassisTypes: [
-    { id: 'commercial', name: 'Commercial', description: 'Reinforced frame built for daily commercial operations, tandem flights and rental fleets. Durable and low maintenance.', image: '/images/chassis/commercial.jpg' },
-    { id: 'adventure', name: 'Adventure', description: 'Lightweight, agile frame for backcountry flying and off-grid exploration. Built to handle rugged conditions.', image: '/images/chassis/adventure.jpg' },
-    { id: 'reportage', name: 'Reportage', description: 'Stable platform tailored for aerial photography and video work, with extra mounting points for camera gear.', image: '/images/chassis/reportage.jpg' },
+    {
+      id: 'commercial',
+      name: 'Commercial',
+      description: 'Designed for tandem flying. The passenger has easy access from the front. The harness is comfortable and positions the passenger deep inside the trike for safety — their head stays below the bars. Foot support does not interfere with the pilot\'s taxiing.',
+      image: '/images/chassis/commercial.jpg',
+    },
+    {
+      id: 'adventure',
+      name: 'Adventure',
+      description: 'For pilots who want to fly fast with a dynamic style — more penetration, less drag, making flight efficient. Ideal for adventurers who want maximum visibility and the exclusive option to mount a camera on a rotating bracket.',
+      image: '/images/chassis/adventure.jpg',
+    },
+    {
+      id: 'reportage',
+      name: 'Reportage',
+      description: 'Stable platform for aerial photography and filming. Also suited for pilots who enjoy hunting — you can add a weapon mount with full left or right-hand access.',
+      image: '/images/chassis/reportage.jpg',
+    },
   ],
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
-    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
+    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). When you need extra thrust up to 47 kW — the be-all-and-end monster of the trike world.', price: 534.75, image: '/images/propellers/bipala.jpg' },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
   ],
   colors: [
-    { name: 'Candy Red', hex: '#e74c3c' },
-    { name: 'Candy Blue', hex: '#3498db' },
-    { name: 'Candy Purple', hex: '#9b59b6' },
-    { name: 'White', hex: '#ffffff' },
-    { name: 'Grey', hex: '#95a5a6' }
+    { name: 'Candy Red & White', hex: '#e74c3c', accent: '#ffffff' },
+    { name: 'Candy Blue & White', hex: '#3498db', accent: '#ffffff' },
+    { name: 'Candy Purple & White', hex: '#9b59b6', accent: '#ffffff' },
   ],
   accessories: [
     { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment during sideways descent.', image: '/images/parts/sun-roof-netting.png' },
     { id: 'front-bar-protection', name: 'Padded Roll Bar Protector with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
     { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Additional cable brake providing extra braking power — conventional mountain-bike derived system.', image: '/images/parts/front-fork.png' },
-    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
     { id: 'parachute-container', name: 'Parachute Container', price: 55, description: 'Exclusive container for mounting on the right or left side of the harnesses.', image: '/images/parts/parachute-container.png' },
     { id: 'lateral-bag', name: 'Two Side Explorer Cases (L-R)', price: 95, description: 'Pair of aerodynamic side cases with extra straps for rods, tents, fuel, etc. without using internal space.', image: '/images/parts/lateral-bag-explorer.png' },
-    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/cruise-control.png' },
     { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
-    { id: 'fuel-gauge-vanguard', name: 'Analog Fuel Gauge (Vanguard)', price: 119, description: 'Analog fuel gauge for the Vanguard L-shaped tank.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/instrument-kit-vanguard.png' },
+    { id: 'fuel-gauge-vanguard', name: 'Analog Fuel Gauge (Vanguard)', price: 119, description: 'Analog fuel gauge for the Vanguard L-shaped tank.', image: '/images/parts/fuel-gauge-vanguard.png' },
+    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/auxiliary-lights.png' },
     { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 340, description: 'TTO digital RPM, spark plug temperature, coolant temperature gauges, and 4-port USB charger.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/front-axle.png' },
+    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/electrical-kit.png' },
+    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/carabiners.png' },
     { id: 'propeller-guard', name: 'External Propeller Guard', price: 295, description: 'Prevents wing or lines from entering the propeller. Ideal for schools and beginners.', image: '/images/parts/pilot-dynamic-cage.png' },
+    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute with max load of 400 kg.', image: '/images/parts/parachute-container.png' },
   ]
 }
 
@@ -62,7 +81,7 @@ const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
 
 const VANGUARD_PRODUCTO_ID = PRODUCT_IDS.vanguard
 
-const PRODUCT_IMAGES = VANGUARD_GALLERY
+const PRODUCT_IMAGES = VANGUARD_CONFIGURATOR_GALLERY
 
 export default function ConfiguratorPage() {
   const router = useRouter()
@@ -74,7 +93,10 @@ export default function ConfiguratorPage() {
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
   const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [previewOption, setPreviewOption] = useState({
+    id: DEFAULT_OPTIONS.chassisTypes[0].id,
+    image: VANGUARD_HERO_IMAGE,
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -101,19 +123,98 @@ export default function ConfiguratorPage() {
     return baseChassis + enginePrice + propellerPrice + upgradesPrice
   }, [engine, propeller, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories])
 
-  const goToPreviousImage = () => {
-    setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
+  const quoteDetails = useMemo(() => {
+    const lines = []
+    if (selectedChassisColor) lines.push(`Chassis color: ${selectedChassisColor}`)
+    if (chassisType?.name) lines.push(`Chassis type: ${chassisType.name}`)
+    if (engine?.name) lines.push(`Engine: ${engine.name}`)
+    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    if (selectedAccessoryItems.length > 0) {
+      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
+    }
+    lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
+    return lines
+  }, [selectedChassisColor, chassisType, engine, propeller, selectedAccessoryItems, totalPrice])
+
+  const previewGallery = useMemo(() => {
+    if (!previewOption?.id) {
+      return buildOptionGallery(null, null, PRODUCT_IMAGES)
+    }
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
+  }, [previewOption, step])
+
+  const selectChassisType = (id) => {
+    setSelectedChassisType(id)
+    setPreviewOption({ id, image: VANGUARD_HERO_IMAGE })
   }
 
-  const goToNextImage = () => {
-    setSelectedImageIndex((prev) => (prev === PRODUCT_IMAGES.length - 1 ? 0 : prev + 1))
+  const selectEngine = (id) => {
+    setSelectedEngine(id)
+    const eng = CONFIG_OPTIONS.engines.find((e) => e.id === id)
+    setPreviewOption({ id, image: eng?.image || null, gallery: eng?.gallery })
+  }
+
+  const selectPropeller = (id) => {
+    setSelectedPropeller(id)
+    const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === id)
+    setPreviewOption({ id, image: prop?.image || null, gallery: prop?.gallery })
   }
 
   const toggleUpgrade = (id) => {
-    setSelectedUpgrades(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+    setSelectedUpgrades((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+    const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === id)
+    setPreviewOption({
+      id,
+      image: acc?.image || resolveAccessoryImage(id, acc?.image, VANGUARD_PRODUCTO_ID),
+      gallery: acc?.gallery,
+    })
   }
 
-  const goNext = () => setStep(s => Math.min(s + 1, STEPS.length - 1))
+  useEffect(() => {
+    switch (step) {
+      case 0:
+        setPreviewOption({ id: selectedChassisType, image: VANGUARD_HERO_IMAGE })
+        break
+      case 1: {
+        const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
+        setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
+        break
+      }
+      case 2: {
+        const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
+        setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
+        break
+      }
+      case 3: {
+        const lastId = selectedUpgrades[selectedUpgrades.length - 1]
+        if (lastId) {
+          const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
+          setPreviewOption({
+            id: lastId,
+            image: acc?.image || resolveAccessoryImage(lastId, acc?.image, VANGUARD_PRODUCTO_ID),
+            gallery: acc?.gallery,
+          })
+        } else {
+          setPreviewOption({ id: 'accessories', image: VANGUARD_HERO_IMAGE })
+        }
+        break
+      }
+      default:
+        break
+    }
+  }, [
+    step,
+    selectedChassisType,
+    selectedEngine,
+    selectedPropeller,
+    selectedUpgrades,
+    CONFIG_OPTIONS.chassisTypes,
+    CONFIG_OPTIONS.engines,
+    CONFIG_OPTIONS.propellers,
+    CONFIG_OPTIONS.accessories,
+  ])
+
+  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
   const goPrev = () => setStep(s => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
@@ -172,64 +273,7 @@ export default function ConfiguratorPage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <div className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-lg">
-              <SafeImage
-                src={PRODUCT_IMAGES[selectedImageIndex].src}
-                alt={PRODUCT_IMAGES[selectedImageIndex].alt}
-                fill
-                className="object-cover"
-                priority
-                fallbackSrc={VANGUARD_HERO_IMAGE}
-                unoptimized
-              />
-
-              {PRODUCT_IMAGES.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {PRODUCT_IMAGES.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {PRODUCT_IMAGES.map((image, index) => (
-                  <motion.button
-                    key={image.src}
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                      selectedImageIndex === index ? 'border-brand' : 'border-borderline hover:border-brand/50'
-                    }`}
-                  >
-                    <SafeImage
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      className="object-cover"
-                      fallbackSrc={VANGUARD_HERO_IMAGE}
-                      unoptimized
-                    />
-                  </motion.button>
-                ))}
-              </div>
-            )}
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
 
             {/* Color Selectors */}
             <div className="space-y-4">
@@ -271,13 +315,13 @@ export default function ConfiguratorPage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
-                  <ConfigSection title="Chassis. Choose your type">
+                  <ConfigSection title="Chassis. Choose your flying style">
                     <div className="grid sm:grid-cols-1 gap-4">
                       {CONFIG_OPTIONS.chassisTypes.map(t => (
                         <OptionCard
                           key={t.id}
                           selected={selectedChassisType === t.id}
-                          onClick={() => setSelectedChassisType(t.id)}
+                          onClick={() => selectChassisType(t.id)}
                         >
                           <p className="font-bold uppercase text-ink">{t.name}</p>
                           <p className="text-sm text-ink2 mt-1">{t.description}</p>
@@ -296,14 +340,28 @@ export default function ConfiguratorPage() {
                   <ConfigSection title="Engine. Which is right for you?">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.engines.map(e => (
-                        <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => setSelectedEngine(e.id)}>
+                        <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => selectEngine(e.id)}>
                           <p className="font-bold uppercase text-ink">{e.name}</p>
                           <p className="text-sm text-ink2 mt-1">
-                            {e.basePrice === 0 ? 'Included' : `+$${e.basePrice.toLocaleString()}`}
+                            {e.basePrice === 0 && e.priceTbd
+                              ? 'Price on request'
+                              : e.basePrice === 0
+                                ? 'Included'
+                                : `+$${e.basePrice.toLocaleString()}`}
                           </p>
                           {selectedEngine === e.id && e.image && (
                             <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
                               <OptionThumb src={e.image} alt={e.name} />
+                              {e.infoUrl && (
+                                <a
+                                  href={e.infoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(ev) => ev.stopPropagation()}
+                                  className="text-sm text-brand font-bold hover:underline mt-1">
+                                  More engine info →
+                                </a>
+                              )}
                             </div>
                           )}
                         </OptionCard>
@@ -316,11 +374,16 @@ export default function ConfiguratorPage() {
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => (
-                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => setSelectedPropeller(p.id)}>
+                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
                           <div className="flex justify-between items-center pr-8">
                             <p className="font-bold uppercase text-ink">{p.name}</p>
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
+                          {selectedPropeller === p.id && p.image && (
+                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
+                              <OptionThumb src={p.image} alt={p.name} />
+                            </div>
+                          )}
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
                         </OptionCard>
                       ))}
@@ -395,6 +458,8 @@ export default function ConfiguratorPage() {
                 ${totalPrice.toLocaleString()}
               </motion.p>
             </motion.div>
+
+            <QuoteButton productName={QUOTE_PRODUCT_NAMES.vanguard} details={quoteDetails} className="w-full" />
 
             {/* Wizard navigation */}
             <div className="flex items-center justify-between gap-4">

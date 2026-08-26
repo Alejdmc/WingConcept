@@ -1,6 +1,7 @@
 /** Homepage featured cards — copy aligned to product PDFs, uniform length. */
 
 import { NOMADIC_HERO_IMAGE, NOMADIC_PRICE_LABEL } from './nomadicContent'
+import { VANGUARD_HERO_IMAGE } from './vanguardContent'
 import {
   DISRUPTOR_PARAMOTOR_BASE_PRICE,
   DISRUPTOR_PARAMOTOR_HERO,
@@ -16,7 +17,7 @@ export const FEATURED_CATALOG = {
   'vanguard-v8': {
     slug: 'vanguard-v8',
     name: 'Vanguard V8.0',
-    image: '/images/vanguard/1.png',
+    image: VANGUARD_HERO_IMAGE,
     price: '$5,950.25',
     desc: 'High-performance trike for precision flying, tandem ops, and serious adventure.',
     specs: 'Premium aluminum chassis | Advanced aerodynamics',
@@ -63,7 +64,11 @@ export function buildFeaturedProduct(apiProduct, catalogEntry) {
     id: apiProduct?.id || base.slug,
     slug: base.slug,
     name: apiProduct?.nombre || apiProduct?.name || base.name,
-    image: base.image,
+    image: base.slug === 'vanguard-v8'
+      ? VANGUARD_HERO_IMAGE
+      : base.slug === 'nomadic-trike'
+        ? NOMADIC_HERO_IMAGE
+        : base.image,
     price,
     desc: base.desc,
     specs: base.specs,

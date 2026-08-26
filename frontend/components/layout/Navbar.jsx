@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Paramotors', href: '/paramotors' },
   { label: 'Paratrike', href: '/paratrike' },
   { label: 'Parts and Accessories', href: '/parts' },
+  { label: 'Paragliders', href: '/paragliders' },
   {
     label: 'Adventure',
     children: [
@@ -20,6 +21,7 @@ const navItems = [
     ],
   },
   { label: 'Tourist Flight', href: '/tourist-flight' },
+  { label: 'Courses', href: '/induction-course' },
   {
     label: 'More',
     children: [

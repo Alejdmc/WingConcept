@@ -43,3 +43,30 @@ export const TOURIST_FLIGHT_LOCATIONS = {
 }
 
 export const formatUSD = (cop) => (cop / COP_TO_USD_RATE).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
+/** Reservation deposit (COP) — editable via admin product variant price. */
+export const TOURIST_FLIGHT_DEPOSIT_COP = 20000
+
+export const TOURIST_FLIGHT_DEPOSIT_USD = TOURIST_FLIGHT_DEPOSIT_COP / COP_TO_USD_RATE
+
+/** Placeholder until legal document is provided. */
+export const TOURIST_FLIGHT_TERMS_PATH = '/terms'
+
+/** Site photos for each flying location (3–4 per site). */
+export const TOURIST_FLIGHT_GALLERY = {
+  'club-aerosport': [
+    { src: '/images/colombia.jpg', alt: 'Club AeroSport — aerial view', caption: 'Flying over Flandes, Tolima' },
+    { src: '/images/santamarta.jpg', alt: 'Coastal landscape', caption: 'Colombian countryside from above' },
+    { src: '/images/front1.jpg', alt: 'Paramotor in flight', caption: 'Tandem tourist flight experience' },
+  ],
+  'la-cabana': [
+    { src: '/images/leticia.jpg', alt: 'La Cabaña region', caption: 'Casanare landscapes' },
+    { src: '/images/costarica.jpg', alt: 'Open fields', caption: 'Ideal takeoff conditions' },
+    { src: '/images/front1.jpg', alt: 'Sunset flight', caption: 'Evening flight slot' },
+  ],
+  miami: [
+    { src: '/images/colombia.jpg', alt: 'Florida airfield', caption: 'Lake Wales airfield' },
+    { src: '/images/acrobatic.jpg', alt: 'Paramotor show', caption: 'Professional pilot demonstration' },
+    { src: '/images/front1.jpg', alt: 'Tourist flight', caption: 'Experience paramotor flight in Florida' },
+  ],
+}

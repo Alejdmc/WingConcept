@@ -2,9 +2,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { Menu, X, BarChart3, Package, ShoppingCart, LogOut, Compass, Settings, User, Tag, Users, Handshake, FileText, Wrench, Globe, Sliders, Plane } from 'lucide-react'
+import { Menu, X, LogOut, User } from 'lucide-react'
 import { clearAuthSession } from '@/lib/auth'
 import { api } from '@/lib/api'
+import { ADMIN_NAV, isNavActive } from '@/lib/adminNav'
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
@@ -14,22 +15,6 @@ export default function AdminLayout({ children }) {
   const [ready, setReady] = useState(false)
   const [user, setUser] = useState(null)
   const [lowStockCount, setLowStockCount] = useState(0)
-
-  const navItems = [
-    { label: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
-    { label: 'Products', href: '/admin/products', icon: Package },
-    { label: 'Paratrikes page', href: '/admin/paratrikes', icon: Plane },
-    { label: 'Customization', href: '/admin/configurador', icon: Sliders },
-    { label: 'Parts & Accessories', href: '/admin/parts', icon: Wrench },
-    { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-    { label: 'Users', href: '/admin/users', icon: Users },
-    { label: 'Pages', href: '/admin/contenido', icon: Compass },
-    { label: 'Website texts', href: '/admin/site', icon: Globe },
-    { label: 'Dealers', href: '/admin/dealers', icon: Handshake },
-    { label: 'Manuals', href: '/admin/manuals', icon: FileText },
-    { label: 'Discounts', href: '/admin/descuentos', icon: Tag },
-    { label: 'Settings', href: '/admin/settings', icon: Settings },
-  ]
 
   useEffect(() => {
     const verify = async () => {
@@ -53,7 +38,7 @@ export default function AdminLayout({ children }) {
       }
     }
     verify()
-  }, [router])
+  }, [router, pathname])
 
   const handleLogout = async () => {
     try {
@@ -73,9 +58,31 @@ export default function AdminLayout({ children }) {
     )
   }
 
+  const renderNavLink = ({ label, href, icon: Icon, hint }) => {
+    const active = isNavActive(pathname, href)
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={() => setMobileSidebarOpen(false)}
+        title={hint || label}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded transition relative text-sm ${
+          active ? 'bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
+        }`}
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span className={`font-semibold leading-tight ${!sidebarOpen && 'md:hidden'}`}>{label}</span>
+        {href === '/admin/parts' && lowStockCount > 0 && (
+          <span className={`ml-auto px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold ${!sidebarOpen && 'md:absolute md:top-1 md:right-1 md:ml-0'}`}>
+            {lowStockCount}
+          </span>
+        )}
+      </Link>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-bg overflow-hidden">
-      {/* Mobile overlay backdrop */}
       {mobileSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -84,12 +91,16 @@ export default function AdminLayout({ children }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 md:relative md:z-auto md:translate-x-0
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 md:relative md:z-auto md:translate-x-0 overflow-y-auto
           ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          ${sidebarOpen ? 'md:w-64' : 'md:w-20'}
-          bg-bg3 text-white flex flex-col border-r border-white/10`}>
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h1 className={`font-black text-lg ${!sidebarOpen && 'md:hidden'}`}>WING ADMIN</h1>
+          ${sidebarOpen ? 'md:w-72' : 'md:w-20'}
+          bg-bg3 text-white flex flex-col border-r border-white/10`}
+      >
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
+          <div className={!sidebarOpen ? 'md:hidden' : ''}>
+            <h1 className="font-black text-lg">WING ADMIN</h1>
+            <p className="text-xs text-white/50 mt-0.5">Content & store</p>
+          </div>
           <button onClick={() => setMobileSidebarOpen(false)} className="hover:bg-white/10 p-2 rounded md:hidden">
             <X className="w-5 h-5" />
           </button>
@@ -98,31 +109,31 @@ export default function AdminLayout({ children }) {
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map(({ label, href, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileSidebarOpen(false)}
-              className="flex items-center gap-4 px-4 py-3 rounded hover:bg-white/10 transition relative">
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              <span className={`text-sm font-semibold ${!sidebarOpen && 'md:hidden'}`}>{label}</span>
-              {href === '/admin/parts' && lowStockCount > 0 && (
-                <span className={`ml-auto px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold ${!sidebarOpen && 'md:absolute md:top-2 md:right-2 md:ml-0'}`}>
-                  {lowStockCount}
-                </span>
-              )}
-            </Link>
-          ))}
+        <nav className="flex-1 p-3 space-y-4">
+          {ADMIN_NAV.map((entry) => {
+            if (entry.type === 'link') {
+              return renderNavLink(entry)
+            }
+            return (
+              <div key={entry.label}>
+                <p className={`px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/40 ${!sidebarOpen && 'md:hidden'}`}>
+                  {entry.label}
+                </p>
+                <div className="space-y-0.5">
+                  {entry.items.map((item) => renderNavLink(item))}
+                </div>
+              </div>
+            )
+          })}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
+        <div className="p-3 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-4 px-4 py-3 w-full rounded hover:bg-white/10 transition text-red-400"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded hover:bg-white/10 transition text-red-400 text-sm"
           >
-            <LogOut className="w-5 h-5" />
-            <span className={`text-sm font-semibold ${!sidebarOpen && 'md:hidden'}`}>Log out</span>
+            <LogOut className="w-4 h-4" />
+            <span className={`font-semibold ${!sidebarOpen && 'md:hidden'}`}>Log out</span>
           </button>
         </div>
       </aside>
@@ -133,7 +144,8 @@ export default function AdminLayout({ children }) {
             <button
               onClick={() => setMobileSidebarOpen(true)}
               className="md:hidden w-9 h-9 flex items-center justify-center rounded hover:bg-bg2 text-ink shrink-0"
-              aria-label="Open menu">
+              aria-label="Open menu"
+            >
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-lg sm:text-2xl font-black text-ink truncate">Admin Panel</h2>
@@ -150,9 +162,7 @@ export default function AdminLayout({ children }) {
           </Link>
         </header>
 
-        <div className="p-4 sm:p-8">
-          {children}
-        </div>
+        <div className="p-4 sm:p-8">{children}</div>
       </main>
     </div>
   )

@@ -1,9 +1,9 @@
 /** Etiquetas amigables para el panel admin (sin jerga técnica). */
 
 export const SECCIONES_CONTENIDO = [
-  { id: 'adventure', label: 'Adventure', descripcion: 'Expediciones y aventuras en la página Adventure' },
-  { id: 'shows', label: 'Shows', descripcion: 'Demostraciones y eventos en vivo' },
-  { id: 'events', label: 'Events', descripcion: 'Eventos y talleres' },
+  { id: 'adventure', label: 'Adventure', descripcion: 'Expediciones y tarjetas en /adventure' },
+  { id: 'shows', label: 'Shows', descripcion: 'Demostraciones en vivo en /shows' },
+  { id: 'events', label: 'Events', descripcion: 'Eventos y talleres en /events' },
 ]
 
 export const TIPOS_CONTENIDO = {
@@ -22,6 +22,11 @@ export const TIPOS_CONTENIDO = {
     { value: 'intro', label: 'Texto de introducción', hint: 'Párrafo debajo del banner' },
     { value: 'evento', label: 'Tarjeta de evento', hint: 'Cada evento en la lista' },
   ],
+  news: [
+    { value: 'hero', label: 'Banner principal', hint: 'La imagen grande y el título de la página' },
+    { value: 'intro', label: 'Texto de introducción', hint: 'Párrafo debajo del banner' },
+    { value: 'noticia', label: 'Tarjeta de noticia', hint: 'Cada artículo en la lista' },
+  ],
 }
 
 export const GRUPO_CONFIGURADOR = {
@@ -35,8 +40,8 @@ export const GRUPO_CONFIGURADOR = {
 }
 
 export const SECCIONES_SITIO = {
-  homepage: { label: 'Página de inicio', descripcion: 'Banner principal y textos del home' },
-  paratrike: { label: 'Página Paratrikes', descripcion: 'Banner, textos generales y sección comparación de /paratrike' },
+  homepage: { label: 'Homepage', descripcion: 'Banner principal y textos del home' },
+  paratrike: { label: 'Paratrikes page', descripcion: 'Banner y textos generales de /paratrike' },
 }
 
 export const PARATRIKE_HREFS = {

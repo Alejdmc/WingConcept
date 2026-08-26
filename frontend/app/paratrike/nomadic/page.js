@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ChevronDown, ArrowLeft, Zap, Shield, Gauge, Package, Fuel, Users, Link2, Settings, Check } from 'lucide-react'
+import { ChevronDown, ArrowLeft, Zap, Shield, Gauge, Package, Fuel, Users, Link2, Settings, Check, Truck } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import Gallery from '@/components/sections/Gallery'
 import { api } from '@/lib/api'
@@ -15,11 +15,10 @@ import {
   NOMADIC_SPECS,
   NOMADIC_GALLERY,
   NOMADIC_HERO_IMAGE,
-  pickNomadicImage,
 } from '@/lib/nomadicContent'
 import { resolveNomadicGallery } from '@/lib/productImages'
 
-const ICON_MAP = { Zap, Shield, Gauge, Package, Fuel, Users, Link: Link2, Settings }
+const ICON_MAP = { Zap, Shield, Gauge, Package, Fuel, Users, Link: Link2, Settings, Truck }
 
 const nomadicFallback = {
   id: 2,
@@ -37,23 +36,38 @@ const nomadicFallback = {
   features: [
     {
       icon: Zap,
-      title: 'Adjustable Anchor Points',
-      desc: 'In-flight adjustments for perfect weight distribution, ideal when switching from Tandem to Single configuration.',
+      title: 'Adventure & Remote Exploration',
+      desc: 'Large tundra tires for smooth rides over rough terrain and trouble-free takeoffs and landings on challenging ground.',
     },
     {
       icon: Shield,
-      title: 'Integral Chassis Protection',
-      desc: 'Anti-roll cage keeps pilot and passenger within the structural frame in any incident.',
+      title: 'Tandem-to-Single In Flight',
+      desc: 'In-flight adjustable attachment points allow parachutist deployment and better weight distribution from tandem to single configuration.',
     },
     {
       icon: Gauge,
-      title: 'Expedition Ready',
-      desc: 'Expanded load capacity and reinforced suspension, optimized for carrying all your camping gear.',
+      title: '45 kg Dry Chassis',
+      desc: 'Laser-cut stainless steel — incredibly strong yet lightweight, with a 4-ton resistance wire and gravity adjustment system.',
     },
     {
       icon: Shield,
-      title: 'All-Terrain Suspension',
-      desc: 'System designed to absorb impacts on irregular terrain, unprepared strips, and difficult landings.',
+      title: 'Front Disc Brake',
+      desc: 'Added front disc brake for greater safety — no complicated maneuvers required to stop.',
+    },
+    {
+      icon: Users,
+      title: 'Pilot Above Passenger',
+      desc: 'Pilot sits several inches above the passenger for better visibility and easier landings. Harness designed for safety and freedom of movement.',
+    },
+    {
+      icon: Package,
+      title: 'Multi-Engine Compatible',
+      desc: 'Compatible with Vittorazi Cosmos 300, Polini Thor 303/260/202, Zeus 300, Simonini Victor One 54 HP, and more via interchangeable motor mounts.',
+    },
+    {
+      icon: Truck,
+      title: 'Easy Transport',
+      desc: 'Telescopic rear axles fit in a pickup truck. Matching-icon assembly system makes field setup a breeze.',
     },
   ],
   engines: NOMADIC_ENGINES,
@@ -67,10 +81,6 @@ export default function NomadicPage() {
   useEffect(() => {
     api.productos.obtener('nomadic-trike').then((p) => {
       const extra = p.contenido_extra || {}
-      const heroImage = pickNomadicImage(
-        [extra.listing?.image, ...(extra.gallery || []), ...(p.imagenes || [])].filter(Boolean),
-        NOMADIC_HERO_IMAGE,
-      )
       setNomadic((prev) => ({
         ...prev,
         name: p.nombre || prev.name,
@@ -80,7 +90,7 @@ export default function NomadicPage() {
         year: extra.year || prev.year,
         brand: extra.brand || prev.brand,
         basePrice: NOMADIC_BASE_PRICE,
-        image: heroImage,
+        image: NOMADIC_HERO_IMAGE,
         features: (extra.features?.length ? extra.features : prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,

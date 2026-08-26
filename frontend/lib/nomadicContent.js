@@ -1,6 +1,6 @@
-/** Nomadic V15.0 content from archivos/Nomadic trike just chasis WING CONCEPT.docx.pdf */
+/** Nomadic Trike — archivos/Nomadic TRIKE DESCRIPTION ITEMS AND PRICE for web side.pages */
 
-/** Base chassis price from archivos/Nomadic trike just chasis WING CONCEPT.docx.pdf */
+/** Base chassis price — managed separately; do not change without business approval. */
 export const NOMADIC_BASE_PRICE = 4879.5
 
 export const NOMADIC_PRICE_LABEL = `$${NOMADIC_BASE_PRICE.toLocaleString(undefined, {
@@ -39,64 +39,64 @@ export const NOMADIC_GALLERY = [2, 3, 4, 5, 6].map((n) => ({
 
 export const NOMADIC_HERO_IMAGE = NOMADIC_GALLERY[0].src
 
-export const NOMADIC_GALLERY_URLS = NOMADIC_GALLERY.map((item) => item.src)
-
-export function filterNomadicImages(urls = []) {
-  return (urls || []).filter((url) => url && !isLegacyNomadicImage(url))
-}
-
-export function pickNomadicImage(urls = [], fallback = NOMADIC_HERO_IMAGE) {
-  const filtered = filterNomadicImages(urls)
-  return filtered[0] || fallback
+export function pickNomadicImage(_urls = [], fallback = NOMADIC_HERO_IMAGE) {
+  return NOMADIC_HERO_IMAGE || fallback
 }
 
 export const NOMADIC_CHASSIS_SUMMARY = {
-  model: 'Nomadic V15.0',
-  subtitle: 'Standard — No Engine, No Propeller & No Accessories',
-  tagline: 'Exclusive, dynamic design with exceptional weight performance.',
+  model: 'Nomadic Trike',
+  subtitle: 'Basic Style — No Engine, No Propeller & No Accessories',
+  tagline: 'Go Further, Land Anywhere',
   description:
-    'The Nomadic V15.0 features an exclusive, dynamic design with exceptional weight — from 78 kg (171 lb) with a single-cylinder engine. Its new architecture accepts 160–165 cm propellers for up to 125 kg (275.5 lb) of static thrust, with support for multiple engines including Vittorazi Cosmos 300, Polini 303, Sky Engine Zeus 300, and Simonini Victor One 54 HP.',
+    'Designed for adventure paramotoring and exploration in remote environments. Its large tundra tires provide a smooth ride over rough terrain and allow trouble-free takeoffs and landings on challenging ground. Laser-cut stainless steel parts make the Nomadic incredibly strong yet lightweight — only 45 kg dry without the engine.',
 }
 
 export const NOMADIC_INCLUDED = [
   {
-    icon: 'Fuel',
-    title: '5-Gallon Fuel Tank',
+    icon: 'Package',
+    title: 'Nomadic Chassis',
     description:
-      'Lightweight 5 mm tank with hoses ready to connect to the engine and the original internal filter.',
+      'Nomadic chassis with tundra wheels, telescopic rear axle in Aeronautical 7075 aluminum, and your choice of one motor mount: multi-support for Vittorazi Cosmos 300 and Polini engines, or alternate mount for Sky Engine Zeus 300 or Simonini Victor One Super.',
   },
   {
-    icon: 'Users',
-    title: 'Two Harnesses',
+    icon: 'Zap',
+    title: 'In-Flight Adjustable Attachment Points',
     description:
-      'Pilot and passenger harnesses built for long flights without fatigue. The passenger travels in a fetal position for extra passive protection. Pilot sits above for enhanced visibility, with instrument access and CamelBak hydration. Single certified Cobra buckle for quick emergency exit.',
+      'Innovative system adjusts from tandem to single in flight — ideal for parachutist deployment. The frame attaches to the seat base with a 4-ton resistance wire and a second gravity-adjustment control point for superior balance, less sway, and more control.',
   },
   {
-    icon: 'Link',
-    title: 'Main Straps',
+    icon: 'Shield',
+    title: 'Integral Frame Protection',
     description:
-      '2-inch main harness with a 4-turn loop to quadruple strength. Two configurations: carabiner below the gravity control system for lower, more accessible controls — or above for the standard industry layout.',
+      'Keeps pilot and passengers safely inside the frame, increasing protection in case of a rollover thanks to the trike\'s unique reinforcement design. Independent passenger footrests prevent unintentional turns.',
   },
   {
-    icon: 'Settings',
-    title: 'Multi-Engine Mount',
+    icon: 'Gauge',
+    title: 'Front Disc Brake & Agile Steering',
     description:
-      'Multi-sport kit requiring no additional holes. Designed for the Vittorazi Cosmos 300 with radiator mount. Compatible with Polini 303; alternate mounts available for Sky Engine Zeus 300 or Simonini Victor One Super.',
+      'Front disc brake for greater safety — no complicated maneuvers to stop. Steering tube angle and fork offset make the trike agile at low speeds and stable at high speeds. Pilot sits above the passenger for better visibility.',
+  },
+  {
+    icon: 'Truck',
+    title: 'Tool-Free Assembly & Transport',
+    description:
+      'Simple matching-icon system makes assembly and disassembly intuitive. Telescopic rear axles fit in a large pickup truck bed; one person can load them up an ATV ramp.',
   },
 ]
 
 export const NOMADIC_ENGINES = [
-  { name: 'Vittorazi Cosmos 300 MY25', power: '36 HP' },
-  { name: 'Polini Thor 303', power: '38 HP' },
-  { name: 'Sky Engine Zeus 300', power: '—' },
-  { name: 'Simonini Victor One', power: '54 HP' },
+  { name: 'Polini Thor 260', power: '24 HP' },
+  { name: 'Polini Thor 303 EVO', power: '38 HP' },
+  { name: 'Vittorazi Cosmos 300', power: '36 HP' },
+  { name: 'Sky Engine Zeus 300 Boxer', power: '44 HP' },
+  { name: 'Simonini Victor One Super', power: '54 HP' },
 ]
 
 export const NOMADIC_SPECS = {
-  'Model': 'Nomadic V15.0',
-  'Weight (with engine)': 'From 78 kg / 171 lb',
-  'Static Thrust': 'Up to 125 kg / 275.5 lb',
-  'Propeller Size': '160–165 cm',
-  'Chassis Type': 'High-Durability Stainless Steel',
-  'Orientation': 'Expedition and Off-Grid Flight',
+  'Model': 'Nomadic Trike',
+  'Dry Weight (no engine)': '45 kg / 99 lb',
+  'Chassis Material': 'Laser-cut stainless steel',
+  'Wheels': 'Tundra — all-terrain',
+  'Rear Axle': 'Telescopic, Aeronautical 7075 aluminum',
+  'Orientation': 'Expedition and off-grid flight',
 }

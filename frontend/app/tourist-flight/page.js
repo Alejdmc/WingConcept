@@ -7,9 +7,11 @@ import {
   TOURISTIC_FLIGHT_RATES,
   TOURISTIC_FLIGHT_SCHEDULE,
   TOURIST_FLIGHT_LOCATIONS,
+  TOURIST_FLIGHT_GALLERY,
   formatUSD,
 } from '@/lib/touristFlight'
 import { INDUCTION_PILLARS, INDUCTION_PREFLIGHT_CHECKLIST } from '@/lib/inductionCourse'
+import TouristFlightBooking from '@/components/tourist/TouristFlightBooking'
 
 export default function TouristFlightPage() {
   return (
@@ -59,7 +61,7 @@ export default function TouristFlightPage() {
             <h3 className="text-xl font-black uppercase text-ink mb-6 tracking-wide">Colombia</h3>
             <div className="flex flex-col gap-8">
               {TOURIST_FLIGHT_LOCATIONS.colombia.map((location) => (
-                <LocationCard key={location.id} location={location} />
+                <LocationCard key={location.id} location={location} gallery={TOURIST_FLIGHT_GALLERY[location.id]} />
               ))}
             </div>
           </div>
@@ -70,7 +72,7 @@ export default function TouristFlightPage() {
             {TOURIST_FLIGHT_LOCATIONS.usa.length > 0 ? (
               <div className="flex flex-col gap-8">
                 {TOURIST_FLIGHT_LOCATIONS.usa.map((location) => (
-                  <LocationCard key={location.id} location={location} />
+                  <LocationCard key={location.id} location={location} gallery={TOURIST_FLIGHT_GALLERY[location.id]} />
                 ))}
               </div>
             ) : (
@@ -115,6 +117,9 @@ export default function TouristFlightPage() {
           <p className="text-center text-ink2 text-sm mt-6">Select a duration to get in touch and book your flight.</p>
         </div>
       </section>
+
+      {/* Book */}
+      <TouristFlightBooking />
 
       {/* Induction Course */}
       <section className="py-24 px-6 bg-white">
@@ -166,6 +171,14 @@ export default function TouristFlightPage() {
         </div>
       </section>
 
+      {/* Reviews — coming soon */}
+      <section className="py-16 px-6 bg-bg2 border-t border-borderline">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl font-black uppercase text-ink mb-3">Reviews</h2>
+          <p className="text-ink2">Guest comments and reviews will appear here soon.</p>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 px-6 bg-gradient-to-r from-brand to-brand/80">
         <div className="max-w-4xl mx-auto text-center text-white">
@@ -180,7 +193,7 @@ export default function TouristFlightPage() {
   )
 }
 
-function LocationCard({ location }) {
+function LocationCard({ location, gallery = [] }) {
   return (
     <div className="bg-white border border-borderline rounded-2xl overflow-hidden">
       <div className="relative w-full h-[380px]">
@@ -192,6 +205,19 @@ function LocationCard({ location }) {
           referrerPolicy="no-referrer-when-downgrade"
         />
       </div>
+
+      {gallery.length > 0 && (
+        <div className="px-6 sm:px-8 pt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {gallery.map((photo) => (
+            <div key={photo.src} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-bg2 border border-borderline">
+              <Image src={photo.src} alt={photo.alt} fill className="object-cover" sizes="(max-width: 640px) 50vw, 33vw" />
+              {photo.caption && (
+                <p className="absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] font-semibold px-2 py-1.5">{photo.caption}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">

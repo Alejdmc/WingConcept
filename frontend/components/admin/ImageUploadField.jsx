@@ -64,11 +64,15 @@ export default function ImageUploadField({
         </div>
       )}
 
-      <label className="inline-flex items-center gap-2 px-4 py-2 border border-borderline rounded cursor-pointer hover:border-brand">
-        <Upload className="w-4 h-4" />
-        {uploading ? 'Uploading...' : 'Upload image'}
-        <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUpload} disabled={uploading} />
-      </label>
+      {images.length < maxImages ? (
+        <label className="inline-flex items-center gap-2 px-4 py-2 border border-borderline rounded cursor-pointer hover:border-brand">
+          <Upload className="w-4 h-4" />
+          {uploading ? 'Uploading...' : `Upload image (${images.length}/${maxImages})`}
+          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleUpload} disabled={uploading} />
+        </label>
+      ) : (
+        <p className="text-xs text-ink2">Maximum {maxImages} images reached.</p>
+      )}
     </div>
   )
 }

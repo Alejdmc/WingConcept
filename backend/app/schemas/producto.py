@@ -197,6 +197,7 @@ class AdminProductoResponse(BaseModel):
     stock: int = 0
     sales: int = 0
     activo: bool
+    destacado: bool = False
     categoria: str
     subcategoria: Optional[str] = None
     orden_display: int = 0

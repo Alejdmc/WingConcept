@@ -34,6 +34,7 @@ const PUBLIC_PATHS = new Set([
   '/contenidos/adventure',
   '/contenidos/shows',
   '/contenidos/events',
+  '/contenidos/news',
   '/contenidos/manuals',
   '/dealers',
   '/contact',
@@ -436,6 +437,7 @@ export const api = {
     adventure: () => request('/contenidos/adventure', { skipAuth: true }),
     shows: () => request('/contenidos/shows', { skipAuth: true }),
     events: () => request('/contenidos/events', { skipAuth: true }),
+    news: () => request('/contenidos/news', { skipAuth: true }),
     manuals: () => request('/contenidos/manuals', { skipAuth: true }),
   },
   dealers: {

@@ -19,6 +19,8 @@ VANGUARD_VARIANT_ID = "c1a2b3d4-e5f6-7890-abcd-ef1234567890"
 NOMADIC_VARIANT_ID = "d1e2f3a4-b5c6-7890-abcd-ef1234567890"
 DISRUPTOR_PARAMOTOR_VARIANT_ID = "e1f2a3b4-c5d6-7890-abcd-ef1234567890"
 DISRUPTOR_TRIKE_VARIANT_ID = "f1e2a3b4-c5d6-7890-abcd-ef1234567890"
+TOURIST_FLIGHT_ID = "a1b2c3d4-e5f6-7890-abcd-123456789abc"
+TOURIST_FLIGHT_VARIANT_ID = "a1b2c3d4-e5f6-7890-abcd-ef123456789a"
 
 NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
@@ -178,6 +180,18 @@ def main() -> None:
     _upsert_variante(
         cur, DISRUPTOR_TRIKE_VARIANT_ID, disruptor_trike_id, "Trike Disruptor Base", "DISR-TRIKE-BASE",
         2500.00, 10, '{"peso_kg": 35}', True,
+    )
+
+    # ── Experiences — Tourist Flight reservation deposit ───────────────
+    tourist_id = _upsert_producto(
+        cur, TOURIST_FLIGHT_ID, "Tourist Flight Reservation", "tourist-flight-reservation",
+        "Reservation deposit for a tandem tourist flight with a certified Wing Concept pilot.",
+        "Book your tourist flight experience", "experiences", "tourist-flight",
+        ["/images/colombia.jpg"], 50, False,
+    )
+    _upsert_variante(
+        cur, TOURIST_FLIGHT_VARIANT_ID, tourist_id, "Flight Reservation Deposit", "TOUR-FLIGHT-DEP",
+        round(20000 / 3218.44, 2), 999, '{"deposit_cop": 20000}', True,
     )
 
     # ── Accesorios Vanguard ───────────────────────────────────────────

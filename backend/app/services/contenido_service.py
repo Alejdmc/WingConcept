@@ -19,6 +19,7 @@ from app.schemas.contenido import (
     ContenidoUpdate,
     EventsPageResponse,
     ManualsPageResponse,
+    NewsPageResponse,
     SeccionPageResponse,
     ShowsPageResponse,
 )
@@ -52,7 +53,7 @@ class ContenidoService:
         items = await self.listar_por_seccion(db, seccion, solo_activos=True)
         hero = next((c for c in items if c.tipo == "hero"), None)
         intro = next((c for c in items if c.tipo == "intro"), None)
-        card_tipos = {"expedicion", "show", "evento"}
+        card_tipos = {"expedicion", "show", "evento", "noticia"}
         cards = [c for c in items if c.tipo in card_tipos]
         return SeccionPageResponse(hero=hero, intro=intro, items=cards)
 
@@ -67,6 +68,10 @@ class ContenidoService:
     async def obtener_events(self, db: AsyncSession) -> EventsPageResponse:
         data = await self.obtener_seccion_page(db, "events")
         return EventsPageResponse.from_seccion(data)
+
+    async def obtener_news(self, db: AsyncSession) -> NewsPageResponse:
+        data = await self.obtener_seccion_page(db, "news")
+        return NewsPageResponse.from_seccion(data)
 
     async def obtener_manuals(self, db: AsyncSession) -> ManualsPageResponse:
         data = await self.obtener_seccion_page(db, "manuals")

@@ -134,6 +134,16 @@ export default function ProductsPage() {
 
   return (
     <div>
+      <div className="mb-6 p-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-900 text-sm">
+        <p className="font-bold mb-1">Advanced product list</p>
+        <p>
+          Most day-to-day edits use the dedicated pages in the sidebar:{' '}
+          <strong>Featured products</strong>, <strong>Paramotors</strong>, <strong>Paratrikes</strong>,{' '}
+          <strong>Configurators</strong> and <strong>Parts</strong>.
+          Use this list only for stock on non-catalog items or legacy products.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-black text-ink">Products</h1>

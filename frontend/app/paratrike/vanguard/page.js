@@ -10,9 +10,8 @@ import {
   VANGUARD_BASE_PRICE,
   VANGUARD_CHASSIS_SUMMARY,
   VANGUARD_INCLUDED,
-  VANGUARD_GALLERY,
+  VANGUARD_GALLERY_ORDERED,
   VANGUARD_HERO_IMAGE,
-  pickVanguardImage,
 } from '@/lib/vanguardContent'
 import { resolveVanguardGallery } from '@/lib/productImages'
 
@@ -22,9 +21,10 @@ const vanguardFallback = {
   id: 1,
   name: 'Vanguard V8.0',
   tagline: 'The Ultimate High-Performance Trike',
-  description: 'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. It features a safe, lightweight, durable, and functional chassis designed for pilots who seek extreme adventure.',
+  description:
+    'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. Unique trike with three interchangeable flight modes — Commercial, Adventure, and Reportage — plus adjustable center of gravity in flight.',
   image: VANGUARD_HERO_IMAGE,
-  gallery: VANGUARD_GALLERY,
+  gallery: VANGUARD_GALLERY_ORDERED,
   year: 2020,
   brand: 'Wing Concept',
   philosophy: 'Passion, Science, and Freedom',
@@ -109,17 +109,13 @@ export default function ParatrikePage() {
   useEffect(() => {
     api.productos.obtener('vanguard-v8').then((p) => {
       const extra = p.contenido_extra || {}
-      const heroImage = pickVanguardImage(
-        [extra.listing?.image, ...(extra.gallery || []), ...(p.imagenes || [])].filter(Boolean),
-        VANGUARD_HERO_IMAGE,
-      )
       setVanguard((prev) => ({
         ...prev,
         name: p.nombre || prev.name,
         description: p.descripcion || prev.description,
         tagline: extra.tagline || prev.tagline,
         philosophy: extra.philosophy || prev.philosophy,
-        image: heroImage,
+        image: VANGUARD_HERO_IMAGE,
         features: (extra.features || prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,
@@ -131,7 +127,7 @@ export default function ParatrikePage() {
     }).catch(() => {})
   }, [])
 
-  const galleryItems = vanguard.gallery || VANGUARD_GALLERY
+  const galleryItems = vanguard.gallery || VANGUARD_GALLERY_ORDERED
   const includedItems = vanguard.included || VANGUARD_INCLUDED
 
   return (

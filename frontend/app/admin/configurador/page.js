@@ -4,6 +4,8 @@ import { Pencil, Eye, EyeOff, Plus, Save, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { PRODUCT_IDS } from '@/lib/products'
 import { GRUPO_CONFIGURADOR, grupoLabel } from '@/lib/cmsLabels'
+import { reorderList, persistOrderChanges } from '@/lib/persistOrder'
+import ReorderButtons from '@/components/admin/ReorderButtons'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const PRODUCTOS = [
@@ -15,6 +17,8 @@ const PRODUCTOS = [
 
 const GRUPOS = Object.keys(GRUPO_CONFIGURADOR)
 
+const MAX_CONFIG_IMAGES = 3
+
 function emptyForm(productoId) {
   return {
     producto_id: productoId,
@@ -24,8 +28,58 @@ function emptyForm(productoId) {
     descripcion: '',
     precio: 0,
     imagen: '',
+    imagenes: [],
     orden: 0,
     activo: true,
+    extraPower: '',
+    extraInfoUrl: '',
+    extraPriceTbd: false,
+  }
+}
+
+function galleryFromItem(item) {
+  const fromExtra = Array.isArray(item.extra?.gallery) ? item.extra.gallery.filter(Boolean) : []
+  if (fromExtra.length) return fromExtra.slice(0, MAX_CONFIG_IMAGES)
+  if (item.imagen) return [item.imagen]
+  return []
+}
+
+function extraFromForm(form, existingExtra = {}) {
+  const extra = { ...(existingExtra || {}) }
+  if (form.grupo === 'engine') {
+    if (form.extraPower?.trim()) extra.power = form.extraPower.trim()
+    else delete extra.power
+    if (form.extraInfoUrl?.trim()) extra.infoUrl = form.extraInfoUrl.trim()
+    else delete extra.infoUrl
+  } else {
+    delete extra.power
+    delete extra.infoUrl
+  }
+  if (form.extraPriceTbd) extra.price_tbd = true
+  else delete extra.price_tbd
+
+  const gallery = (form.imagenes || []).filter(Boolean).slice(0, MAX_CONFIG_IMAGES)
+  if (gallery.length) extra.gallery = gallery
+  else delete extra.gallery
+
+  return Object.keys(extra).length ? extra : null
+}
+
+function formFromItem(item) {
+  return {
+    producto_id: item.producto_id,
+    grupo: item.grupo,
+    slug: item.slug,
+    nombre: item.nombre,
+    descripcion: item.descripcion || '',
+    precio: item.precio,
+    imagen: item.imagen || '',
+    imagenes: galleryFromItem(item),
+    orden: item.orden,
+    activo: item.activo,
+    extraPower: item.extra?.power || '',
+    extraInfoUrl: item.extra?.infoUrl || '',
+    extraPriceTbd: Boolean(item.extra?.price_tbd),
   }
 }
 
@@ -40,6 +94,9 @@ export default function AdminConfiguradorPage() {
   const [creating, setCreating] = useState(false)
   const [form, setForm] = useState(emptyForm(PRODUCTOS[0].id))
   const [saving, setSaving] = useState(false)
+  const [reordering, setReordering] = useState(false)
+
+  const sortedItems = [...items].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || String(a.nombre).localeCompare(String(b.nombre)))
 
   const load = async () => {
     setLoading(true)
@@ -69,13 +126,19 @@ export default function AdminConfiguradorPage() {
     setSaving(true)
     setError('')
     try {
+      const imagenes = (form.imagenes || []).filter(Boolean).slice(0, MAX_CONFIG_IMAGES)
       const payload = {
         ...form,
         precio: Number(form.precio) || 0,
         orden: Number(form.orden) || 0,
         descripcion: form.descripcion || null,
-        imagen: form.imagen || null,
+        imagen: imagenes[0] || null,
+        extra: extraFromForm(form, editing?.extra),
       }
+      delete payload.extraPower
+      delete payload.extraInfoUrl
+      delete payload.extraPriceTbd
+      delete payload.imagenes
       if (editing) {
         await api.admin.actualizarConfiguradorOpcion(editing.id, payload)
         setMessage('Option updated.')
@@ -96,17 +159,7 @@ export default function AdminConfiguradorPage() {
   const startEdit = (item) => {
     setEditing(item)
     setCreating(false)
-    setForm({
-      producto_id: item.producto_id,
-      grupo: item.grupo,
-      slug: item.slug,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      precio: item.precio,
-      imagen: item.imagen || '',
-      orden: item.orden,
-      activo: item.activo,
-    })
+    setForm(formFromItem(item))
   }
 
   const toggleActive = async (item) => {
@@ -115,6 +168,27 @@ export default function AdminConfiguradorPage() {
       load()
     } catch {
       setError('Could not change visibility.')
+    }
+  }
+
+  const moveOption = async (index, direction) => {
+    const list = [...sortedItems]
+    const target = direction === 'up' ? index - 1 : index + 1
+    const reordered = reorderList(list, index, target, 'orden')
+    setItems(reordered)
+    setReordering(true)
+    setError('')
+    try {
+      await persistOrderChanges(reordered, sortedItems, {
+        getId: (item) => item.id,
+        update: (id, data) => api.admin.actualizarConfiguradorOpcion(id, data),
+      })
+      setMessage('Option order updated.')
+    } catch {
+      setError('Could not save order.')
+      load()
+    } finally {
+      setReordering(false)
     }
   }
 
@@ -209,6 +283,10 @@ export default function AdminConfiguradorPage() {
             <div>
               <label className="block text-sm font-semibold mb-1">Price (USD)</label>
               <input type="number" step="0.01" min="0" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} className="w-full p-2 border rounded" />
+              <label className="flex items-center gap-2 text-xs text-ink2 mt-2">
+                <input type="checkbox" checked={form.extraPriceTbd} onChange={(e) => setForm({ ...form, extraPriceTbd: e.target.checked })} />
+                Show as &quot;Price on request&quot; (set price here when known)
+              </label>
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Display order</label>
@@ -221,12 +299,28 @@ export default function AdminConfiguradorPage() {
               </label>
             </div>
           </div>
+          {form.grupo === 'engine' && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Power label (optional)</label>
+                <input value={form.extraPower} onChange={(e) => setForm({ ...form, extraPower: e.target.value })} placeholder="e.g. 38 HP" className="w-full p-2 border rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Manufacturer info URL</label>
+                <input value={form.extraInfoUrl} onChange={(e) => setForm({ ...form, extraInfoUrl: e.target.value })} placeholder="https://..." className="w-full p-2 border rounded" />
+              </div>
+            </div>
+          )}
           <ImageUploadField
-            images={form.imagen ? [form.imagen] : []}
-            onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+            images={form.imagenes}
+            onChange={(imagenes) => setForm({
+              ...form,
+              imagenes: imagenes.slice(0, MAX_CONFIG_IMAGES),
+              imagen: imagenes[0] || '',
+            })}
             productoId={productoId}
-            label="Image"
-            maxImages={1}
+            label="Images (up to 3 for configurator gallery)"
+            maxImages={MAX_CONFIG_IMAGES}
           />
           <div className="flex gap-2">
             <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded font-semibold">
@@ -241,6 +335,7 @@ export default function AdminConfiguradorPage() {
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-bg2">
             <tr>
+              <th className="text-left py-3 px-4 font-semibold w-28">Order</th>
               <th className="text-left py-3 px-4 font-semibold">Category</th>
               <th className="text-left py-3 px-4 font-semibold">Name</th>
               <th className="text-left py-3 px-4 font-semibold">Price</th>
@@ -250,15 +345,30 @@ export default function AdminConfiguradorPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5" className="py-8 text-center text-ink2">Loading...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td colSpan="5" className="py-8 text-center text-ink2">No options found.</td></tr>
+              <tr><td colSpan="6" className="py-8 text-center text-ink2">Loading...</td></tr>
+            ) : sortedItems.length === 0 ? (
+              <tr><td colSpan="6" className="py-8 text-center text-ink2">No options found.</td></tr>
             ) : (
-              items.map((item) => (
+              sortedItems.map((item, index) => (
                 <tr key={item.id} className={`border-t ${!item.activo ? 'opacity-50' : ''}`}>
+                  <td className="py-3 px-4">
+                    <ReorderButtons
+                      index={index}
+                      total={sortedItems.length}
+                      disabled={reordering}
+                      onMoveUp={() => moveOption(index, 'up')}
+                      onMoveDown={() => moveOption(index, 'down')}
+                    />
+                  </td>
                   <td className="py-3 px-4">{grupoLabel(item.grupo)}</td>
                   <td className="py-3 px-4 font-semibold">{item.nombre}</td>
-                  <td className="py-3 px-4">${Number(item.precio).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+                  <td className="py-3 px-4">
+                    {item.extra?.price_tbd && Number(item.precio) === 0 ? (
+                      <span className="text-ink2 italic">On request</span>
+                    ) : (
+                      <>${Number(item.precio).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</>
+                    )}
+                  </td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${item.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>
                       {item.activo ? 'Visible' : 'Hidden'}

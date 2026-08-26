@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.utils.validators import sanitizar_texto, validar_url_usuario
 
-SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows", "manuals"})
-TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion", "show", "evento"})
+SECCIONES_VALIDAS = frozenset({"adventure", "events", "shows", "manuals", "news"})
+TIPOS_VALIDOS = frozenset({"hero", "intro", "expedicion", "show", "evento", "noticia"})
 
 
 class ContenidoCreate(BaseModel):
@@ -168,6 +168,14 @@ class EventsPageResponse(SeccionPageResponse):
     @classmethod
     def from_seccion(cls, data: SeccionPageResponse) -> "EventsPageResponse":
         return cls(hero=data.hero, intro=data.intro, items=data.items, eventos=data.items)
+
+
+class NewsPageResponse(SeccionPageResponse):
+    noticias: List[ContenidoResponse] = []
+
+    @classmethod
+    def from_seccion(cls, data: SeccionPageResponse) -> "NewsPageResponse":
+        return cls(hero=data.hero, intro=data.intro, items=data.items, noticias=data.items)
 
 
 class ManualsPageResponse(SeccionPageResponse):

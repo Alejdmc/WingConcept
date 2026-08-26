@@ -33,10 +33,11 @@ export default function SafeImage({
   priority = false,
   sizes,
   fallbackSrc = FALLBACK_IMAGES.product,
+  blankOnError = false,
   ...props
 }) {
   const primary = useMemo(() => normalizeSrc(src), [src])
-  const fallback = normalizeSrc(fallbackSrc) || FALLBACK_IMAGES.product
+  const fallback = blankOnError ? null : (normalizeSrc(fallbackSrc) || FALLBACK_IMAGES.product)
   const [failedPrimary, setFailedPrimary] = useState(false)
 
   useEffect(() => {
@@ -48,16 +49,19 @@ export default function SafeImage({
   if (!displaySrc) {
     return (
       <div
-        className={`bg-bg2 flex items-center justify-center text-ink2/40 text-xs uppercase tracking-widest ${className}`}
+        className={`bg-bg2 ${className}`}
         aria-hidden={!alt}
-      >
-        {alt ? alt.slice(0, 1) : '—'}
-      </div>
+      />
     )
   }
 
   const handleError = () => {
-    if (!failedPrimary && primary && fallback && primary !== fallback) {
+    if (failedPrimary) return
+    if (blankOnError) {
+      setFailedPrimary(true)
+      return
+    }
+    if (primary && fallback && primary !== fallback) {
       setFailedPrimary(true)
     }
   }

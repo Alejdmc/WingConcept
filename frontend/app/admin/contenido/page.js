@@ -1,213 +1,34 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
-import { SECCIONES_CONTENIDO, TIPOS_CONTENIDO, tipoLabel } from '@/lib/cmsLabels'
-import ImageUploadField from '@/components/admin/ImageUploadField'
+import { SECCIONES_CONTENIDO, tipoLabel } from '@/lib/cmsLabels'
+import { reorderList, persistOrderChanges } from '@/lib/persistOrder'
+import ContenidoForm, { contenidoToFormData } from '@/components/admin/ContenidoForm'
+import ReorderButtons from '@/components/admin/ReorderButtons'
 
 const CARD_TIPOS = new Set(['expedicion', 'show', 'evento'])
 
-function emptyForm(seccion, tipo = 'expedicion') {
-  return {
-    seccion,
-    tipo,
-    titulo: '',
-    descripcion: '',
-    imagen: '',
-    ubicacion: '',
-    duracion: '',
-    dificultad: '',
-    participantes: '',
-    fecha: '',
-    hora: '',
-    capacidad: '',
-    precio: '',
-    highlights: '',
-    orden: 0,
-    activo: true,
-  }
-}
-
-function toFormData(item) {
-  return {
-    seccion: item.seccion,
-    tipo: item.tipo,
-    titulo: item.titulo || '',
-    descripcion: item.descripcion || '',
-    imagen: item.imagen || '',
-    ubicacion: item.ubicacion || '',
-    duracion: item.duracion || '',
-    dificultad: item.dificultad || '',
-    participantes: item.participantes || '',
-    fecha: item.fecha || '',
-    hora: item.hora || '',
-    capacidad: item.capacidad || '',
-    precio: item.precio || '',
-    highlights: (item.highlights || []).join('\n'),
-    orden: item.orden || 0,
-    activo: item.activo ?? true,
-  }
-}
-
-function ContenidoForm({ seccion, initial, onSave, onCancel }) {
-  const tipos = TIPOS_CONTENIDO[seccion] || TIPOS_CONTENIDO.adventure
-  const [form, setForm] = useState(initial || emptyForm(seccion, tipos[0]?.value))
-  const [saving, setSaving] = useState(false)
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    const payload = {
-      seccion: form.seccion || seccion,
-      tipo: form.tipo,
-      titulo: form.titulo,
-      descripcion: form.descripcion || null,
-      imagen: form.imagen || null,
-      ubicacion: form.ubicacion || null,
-      duracion: form.duracion || null,
-      dificultad: form.dificultad || null,
-      participantes: form.participantes ? Number(form.participantes) : null,
-      fecha: form.fecha || null,
-      hora: form.hora || null,
-      capacidad: form.capacidad || null,
-      precio: form.precio || null,
-      highlights: form.highlights
-        ? form.highlights.split('\n').map((h) => h.trim()).filter(Boolean)
-        : null,
-      orden: Number(form.orden) || 0,
-      activo: form.activo,
-    }
-    await onSave(payload)
-    setSaving(false)
-  }
-
-  const isCard = CARD_TIPOS.has(form.tipo)
-  const isExpedicion = form.tipo === 'expedicion'
-  const isShow = form.tipo === 'show'
-  const isEvento = form.tipo === 'evento'
-
-  return (
-    <form onSubmit={handleSubmit} className="bg-white border border-borderline rounded-lg p-6 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold mb-1">What are you editing?</label>
-          <select name="tipo" value={form.tipo} onChange={handleChange} className="w-full p-2 border rounded">
-            {tipos.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-          <p className="text-xs text-ink2 mt-1">{tipos.find((t) => t.value === form.tipo)?.hint}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-1">Display order</label>
-          <input name="orden" type="number" value={form.orden} onChange={handleChange} className="w-full p-2 border rounded" />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold mb-1">Title *</label>
-        <input name="titulo" value={form.titulo} onChange={handleChange} required className="w-full p-2 border rounded" />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold mb-1">Description</label>
-        <textarea name="descripcion" value={form.descripcion} onChange={handleChange} rows={3} className="w-full p-2 border rounded" />
-      </div>
-
-      <ImageUploadField
-        images={form.imagen ? [form.imagen] : []}
-        onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
-        label="Image"
-        maxImages={1}
-      />
-
-      {isCard && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1">Location</label>
-              <input name="ubicacion" value={form.ubicacion} onChange={handleChange} className="w-full p-2 border rounded" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">Date</label>
-              <input name="fecha" value={form.fecha} onChange={handleChange} placeholder="March 15-17, 2025" className="w-full p-2 border rounded" />
-            </div>
-          </div>
-
-          {isExpedicion && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Duration</label>
-                <input name="duracion" value={form.duracion} onChange={handleChange} className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Difficulty</label>
-                <input name="dificultad" value={form.dificultad} onChange={handleChange} className="w-full p-2 border rounded" />
-              </div>
-            </div>
-          )}
-
-          {isEvento && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Time</label>
-                <input name="hora" value={form.hora} onChange={handleChange} placeholder="8:00 AM - 5:00 PM" className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Capacity</label>
-                <input name="capacidad" value={form.capacidad} onChange={handleChange} placeholder="20 participants" className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Price</label>
-                <input name="precio" value={form.precio} onChange={handleChange} placeholder="$1,200" className="w-full p-2 border rounded" />
-              </div>
-            </div>
-          )}
-
-          {isExpedicion && (
-            <div>
-              <label className="block text-sm font-semibold mb-1">Participants (number)</label>
-              <input name="participantes" type="number" value={form.participantes} onChange={handleChange} className="w-full p-2 border rounded" />
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">
-              {isEvento ? 'Includes (one per line)' : 'Highlights (one per line)'}
-            </label>
-            <textarea name="highlights" value={form.highlights} onChange={handleChange} rows={4} className="w-full p-2 border rounded" />
-          </div>
-        </>
-      )}
-
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="activo" checked={form.activo} onChange={handleChange} />
-        Active (visible on the public website)
-      </label>
-
-      <div className="flex gap-3">
-        <button type="submit" disabled={saving} className="px-4 py-2 bg-brand text-white rounded font-semibold disabled:opacity-50">
-          {saving ? 'Saving...' : 'Save'}
-        </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel} className="px-4 py-2 border border-borderline rounded">Cancel</button>
-        )}
-      </div>
-    </form>
-  )
+function sortByOrden(items) {
+  return [...items].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || String(a.titulo).localeCompare(String(b.titulo)))
 }
 
 export default function AdminContenidoPage() {
   const [seccion, setSeccion] = useState('adventure')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [reordering, setReordering] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [editing, setEditing] = useState(null)
   const [viewing, setViewing] = useState(null)
   const [creating, setCreating] = useState(false)
+
+  const sortedItems = useMemo(() => sortByOrden(items), [items])
+  const pageBlocks = sortedItems.filter((item) => item.tipo === 'hero' || item.tipo === 'intro')
+  const cards = sortedItems.filter((item) => CARD_TIPOS.has(item.tipo))
 
   const load = async () => {
     setLoading(true)
@@ -233,6 +54,7 @@ export default function AdminContenidoPage() {
     try {
       await api.admin.crearContenido(payload)
       setCreating(false)
+      setMessage('Content saved.')
       load()
     } catch (err) {
       setError(err.detail || 'Error creating content.')
@@ -243,6 +65,7 @@ export default function AdminContenidoPage() {
     try {
       await api.admin.actualizarContenido(editing.id, payload)
       setEditing(null)
+      setMessage('Content updated.')
       load()
     } catch (err) {
       setError(err.detail || 'Error updating content.')
@@ -268,15 +91,42 @@ export default function AdminContenidoPage() {
     }
   }
 
+  const moveCard = async (index, direction) => {
+    const list = [...cards]
+    const target = direction === 'up' ? index - 1 : index + 1
+    const reordered = reorderList(list, index, target, 'orden')
+    setItems((prev) => {
+      const other = prev.filter((item) => !CARD_TIPOS.has(item.tipo))
+      return [...other, ...reordered]
+    })
+    setReordering(true)
+    setError('')
+    try {
+      await persistOrderChanges(reordered, cards, {
+        getId: (item) => item.id,
+        update: (id, data) => api.admin.actualizarContenido(id, data),
+      })
+      setMessage('Order updated.')
+    } catch {
+      setError('Could not save order.')
+      load()
+    } finally {
+      setReordering(false)
+    }
+  }
+
   const seccionLabel = SECCIONES_CONTENIDO.find((s) => s.id === seccion)?.label
   const seccionDesc = SECCIONES_CONTENIDO.find((s) => s.id === seccion)?.descripcion
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-black text-ink">Pages — Adventure, Shows & Events</h1>
-          <p className="text-ink2 mt-2">Edit banners, introductions and cards on your public pages.</p>
+          <h1 className="text-3xl font-black text-ink">Adventure &amp; events</h1>
+          <p className="text-ink2 mt-2">
+            Edit banners, introductions and cards on Adventure, Shows and Events pages.
+            For homepage news, use <Link href="/admin/news" className="text-brand hover:underline">News</Link>.
+          </p>
         </div>
         <button
           onClick={() => { setCreating(true); setEditing(null); setViewing(null) }}
@@ -302,6 +152,7 @@ export default function AdminContenidoPage() {
       </div>
       {seccionDesc && <p className="text-sm text-ink2 mb-6 bg-bg2 p-3 rounded-lg">{seccionDesc}</p>}
 
+      {message && <div className="mb-4 p-4 rounded bg-green-100 text-green-700">{message}</div>}
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
 
       {creating && (
@@ -314,7 +165,7 @@ export default function AdminContenidoPage() {
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.titulo}</h2>
-          <ContenidoForm seccion={seccion} initial={toFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
+          <ContenidoForm seccion={seccion} initial={contenidoToFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
         </div>
       )}
 
@@ -340,34 +191,65 @@ export default function AdminContenidoPage() {
         </div>
       )}
 
+      {pageBlocks.length > 0 && (
+        <div className="mb-6 bg-bg2 rounded-lg p-4">
+          <h2 className="font-black text-ink mb-3 text-sm uppercase tracking-wide">Page banner &amp; intro</h2>
+          <div className="space-y-2">
+            {pageBlocks.map((item) => (
+              <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 bg-white border rounded p-3">
+                <div>
+                  <p className="font-semibold text-sm">{tipoLabel(seccion, item.tipo)} — {item.titulo}</p>
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={() => { setEditing(item); setCreating(false); setViewing(null) }} className="p-2 border rounded hover:border-brand">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleToggleActivo(item)} className="p-2 border rounded hover:border-brand">
+                    {item.activo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white border border-borderline rounded-lg overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-bg2">
             <tr>
-              <th className="text-left py-4 px-6 font-semibold">Section type</th>
-              <th className="text-left py-4 px-6 font-semibold">Title</th>
-              <th className="text-left py-4 px-6 font-semibold">Order</th>
-              <th className="text-left py-4 px-6 font-semibold">Status</th>
-              <th className="text-left py-4 px-6 font-semibold">Actions</th>
+              <th className="text-left py-4 px-4 font-semibold w-28">Order</th>
+              <th className="text-left py-4 px-4 font-semibold">Type</th>
+              <th className="text-left py-4 px-4 font-semibold">Title</th>
+              <th className="text-left py-4 px-4 font-semibold">Status</th>
+              <th className="text-left py-4 px-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan="5" className="py-8 text-center text-ink2">Loading...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td colSpan="5" className="py-8 text-center text-ink2">No content in {seccionLabel}.</td></tr>
+            ) : cards.length === 0 ? (
+              <tr><td colSpan="5" className="py-8 text-center text-ink2">No cards in {seccionLabel}.</td></tr>
             ) : (
-              items.map((item) => (
+              cards.map((item, index) => (
                 <tr key={item.id} className={`border-t border-borderline hover:bg-bg2 ${!item.activo ? 'opacity-60' : ''}`}>
-                  <td className="py-4 px-6 text-ink2">{tipoLabel(seccion, item.tipo)}</td>
-                  <td className="py-4 px-6 font-semibold">{item.titulo}</td>
-                  <td className="py-4 px-6">{item.orden}</td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-4">
+                    <ReorderButtons
+                      index={index}
+                      total={cards.length}
+                      disabled={reordering}
+                      onMoveUp={() => moveCard(index, 'up')}
+                      onMoveDown={() => moveCard(index, 'down')}
+                    />
+                  </td>
+                  <td className="py-4 px-4 text-ink2">{tipoLabel(seccion, item.tipo)}</td>
+                  <td className="py-4 px-4 font-semibold">{item.titulo}</td>
+                  <td className="py-4 px-4">
                     <span className={`px-2 py-1 rounded text-xs font-bold ${item.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                       {item.activo ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-4">
                     <div className="flex gap-2">
                       <button title="View" onClick={() => { setViewing(item); setEditing(null); setCreating(false) }} className="p-2 border rounded hover:border-brand">
                         <Eye className="w-4 h-4" />

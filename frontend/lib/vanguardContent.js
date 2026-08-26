@@ -32,7 +32,7 @@ export const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
   alt: `Vanguard V8.0 ${i + 1}`,
 }))
 
-export const VANGUARD_HERO_IMAGE = VANGUARD_GALLERY[0].src
+export const VANGUARD_HERO_IMAGE = '/images/vanguard/3.png'
 
 export const VANGUARD_GALLERY_URLS = VANGUARD_GALLERY.map((item) => item.src)
 
@@ -40,18 +40,21 @@ export function filterVanguardImages(urls = []) {
   return (urls || []).filter((url) => url && !isLegacyVanguardImage(url))
 }
 
-export function pickVanguardImage(urls = [], fallback = VANGUARD_HERO_IMAGE) {
-  const filtered = filterVanguardImages(urls)
-  const local = filtered.find((url) => /\/images\/vanguard\//.test(url))
-  if (local) return local
-  return filtered[0] || fallback
+export function pickVanguardImage(_urls = [], fallback = VANGUARD_HERO_IMAGE) {
+  return VANGUARD_HERO_IMAGE || fallback
 }
+
+/** Gallery grid — foto 3 primero (cara del producto), resto sin cambiar orden relativo. */
+export const VANGUARD_GALLERY_ORDERED = [
+  VANGUARD_GALLERY[2],
+  ...VANGUARD_GALLERY.filter((_, index) => index !== 2),
+]
 
 export const VANGUARD_CHASSIS_SUMMARY = {
   model: 'Vanguard V8.0',
   subtitle: 'Basic Style — No Engine, No Propeller & No Accessories',
   description:
-    'Developed in collaboration with pilots and engineers, the Vanguard V8.0 is the benchmark in high-performance trikes. A safe, lightweight, durable chassis designed for pilots who seek extreme adventure — with interchangeable mission pods for Commercial, Adventure, or Reportage flying.',
+    'Unique trike with three interchangeable pilot baskets or flight modes — Commercial, Adventure, and Reportage — making your trike a three-in-one. Adjustable center of gravity in flight lets you deploy a parachutist and shift from tandem to single mid-flight, so you can continue flying solo and land safely. Designed for versatility and safety that protect pilot and passenger.',
 }
 
 export const VANGUARD_INCLUDED = [

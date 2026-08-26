@@ -11,7 +11,9 @@ import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
+import QuoteButton from '@/components/configurator/QuoteButton'
 import { buildOptionGallery } from '@/lib/configuratorImages'
+import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import { DISRUPTOR_ENGINES, DISRUPTOR_PROPELLERS } from '@/lib/disruptorSharedOptions'
 import {
   DISRUPTOR_TRIKE_BASE_PRICE,
@@ -113,6 +115,19 @@ export default function ConfiguratorDisruptorTrikePage() {
 
   const cartBlocked = Boolean(engine?.priceTbd)
 
+  const quoteDetails = useMemo(() => {
+    const lines = []
+    if (color?.name) lines.push(`Chassis color: ${color.name}`)
+    if (finish?.name) lines.push(`Chassis: ${finish.name}`)
+    if (engine?.name) lines.push(`Engine: ${engine.name}${engine.priceTbd ? ' (price TBD)' : ''}`)
+    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    if (selectedAccessoryItems.length > 0) {
+      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
+    }
+    if (!cartBlocked) lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
+    return lines
+  }, [color, finish, engine, propeller, selectedAccessoryItems, cartBlocked, totalPrice])
+
   const previewGallery = useMemo(() => {
     if (!previewOption?.id) {
       return buildOptionGallery(null, null, PRODUCT_IMAGES)
@@ -124,8 +139,8 @@ export default function ConfiguratorDisruptorTrikePage() {
       || (previewOption.id.startsWith('color-')
         ? `/images/disruptor/colors/${optionId}-1.jpg`
         : undefined)
-    return buildOptionGallery(optionId, primary, PRODUCT_IMAGES)
-  }, [previewOption])
+    return buildOptionGallery(optionId, primary, PRODUCT_IMAGES, previewOption.gallery)
+  }, [previewOption, step])
 
   const selectColor = (colorOption) => {
     setSelectedColor(colorOption.id)
@@ -144,12 +159,13 @@ export default function ConfiguratorDisruptorTrikePage() {
   const selectEngine = (id) => {
     setSelectedEngine(id)
     const eng = CONFIG_OPTIONS.engines.find((e) => e.id === id)
-    setPreviewOption({ id, image: eng?.image || null })
+    setPreviewOption({ id, image: eng?.image || null, gallery: eng?.gallery })
   }
 
   const selectPropeller = (id) => {
     setSelectedPropeller(id)
-    setPreviewOption({ id, image: null })
+    const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === id)
+    setPreviewOption({ id, image: prop?.image || null, gallery: prop?.gallery })
   }
 
   const toggleUpgrade = (id) => {
@@ -157,7 +173,8 @@ export default function ConfiguratorDisruptorTrikePage() {
     const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === id)
     setPreviewOption({
       id,
-      image: resolveAccessoryImage(id, acc?.image, DISRUPTOR_TRIKE_PRODUCTO_ID),
+      image: acc?.image || resolveAccessoryImage(id, acc?.image, DISRUPTOR_TRIKE_PRODUCTO_ID),
+      gallery: acc?.gallery,
     })
   }
 
@@ -168,19 +185,22 @@ export default function ConfiguratorDisruptorTrikePage() {
         break
       case 1: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
-        setPreviewOption({ id: selectedEngine, image: eng?.image || null })
+        setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
         break
       }
-      case 2:
-        setPreviewOption({ id: selectedPropeller, image: null })
+      case 2: {
+        const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
+        setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
         break
+      }
       case 3: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
           setPreviewOption({
             id: lastId,
-            image: resolveAccessoryImage(lastId, acc?.image, DISRUPTOR_TRIKE_PRODUCTO_ID),
+            image: acc?.image || resolveAccessoryImage(lastId, acc?.image, DISRUPTOR_TRIKE_PRODUCTO_ID),
+            gallery: acc?.gallery,
           })
         } else {
           setPreviewOption({ id: 'accessories', image: null })
@@ -190,7 +210,7 @@ export default function ConfiguratorDisruptorTrikePage() {
       default:
         break
     }
-  }, [step, selectedFinish, selectedEngine, selectedPropeller, selectedUpgrades, CONFIG_OPTIONS.engines, CONFIG_OPTIONS.accessories])
+  }, [step, selectedFinish, selectedEngine, selectedPropeller, selectedUpgrades, CONFIG_OPTIONS.engines, CONFIG_OPTIONS.propellers, CONFIG_OPTIONS.accessories])
 
   const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
   const goPrev = () => setStep((s) => Math.max(s - 1, 0))
@@ -253,7 +273,7 @@ export default function ConfiguratorDisruptorTrikePage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <OptionImageGallery images={previewGallery} />
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
 
             <div className="space-y-4">
               <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition" open>
@@ -426,6 +446,8 @@ export default function ConfiguratorDisruptorTrikePage() {
                 {cartBlocked && ' Engine price pending.'}
               </p>
             </motion.div>
+
+            <QuoteButton productName={QUOTE_PRODUCT_NAMES.disruptorTrike} details={quoteDetails} className="w-full" />
 
             <div className="flex items-center justify-between gap-4">
               <button

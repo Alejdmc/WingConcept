@@ -8,7 +8,7 @@ from typing import Optional
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 
-VANGUARD_HERO_IMAGE = "/images/vanguard/1.png"
+VANGUARD_HERO_IMAGE = "/images/vanguard/3.png"
 NOMADIC_HERO_IMAGE = "/images/nomadic/2.jpg"
 
 SLUG_ALIASES = {
@@ -30,26 +30,34 @@ PART_IMAGE_BY_SLUG = {
 }
 
 ACCESSORY_IMAGE_BY_SLUG = {
-    "cruise-control": "/images/parts/front-bar-protection.png",
+    "accelerator-pedal": "/images/parts/accelerator-pedal.png",
+    "cruise-control": "/images/parts/cruise-control.png",
     "camel-back": "/images/parts/passenger-harness.png",
     "sun-roof-netting": "/images/parts/sun-roof-netting.png",
     "front-bar-protection": "/images/parts/front-bar-protection.png",
     "front-brake": "/images/parts/front-fork.png",
-    "rear-mirror": "/images/parts/instrument-kit-vanguard.png",
+    "rear-mirror": "/images/parts/rear-mirror.png",
     "cockpit-liner": "/images/parts/cockpit-liner.png",
     "parachute-container": "/images/parts/parachute-container.png",
+    "reserve-chute": "/images/parts/parachute-container.png",
     "lateral-bag": "/images/parts/lateral-bag-explorer.png",
     "lateral-bag-explorer": "/images/parts/lateral-bag-explorer.png",
     "bottom-explorer-bag": "/images/parts/bottom-explorer-bag.png",
-    "fuel-gauge-vanguard": "/images/parts/instrument-kit-vanguard.png",
-    "auxiliary-lights": "/images/parts/instrument-kit-vanguard.png",
+    "fuel-gauge-vanguard": "/images/parts/fuel-gauge-vanguard.png",
+    "auxiliary-lights": "/images/parts/auxiliary-lights.png",
     "instrument-kit-vanguard": "/images/parts/instrument-kit-vanguard.png",
     "instrument-kit": "/images/parts/instrument-kit-vanguard.png",
     "instrument-kit-nomadic": "/images/parts/instrument-kit-nomadic.png",
-    "electrical-kit": "/images/parts/instrument-kit-vanguard.png",
-    "carabiners": "/images/parts/front-axle.png",
+    "electrical-kit": "/images/parts/electrical-kit.png",
+    "carabiners": "/images/parts/carabiners.png",
     "propeller-guard": "/images/parts/pilot-dynamic-cage.png",
     "ballistic-parachute": "/images/parts/parachute-container.png",
+}
+
+PROPELLER_IMAGE_BY_SLUG = {
+    "bipala": "/images/propellers/bipala.jpg",
+    "tripala": "/images/propellers/bipala.jpg",
+    "no-propeller": None,
 }
 
 GENERIC_IMAGES = {
@@ -130,6 +138,9 @@ def resolve_accessory_image(
     if key in ACCESSORY_IMAGE_BY_SLUG:
         return ACCESSORY_IMAGE_BY_SLUG[key]
 
+    if key in PROPELLER_IMAGE_BY_SLUG:
+        return PROPELLER_IMAGE_BY_SLUG[key]
+
     cms = (cms_image or "").strip()
     if cms and not _is_generic_image(cms):
         return cms
@@ -155,35 +166,9 @@ def resolve_product_image(
         return resolve_accessory_image(slug, cms, producto_id)
 
     if slug == "vanguard-v8":
-        listing = extra.get("listing") or {}
-        listing_img = listing.get("image")
-        if listing_img and not is_legacy_vanguard_image(listing_img):
-            if "/images/vanguard/" in listing_img:
-                return listing_img
-        gallery = [
-            u for u in (extra.get("gallery") or [])
-            if u and "/images/vanguard/" in u and not is_legacy_vanguard_image(u)
-        ]
-        if gallery:
-            return gallery[0]
-        if imagenes:
-            local = [u for u in imagenes if u and "/images/vanguard/" in u and not is_legacy_vanguard_image(u)]
-            if local:
-                return local[0]
         return VANGUARD_HERO_IMAGE
 
     if slug == "nomadic-trike":
-        listing = extra.get("listing") or {}
-        listing_img = listing.get("image")
-        if listing_img and not _is_legacy_nomadic_image(listing_img):
-            return listing_img
-        gallery = _filter_nomadic_images(extra.get("gallery"))
-        if gallery:
-            return gallery[0]
-        if imagenes:
-            filtered = _filter_nomadic_images(imagenes)
-            if filtered:
-                return filtered[0]
         return NOMADIC_HERO_IMAGE
 
     listing = extra.get("listing") or {}

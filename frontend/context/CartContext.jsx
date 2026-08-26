@@ -59,8 +59,12 @@ export function CartProvider({ children }) {
     setError('')
     try {
       const payload = product.variante_id
-        ? { variante_id: product.variante_id, cantidad: product.cantidad || 1 }
-        : { producto_id: product.producto_id || product.id, cantidad: product.cantidad || 1 }
+        ? { variante_id: product.variante_id, cantidad: product.cantidad || 1, configuracion: product.configuracion }
+        : {
+            producto_id: product.producto_id || product.id,
+            cantidad: product.cantidad || 1,
+            configuracion: product.configuracion,
+          }
       const res = await api.carrito.agregar(payload)
       return applyCartResponse(res)
     } catch (err) {

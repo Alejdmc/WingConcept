@@ -42,6 +42,10 @@ _DOMINIOS_DESECHABLES = frozenset({
 CONFIGURACION_KEYS_PERMITIDAS = frozenset({
     "engine", "finish", "upgrades", "chassisType", "propeller",
     "chassisColor", "accentColor", "peripheralColor", "opciones",
+    "color", "colorId", "handThrottle",
+    # Tourist flight / service bookings
+    "bookingType", "firstName", "lastName", "phone", "age",
+    "locationId", "locationName", "duration", "termsAccepted",
 })
 
 

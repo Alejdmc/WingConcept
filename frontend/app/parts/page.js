@@ -1,26 +1,33 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingCart, Check } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, Check, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { useCart } from '@/hooks/useCart'
 import { loadPublicCatalog, parseListPrice } from '@/lib/loadPartsCatalog'
-import { resolveAccessoryImage, normalizeAccessoryId } from '@/lib/accessoryImages'
+import { resolveAccessoryImage, resolveAccessoryGallery, normalizeAccessoryId } from '@/lib/accessoryImages'
+import PartCardImageCarousel from '@/components/parts/PartCardImageCarousel'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
 
 function mapApiProduct(item) {
   const accessoryId = normalizeAccessoryId(item.slug || item.id)
   const price = parseListPrice(item)
+  const images = resolveAccessoryGallery(accessoryId, {
+    cmsImage: item.image || item.imagenes?.[0],
+    productImages: item.imagenes,
+    productoId: item.id,
+  })
   return {
     id: item.id,
     productoId: item.id,
     slug: item.slug,
     name: item.name || item.nombre,
     price,
-    image: resolveAccessoryImage(accessoryId, item.image || item.imagenes?.[0]),
+    image: images[0] || resolveAccessoryImage(accessoryId, item.image || item.imagenes?.[0]),
+    images,
     description: item.desc || item.descripcion_corta || item.descripcion || '',
     compatibleWith: item.compatible_with?.length ? item.compatible_with : ['vanguard', 'nomadic'],
   }
@@ -117,8 +124,27 @@ export default function PartsPage() {
 function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   const hasPrice = typeof part.price === 'number' && part.price > 0
   const canAddToCart = Boolean(part.productoId) && hasPrice
+  const galleryImages = part.images?.length ? part.images : part.image ? [part.image] : []
+
+  const openLightbox = (index = 0) => {
+    if (!galleryImages.length) return
+    setLightboxIndex(index)
+    setLightboxOpen(true)
+  }
+
+  const lightboxPrev = (event) => {
+    event.stopPropagation()
+    setLightboxIndex((index) => (index - 1 + galleryImages.length) % galleryImages.length)
+  }
+
+  const lightboxNext = (event) => {
+    event.stopPropagation()
+    setLightboxIndex((index) => (index + 1) % galleryImages.length)
+  }
 
   const handleAdd = async () => {
     if (!part.productoId) return
@@ -140,17 +166,12 @@ function PartCard({ part }) {
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4 }}
       className="border-2 border-borderline rounded-xl overflow-hidden hover:border-brand/50 transition-all flex flex-col">
-      <div className="relative aspect-square bg-bg2">
-        <SafeImage
-          src={part.image}
-          alt={part.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-          className="object-contain p-3"
-          fallbackSrc={FALLBACK_IMAGES.part}
-          unoptimized
-        />
-      </div>
+      <PartCardImageCarousel
+        images={galleryImages}
+        alt={part.name}
+        fallbackSrc={FALLBACK_IMAGES.part}
+        onEnlarge={openLightbox}
+      />
 
       <div className="p-4 flex flex-col flex-1">
         <div className="flex flex-wrap gap-1.5 mb-2">
@@ -210,6 +231,60 @@ function PartCard({ part }) {
           <p className="text-red-600 text-xs font-semibold mt-2">Could not add to cart.</p>
         )}
       </div>
+
+      <AnimatePresence>
+        {lightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6"
+            onClick={() => setLightboxOpen(false)}>
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-6 right-6 text-white/80 hover:text-white"
+              aria-label="Close">
+              <X className="w-8 h-8" />
+            </button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-3xl aspect-square">
+              <SafeImage
+                src={galleryImages[lightboxIndex]}
+                alt={part.name}
+                fill
+                className="object-contain"
+                fallbackSrc={FALLBACK_IMAGES.part}
+                unoptimized
+              />
+              {galleryImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={lightboxPrev}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={lightboxNext}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

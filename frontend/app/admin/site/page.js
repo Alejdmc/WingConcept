@@ -83,7 +83,7 @@ export default function AdminSitePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-black text-ink">Website texts</h1>
         <p className="text-ink2 mt-2">
-          Edit titles, buttons and images that appear on public pages. Changes go live immediately.
+          Edit titles, buttons and images on public pages. For product cards use Paramotors, Paratrikes or Featured products in the sidebar.
         </p>
       </div>
 

@@ -4,6 +4,8 @@ import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import { loadAdminCatalog, parseListPrice } from '@/lib/loadPartsCatalog'
+import { reorderList, persistOrderChanges } from '@/lib/persistOrder'
+import ReorderButtons from '@/components/admin/ReorderButtons'
 
 const DEFAULT_STOCK = 10
 const DEFAULT_STOCK_MINIMO = 2
@@ -161,9 +163,10 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
       <ImageUploadField
         images={form.imagenes}
-        onChange={(imagenes) => setForm({ ...form, imagenes })}
+        onChange={(imagenes) => setForm({ ...form, imagenes: imagenes.slice(0, 3) })}
         productoId={form.id}
-        label="Product images (shown in cart and /parts)"
+        label="Product images (up to 3 — same gallery in /parts and configurators)"
+        maxImages={3}
       />
 
       <div>
@@ -208,6 +211,8 @@ export default function AdminPartsPage() {
   const [creating, setCreating] = useState(false)
   const [lowStockAlerts, setLowStockAlerts] = useState([])
   const [editLoading, setEditLoading] = useState(false)
+  const [reordering, setReordering] = useState(false)
+  const [message, setMessage] = useState('')
 
   const load = async () => {
     setLoading(true)
@@ -317,6 +322,30 @@ export default function AdminPartsPage() {
     return item.categoria === filter
   })
 
+  const moveItem = async (index, direction) => {
+    const list = [...filtered]
+    const target = direction === 'up' ? index - 1 : index + 1
+    const reordered = reorderList(list, index, target, 'orden_display')
+    setItems((prev) => {
+      const map = new Map(reordered.map((p) => [p.id, p]))
+      return prev.map((p) => map.get(p.id) || p)
+    })
+    setReordering(true)
+    setError('')
+    try {
+      await persistOrderChanges(reordered, filtered, {
+        getId: (item) => item.id,
+        update: (id, data) => api.admin.actualizarProducto(id, data),
+      })
+      setMessage('Catalog order updated.')
+    } catch {
+      setError('Could not save order.')
+      load()
+    } finally {
+      setReordering(false)
+    }
+  }
+
   const activeCount = useMemo(() => items.filter((i) => i.activo).length, [items])
   const inactiveCount = useMemo(() => items.filter((i) => !i.activo).length, [items])
 
@@ -339,6 +368,7 @@ export default function AdminPartsPage() {
       </div>
 
       {error && <div className="mb-6 p-4 rounded bg-red-100 text-red-700">{error}</div>}
+      {message && <div className="mb-6 p-4 rounded bg-green-100 text-green-700">{message}</div>}
 
       {inactiveCount > 0 && (
         <div className="mb-6 p-4 rounded-lg border border-borderline bg-bg2 text-sm text-ink2">
@@ -393,12 +423,12 @@ export default function AdminPartsPage() {
         <table className="w-full min-w-[800px] text-sm">
           <thead className="bg-bg2">
             <tr>
+              <th className="text-left py-4 px-4 font-semibold w-28">Order</th>
               <th className="text-left py-4 px-6 font-semibold">Name</th>
               <th className="text-left py-4 px-6 font-semibold">Slug</th>
               <th className="text-left py-4 px-6 font-semibold">Category</th>
               <th className="text-left py-4 px-6 font-semibold">Price</th>
               <th className="text-left py-4 px-6 font-semibold">Stock</th>
-              <th className="text-left py-4 px-6 font-semibold">Order</th>
               <th className="text-left py-4 px-6 font-semibold">Status</th>
               <th className="text-left py-4 px-6 font-semibold">Actions</th>
             </tr>
@@ -409,12 +439,21 @@ export default function AdminPartsPage() {
             ) : filtered.length === 0 ? (
               <tr><td colSpan="8" className="py-8 text-center text-ink2">No items in this category. Run seed_parts_catalog.py in the backend container to populate the catalog.</td></tr>
             ) : (
-              filtered.map((item) => {
+              filtered.map((item, index) => {
                 const variante = item.variantes?.find((v) => v.es_principal) || item.variantes?.[0]
                 const stock = variante?.stock ?? 0
                 const isLowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD
                 return (
                   <tr key={item.id} className={`border-t border-borderline hover:bg-bg2 ${!item.activo ? 'opacity-60' : ''} ${isLowStock ? 'bg-orange-50/60' : ''}`}>
+                    <td className="py-4 px-4">
+                      <ReorderButtons
+                        index={index}
+                        total={filtered.length}
+                        disabled={reordering}
+                        onMoveUp={() => moveItem(index, 'up')}
+                        onMoveDown={() => moveItem(index, 'down')}
+                      />
+                    </td>
                     <td className="py-4 px-6 font-semibold">{item.nombre}</td>
                     <td className="py-4 px-6 text-xs text-ink2 font-mono">{item.slug || '—'}</td>
                     <td className="py-4 px-6 capitalize">{item.categoria}</td>
@@ -425,7 +464,6 @@ export default function AdminPartsPage() {
                       </span>
                       {isLowStock && <span className="ml-2 text-xs text-orange-700 font-semibold">LOW</span>}
                     </td>
-                    <td className="py-4 px-6">{item.orden_display ?? 0}</td>
                     <td className="py-4 px-6">
                       <span className={`px-2 py-1 rounded text-xs font-bold ${item.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                         {item.activo ? 'Active' : 'Inactive'}

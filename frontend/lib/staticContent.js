@@ -122,3 +122,66 @@ export const EVENTS_FALLBACK = {
     },
   ],
 }
+
+export const NEWS_FALLBACK = {
+  hero: {
+    titulo: 'W.C News',
+    descripcion: 'Latest from Wing Concept — products, pilots, and the paramotor world',
+    imagen: '/images/front1.jpg',
+  },
+  intro: {
+    descripcion: 'Product launches, expedition reports, dealer updates, and stories from the Wing Concept community. Each article links directly to the section it highlights.',
+  },
+  noticias: [
+    {
+      id: 'news-disruptor',
+      titulo: 'Disruptor Paramotor & Trike Now Available',
+      descripcion: 'The Disruptor line is here — paramotor and paratrike platforms built for pilots who evolve with every flight.',
+      imagen: '/images/disruptor/paramotor-1.jpg',
+      fecha: 'August 2026',
+      ubicacion: 'Product Launch',
+      href: '/paramotors/disruptor',
+      highlights: ['Gravity Control System', 'Online configurator', 'Expedition-ready trike'],
+    },
+    {
+      id: 'news-nomadic',
+      titulo: 'Nomadic Trike — Configure Your Expedition Build',
+      descripcion: 'The Nomadic Trike is built for adventure paramotoring in remote environments — tundra wheels, telescopic axles, and multi-engine mounts.',
+      imagen: '/images/nomadic/2.jpg',
+      fecha: 'August 2026',
+      ubicacion: 'Paratrike',
+      href: '/paratrike/nomadic',
+      highlights: ['Stainless steel chassis', '45 kg dry weight', 'Configure online'],
+    },
+    {
+      id: 'news-vanguard',
+      titulo: 'Vanguard V8.0 — Three Flight Modes in One Trike',
+      descripcion: 'Commercial, Adventure, or Reportage — interchangeable mission pods and in-flight center-of-gravity adjustment on the Vanguard V8.0.',
+      imagen: '/images/vanguard/1.png',
+      fecha: 'August 2026',
+      ubicacion: 'Paratrike',
+      href: '/paratrike/vanguard',
+      highlights: ['Commercial / Adventure / Reportage', '17-gallon fuel tank', 'Open configurator'],
+    },
+    {
+      id: 'news-tourist-flight',
+      titulo: 'Book a Tourist Flight',
+      descripcion: 'Experience the freedom of paramotor flight with a certified pilot. Locations in Colombia and the United States.',
+      imagen: '/images/colombia.jpg',
+      fecha: 'August 2026',
+      ubicacion: 'Experiences',
+      href: '/tourist-flight',
+      highlights: ['Colombia & USA locations', 'Certified pilots', 'Schedule & rates online'],
+    },
+    {
+      id: 'news-parts',
+      titulo: 'Parts & Accessories Catalog Updated',
+      descripcion: 'Structural parts and optional accessories for Vanguard and Nomadic — now with expandable product photos.',
+      imagen: '/images/parts/front-axle.png',
+      fecha: 'August 2026',
+      ubicacion: 'Shop',
+      href: '/parts',
+      highlights: ['Vanguard & Nomadic compatible', 'Add to cart', 'Enlarge photos'],
+    },
+  ],
+}

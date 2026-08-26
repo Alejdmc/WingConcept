@@ -58,7 +58,9 @@ export default function AdminParatrikesPage() {
     setError('')
     try {
       const data = await api.admin.productos({ categoria: 'paratrike', por_pagina: 50 })
-      const ids = (data.items || []).map((p) => p.id)
+      const ids = (data.items || [])
+        .filter((p) => PARATRIKE_HREFS[p.slug])
+        .map((p) => p.id)
       const fullItems = await Promise.all(
         ids.map((id) => api.admin.obtenerProducto(id).catch(() => null))
       )
@@ -172,9 +174,6 @@ export default function AdminParatrikesPage() {
                     title={item.activo ? 'Hide on site' : 'Show on site'}>
                     {item.activo ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
-                  <Link href={`/admin/products/${item.id}/edit`} className="px-3 py-2 border rounded text-sm font-semibold hover:border-brand">
-                    Full product edit
-                  </Link>
                 </div>
               </div>
 

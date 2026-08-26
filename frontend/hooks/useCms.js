@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { api } from '@/lib/api'
 import { pickText, sleep } from '@/lib/contentUtils'
-import { normalizeAccessoryId, resolveAccessoryImage } from '@/lib/accessoryImages'
+import { normalizeAccessoryId, resolveAccessoryImage, resolveAccessoryGallery } from '@/lib/accessoryImages'
 
 import { HOMEPAGE_BLOCKS } from '@/lib/staticContent'
 
@@ -95,7 +95,9 @@ function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
     'no-engine',
   )
   const propellers = sortNoOptionFirst(
-    catalog.propellers?.length ? catalog.propellers.map(mapPropeller) : fallbackOptions.propellers,
+    catalog.propellers?.length
+      ? catalog.propellers.map((o) => mapPropeller(o, fallbackOptions.propellers))
+      : fallbackOptions.propellers,
     'no-propeller',
   )
   return {
@@ -176,34 +178,58 @@ function resolveOptionImage(cmsImage, fallbackImage, conventionPath) {
   return pick(fallbackImage) || pick(cmsImage) || pick(conventionPath) || fallbackImage || cmsImage || null
 }
 
+function normalizeOptionGallery(o) {
+  if (Array.isArray(o.gallery) && o.gallery.length) {
+    return o.gallery.filter(Boolean).slice(0, 3)
+  }
+  return undefined
+}
+
+function withOptionalGallery(base, o) {
+  const gallery = normalizeOptionGallery(o)
+  return gallery ? { ...base, gallery } : base
+}
+
 function mapEngine(o, fallbackEngines = []) {
   const fb = (fallbackEngines || []).find((item) => item.id === o.id)
-  return {
+  return withOptionalGallery({
     id: o.id,
     name: o.name,
     basePrice: o.basePrice ?? o.price ?? 0,
     image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/engines/${String(o.id).toLowerCase()}.jpg` : null),
-    power: o.power,
-    priceTbd: Boolean(o.price_tbd || o.priceTbd),
-  }
+    power: o.power || fb?.power,
+    infoUrl: o.infoUrl || fb?.infoUrl,
+    priceTbd: Boolean(o.price_tbd || o.priceTbd || fb?.priceTbd),
+  }, o)
 }
 function mapHandThrottle(o) {
   return { id: o.id, name: o.name, description: o.description, price: o.price ?? 0 }
 }
 function mapChassis(o, fallbackChassis = []) {
   const fb = (fallbackChassis || []).find((item) => item.id === o.id)
-  return {
+  return withOptionalGallery({
     id: o.id,
     name: o.name,
     description: o.description,
     image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/chassis/${o.id}.jpg` : null),
-  }
+  }, o)
 }
 function mapFinish(o) {
   return { id: o.id, name: o.name, description: o.description, swatch: o.swatch, price: o.price ?? 0 }
 }
-function mapPropeller(o) {
-  return { id: o.id, name: o.name, description: o.description, price: o.price ?? 0 }
+function mapPropeller(o, fallbackPropellers = []) {
+  const fb = (fallbackPropellers || []).find((item) => item.id === o.id)
+  const propId = o.id
+  const defaultPath = propId === 'tripala' || propId === 'bipala'
+    ? '/images/propellers/bipala.jpg'
+    : (propId ? `/images/propellers/${propId}.jpg` : null)
+  return withOptionalGallery({
+    id: o.id,
+    name: o.name,
+    description: o.description,
+    price: o.price ?? 0,
+    image: resolveOptionImage(o.image, fb?.image, defaultPath),
+  }, o)
 }
 function mapColor(o) {
   return { id: o.id, name: o.name, hex: o.hex, price: o.price ?? 0, accent: o.accent }
@@ -213,12 +239,19 @@ function mapAccessory(o, productoId, fallbackAccessories = []) {
   const fallback = (fallbackAccessories || []).find(
     (item) => item.id === o.id || normalizeAccessoryId(item.id) === key,
   )
+  const gallery = resolveAccessoryGallery(o.id, {
+    cmsImage: o.image,
+    cmsGallery: o.gallery,
+    productoId,
+    fallbackImage: fallback?.image,
+  })
   return {
     id: o.id,
     name: o.name,
     price: o.price ?? fallback?.price ?? 0,
     description: o.description || fallback?.description || '',
-    image: resolveAccessoryImage(o.id, o.image, productoId, fallback?.image),
+    image: gallery[0] || resolveAccessoryImage(o.id, o.image, productoId, fallback?.image),
+    gallery,
   }
 }
 
@@ -226,6 +259,17 @@ export function formatConfigSummary(config) {
   if (!config || typeof config !== 'object') return []
   const lines = []
   const fmt = (value) => String(value ?? '').replace(/-/g, ' ').trim()
+
+  if (config.bookingType === 'tourist-flight') {
+    if (config.firstName || config.lastName) {
+      lines.push({ label: 'Guest', value: [config.firstName, config.lastName].filter(Boolean).join(' ') })
+    }
+    if (config.phone) lines.push({ label: 'Phone', value: config.phone })
+    if (config.age) lines.push({ label: 'Age', value: String(config.age) })
+    if (config.locationName || config.locationId) lines.push({ label: 'Location', value: config.locationName || fmt(config.locationId) })
+    if (config.duration) lines.push({ label: 'Duration', value: config.duration })
+    return lines
+  }
 
   if (config.engine) lines.push({ label: 'Engine', value: fmt(config.engine) })
   if (config.chassisType) lines.push({ label: 'Chassis', value: fmt(config.chassisType) })

@@ -451,6 +451,7 @@ class ProductoService:
                 stock=stock_total,
                 sales=ventas,
                 activo=p.activo,
+                destacado=p.destacado,
                 categoria=p.categoria,
                 subcategoria=p.subcategoria,
                 orden_display=p.orden_display or 0,

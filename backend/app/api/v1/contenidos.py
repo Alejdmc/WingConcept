@@ -10,6 +10,7 @@ from app.schemas.contenido import (
     ContenidoResponse,
     EventsPageResponse,
     ManualsPageResponse,
+    NewsPageResponse,
     ShowsPageResponse,
 )
 from app.services.contenido_service import contenido_service
@@ -30,6 +31,11 @@ async def obtener_shows(db: AsyncSession = Depends(get_db)):
 @router.get("/events", response_model=EventsPageResponse)
 async def obtener_events(db: AsyncSession = Depends(get_db)):
     return await contenido_service.obtener_events(db)
+
+
+@router.get("/news", response_model=NewsPageResponse)
+async def obtener_news(db: AsyncSession = Depends(get_db)):
+    return await contenido_service.obtener_news(db)
 
 
 @router.get("/manuals", response_model=ManualsPageResponse)

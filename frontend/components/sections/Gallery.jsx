@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { NOMADIC_GALLERY } from '@/lib/nomadicContent'
-import { VANGUARD_GALLERY, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
+import { VANGUARD_GALLERY, VANGUARD_GALLERY_ORDERED, VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
 
 /** preset forces on-disk gallery — ignores CMS duplicates / broken Supabase URLs. */
 export default function Gallery({
@@ -17,7 +17,7 @@ export default function Gallery({
   const [openIndex, setOpenIndex] = useState(null)
 
   const galleryImages = useMemo(() => {
-    if (preset === 'vanguard') return VANGUARD_GALLERY
+    if (preset === 'vanguard') return VANGUARD_GALLERY_ORDERED
     if (preset === 'nomadic') return NOMADIC_GALLERY
     return images?.length ? images : VANGUARD_GALLERY
   }, [images, preset])

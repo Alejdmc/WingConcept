@@ -59,3 +59,6 @@ __pycache__/
 .venv/
 venv/
 
+# Source docs too large for GitHub (>100MB)
+archivos/imagenes ajustes wingconcept.pages
+

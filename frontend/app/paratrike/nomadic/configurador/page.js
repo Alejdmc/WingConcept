@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
@@ -13,14 +12,20 @@ import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
-import { NOMADIC_BASE_PRICE, NOMADIC_GALLERY } from '@/lib/nomadicContent'
+import QuoteButton from '@/components/configurator/QuoteButton'
+import OptionImageGallery from '@/components/configurator/OptionImageGallery'
+import { buildOptionGallery, NOMADIC_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
 
 const DEFAULT_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0 },
-    { id: 'polini-303', name: 'Polini Thor 303', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg' },
-    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg' },
-    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300 MY25', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg' },
+    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-303-evo/' },
+    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-260-2/' },
+    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://www.vittorazi.com/en/cosmos-300/' },
+    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://skyengines.it/en/home/109-zeus-300-boxer/' },
+    { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html' },
   ],
   chassisFinishes: [
     { id: 'stainless-brushed', name: 'Stainless Steel Brushed', description: 'Brushed stainless steel, maximum weather resistance.', swatch: '#b5b8bb' },
@@ -29,26 +34,30 @@ const DEFAULT_OPTIONS = {
   ],
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
-    { id: 'bipala', name: 'Two-Blade Propeller (Carbon Fiber)', description: 'Two carbon fiber blades. Lightweight, ideal for standard flight.', price: 534.75 },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35 },
+    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Special build for Rotax 503, 582, RMZ500 and high-thrust trikes.', price: 534.75, image: '/images/propellers/bipala.jpg' },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
   ],
   colors: [
-    { name: 'Candy Red', hex: '#e74c3c' },
-    { name: 'Candy Blue', hex: '#3498db' },
-    { name: 'Candy Purple', hex: '#9b59b6' },
-    { name: 'White', hex: '#ffffff' },
-    { name: 'Grey', hex: '#95a5a6' }
+    { name: 'Candy Red & White', hex: '#e74c3c', accent: '#ffffff' },
+    { name: 'Candy Blue & White', hex: '#3498db', accent: '#ffffff' },
+    { name: 'Candy Purple & White', hex: '#9b59b6', accent: '#ffffff' },
   ],
   accessories: [
     { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/cruise-control.png' },
     { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
     { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built to hold additional gear during cross-country exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
     { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 125, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
+    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute. APCO has manufactured over 40,000 life-saving devices since 1984.', image: '/images/parts/parachute-container.png' },
+    { id: 'rock-guard', name: 'Rock Guard', price: 85, description: '1/2-inch U-shaped stainless steel tube with mesh cover — protects propeller tips from small stones, sand, and branches at takeoff.', image: '/images/parts/pilot-dynamic-cage.png' },
+    { id: 'front-bar-protection', name: 'Padded Roll Bar with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
+    { id: 'front-brake', name: 'Front Disc Brake', price: 120, description: 'Additional cable brake providing extra braking power for safer stops on the ground.', image: '/images/parts/front-fork.png' },
+    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
+    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/auxiliary-lights.png' },
     { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.', image: '/images/parts/instrument-kit-nomadic.png' },
-    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/instrument-kit-nomadic.png' },
-    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/front-axle.png' },
+    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness. Highly recommended when adding an engine.', image: '/images/parts/electrical-kit.png' },
+    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/carabiners.png' },
   ]
 }
 
@@ -56,7 +65,7 @@ const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
 
 const NOMADIC_PRODUCTO_ID = PRODUCT_IDS.nomadic
 
-const PRODUCT_IMAGES = NOMADIC_GALLERY
+const PRODUCT_IMAGES = NOMADIC_CONFIGURATOR_GALLERY
 
 export default function ConfiguratorNomadicPage() {
   const router = useRouter()
@@ -82,7 +91,10 @@ export default function ConfiguratorNomadicPage() {
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
   const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [previewOption, setPreviewOption] = useState({
+    id: DEFAULT_OPTIONS.chassisFinishes[0].id,
+    image: NOMADIC_HERO_IMAGE,
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -110,19 +122,97 @@ export default function ConfiguratorNomadicPage() {
     return baseChassis + enginePrice + propellerPrice + finishPrice + upgradesPrice
   }, [engine, propeller, finish, selectedUpgrades, CONFIG_OPTIONS.accessories])
 
-  const goToPreviousImage = () => {
-    setSelectedImageIndex((prev) => (prev === 0 ? PRODUCT_IMAGES.length - 1 : prev - 1))
+  const quoteDetails = useMemo(() => {
+    const lines = []
+    if (selectedChassisColor) lines.push(`Chassis color: ${selectedChassisColor}`)
+    if (finish?.name) lines.push(`Chassis finish: ${finish.name}`)
+    if (engine?.name) lines.push(`Engine: ${engine.name}`)
+    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    if (selectedAccessoryItems.length > 0) {
+      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
+    }
+    lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
+    return lines
+  }, [selectedChassisColor, finish, engine, propeller, selectedAccessoryItems, totalPrice])
+
+  const previewGallery = useMemo(() => {
+    if (!previewOption?.id) {
+      return buildOptionGallery(null, null, PRODUCT_IMAGES)
+    }
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
+  }, [previewOption, step])
+
+  const selectFinish = (id) => {
+    setSelectedFinish(id)
+    setPreviewOption({ id, image: NOMADIC_HERO_IMAGE })
   }
 
-  const goToNextImage = () => {
-    setSelectedImageIndex((prev) => (prev === PRODUCT_IMAGES.length - 1 ? 0 : prev + 1))
+  const selectEngine = (id) => {
+    setSelectedEngine(id)
+    const eng = CONFIG_OPTIONS.engines.find((e) => e.id === id)
+    setPreviewOption({ id, image: eng?.image || null, gallery: eng?.gallery })
+  }
+
+  const selectPropeller = (id) => {
+    setSelectedPropeller(id)
+    const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === id)
+    setPreviewOption({ id, image: prop?.image || null, gallery: prop?.gallery })
   }
 
   const toggleUpgrade = (id) => {
-    setSelectedUpgrades(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+    setSelectedUpgrades((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+    const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === id)
+    setPreviewOption({
+      id,
+      image: acc?.image || resolveAccessoryImage(id, acc?.image, NOMADIC_PRODUCTO_ID),
+      gallery: acc?.gallery,
+    })
   }
 
-  const goNext = () => setStep(s => Math.min(s + 1, STEPS.length - 1))
+  useEffect(() => {
+    switch (step) {
+      case 0:
+        setPreviewOption({ id: selectedFinish, image: NOMADIC_HERO_IMAGE })
+        break
+      case 1: {
+        const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
+        setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
+        break
+      }
+      case 2: {
+        const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
+        setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
+        break
+      }
+      case 3: {
+        const lastId = selectedUpgrades[selectedUpgrades.length - 1]
+        if (lastId) {
+          const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
+          setPreviewOption({
+            id: lastId,
+            image: acc?.image || resolveAccessoryImage(lastId, acc?.image, NOMADIC_PRODUCTO_ID),
+            gallery: acc?.gallery,
+          })
+        } else {
+          setPreviewOption({ id: 'accessories', image: NOMADIC_HERO_IMAGE })
+        }
+        break
+      }
+      default:
+        break
+    }
+  }, [
+    step,
+    selectedFinish,
+    selectedEngine,
+    selectedPropeller,
+    selectedUpgrades,
+    CONFIG_OPTIONS.engines,
+    CONFIG_OPTIONS.propellers,
+    CONFIG_OPTIONS.accessories,
+  ])
+
+  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
   const goPrev = () => setStep(s => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
@@ -181,56 +271,7 @@ export default function ConfiguratorNomadicPage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <div className="relative aspect-square bg-bg2 rounded-2xl overflow-hidden shadow-lg">
-              <SafeImage
-                src={PRODUCT_IMAGES[selectedImageIndex].src}
-                alt={PRODUCT_IMAGES[selectedImageIndex].alt}
-                fill
-                className="object-cover"
-                priority
-                fallbackSrc={FALLBACK_IMAGES.product}
-              />
-
-              {PRODUCT_IMAGES.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={goToPreviousImage}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={goToNextImage}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-ink shadow-md transition hover:bg-white"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {PRODUCT_IMAGES.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {PRODUCT_IMAGES.map((image, index) => (
-                  <motion.button
-                    key={image.src}
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                      selectedImageIndex === index ? 'border-brand' : 'border-borderline hover:border-brand/50'
-                    }`}
-                  >
-                    <SafeImage src={image.src} alt={image.alt} fill className="object-cover" fallbackSrc={FALLBACK_IMAGES.product} />
-                  </motion.button>
-                ))}
-              </div>
-            )}
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
 
             {/* Color Selector */}
             <div className="space-y-4">
@@ -278,7 +319,7 @@ export default function ConfiguratorNomadicPage() {
                         <OptionCard
                           key={f.id}
                           selected={selectedFinish === f.id}
-                          onClick={() => setSelectedFinish(f.id)}
+                          onClick={() => selectFinish(f.id)}
                         >
                           <div className="flex items-center gap-4">
                             <span className="w-14 h-14 rounded-lg shrink-0 border border-borderline" style={{ backgroundColor: f.swatch }} />
@@ -297,15 +338,29 @@ export default function ConfiguratorNomadicPage() {
                   <ConfigSection title="Engine. Pure Power">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.engines.map(e => (
-                        <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => setSelectedEngine(e.id)}>
+                        <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => selectEngine(e.id)}>
                           <p className="font-bold uppercase text-ink">{e.name}</p>
                           <p className="text-sm text-ink2 mt-1">
                             {e.power ? `${e.power} — ` : ''}
-                            {e.basePrice === 0 ? 'Included' : `+$${e.basePrice.toLocaleString()}`}
+                            {e.basePrice === 0 && e.priceTbd
+                              ? 'Price on request'
+                              : e.basePrice === 0
+                                ? 'Included'
+                                : `+$${e.basePrice.toLocaleString()}`}
                           </p>
                           {selectedEngine === e.id && e.image && (
                             <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
                               <OptionThumb src={e.image} alt={e.name} />
+                              {e.infoUrl && (
+                                <a
+                                  href={e.infoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(ev) => ev.stopPropagation()}
+                                  className="text-sm text-brand font-bold hover:underline mt-1">
+                                  More engine info →
+                                </a>
+                              )}
                             </div>
                           )}
                         </OptionCard>
@@ -318,12 +373,17 @@ export default function ConfiguratorNomadicPage() {
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => (
-                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => setSelectedPropeller(p.id)}>
+                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
                           <div className="flex justify-between items-center pr-8">
                             <p className="font-bold uppercase text-ink">{p.name}</p>
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
+                          {selectedPropeller === p.id && p.image && (
+                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
+                              <OptionThumb src={p.image} alt={p.name} />
+                            </div>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -399,6 +459,8 @@ export default function ConfiguratorNomadicPage() {
                 ${totalPrice.toLocaleString()}
               </motion.p>
             </motion.div>
+
+            <QuoteButton productName={QUOTE_PRODUCT_NAMES.nomadic} details={quoteDetails} className="w-full" />
 
             {/* Wizard navigation */}
             <div className="flex items-center justify-between gap-4">

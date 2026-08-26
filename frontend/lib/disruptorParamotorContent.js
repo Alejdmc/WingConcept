@@ -16,7 +16,7 @@ export const DISRUPTOR_PARAMOTOR_SUMMARY = {
   description:
     'Built for pilots who evolve over time — whether you are starting out, exploring, flying acro, going tandem, or adapting to a trike. The Disruptor grows with you and helps you exceed your expectations at every stage.',
   body:
-    'The only paramotor that can correct center of gravity in flight. It manages engine torque efficiently and lets you adjust each arm pivot independently — height and lateral offset — for better balance and comfort. Patented Spar Connectors, an integrated aerodynamic fuel tank, and patented tilting arms with our Gravity Control System set the Disruptor apart from anything else on the market.',
+    'A very well thought-out, lightweight and aerodynamic design. The only paramotor that can correct center of gravity in flight — adjust each arm pivot independently for height and lateral offset. Patented Spar Connectors reinforce the zones that need it most; the integrated aerodynamic fuel tank is part of the structure (AcRA), absorbing impacts while maintaining rigidity. Patented tilting arms with our Gravity Control System reduce drag and displacement, setting the Disruptor apart from anything else on the market.',
 }
 
 export const DISRUPTOR_PARAMOTOR_INCLUDED = [

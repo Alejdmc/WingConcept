@@ -7,6 +7,7 @@ export const PRODUCT_IDS = {
   nomadic: 'd1e2f3a4-b5c6-7890-1234-567890abcdef',
   disruptorParamotor: 'e1f2a3b4-c5d6-7890-1234-567890abcdef',
   disruptorTrike: 'f1e2a3b4-c5d6-7890-1234-567890abcdef',
+  touristFlight: 'a1b2c3d4-e5f6-7890-abcd-123456789abc',
 }
 
 export const VARIANT_IDS = {
@@ -14,4 +15,5 @@ export const VARIANT_IDS = {
   nomadicBase: 'd1e2f3a4-b5c6-7890-abcd-ef1234567890',
   disruptorParamotorBase: 'e1f2a3b4-c5d6-7890-abcd-ef1234567890',
   disruptorTrikeBase: 'f1e2a3b4-c5d6-7890-abcd-ef1234567890',
+  touristFlightReservation: 'a1b2c3d4-e5f6-7890-abcd-ef123456789a',
 }

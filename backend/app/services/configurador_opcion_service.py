@@ -27,6 +27,16 @@ DISRUPTOR_PARAMOTOR_BASE = 2800.0
 DISRUPTOR_TRIKE_BASE = 2500.0
 
 
+def _normalize_gallery(op: ConfiguradorOpcion) -> List[str]:
+    extra = op.extra or {}
+    gallery = extra.get("gallery")
+    if isinstance(gallery, list):
+        urls = [g for g in gallery if isinstance(g, str) and g.strip()]
+        if urls:
+            return urls[:3]
+    return []
+
+
 def _opcion_to_dict(op: ConfiguradorOpcion) -> Dict[str, Any]:
     base = {
         "id": op.slug,
@@ -38,6 +48,9 @@ def _opcion_to_dict(op: ConfiguradorOpcion) -> Dict[str, Any]:
     }
     if op.extra:
         base.update(op.extra)
+    gallery = _normalize_gallery(op)
+    if gallery:
+        base["gallery"] = gallery
     return base
 
 

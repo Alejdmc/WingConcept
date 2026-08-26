@@ -1,5 +1,6 @@
 import Hero from '@/components/sections/Hero'
 import FeaturedProducts from '@/components/sections/FeaturedProducts'
+import HomeNews from '@/components/sections/HomeNews'
 import WhyUs from '@/components/sections/WhyUs'
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <section id="featured-products">
         <FeaturedProducts />
       </section>
+      <HomeNews />
       <WhyUs />
     </main>
   )
