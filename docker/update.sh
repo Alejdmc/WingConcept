@@ -61,11 +61,18 @@ echo "==> Reconstruyendo backend (requerido para migraciones nuevas)..."
 echo "==> Migraciones Alembic..."
 "${COMPOSE[@]}" run --rm --no-deps --entrypoint alembic backend upgrade head
 
-echo "==> Reconstruyendo y levantando servicios..."
-"${COMPOSE[@]}" up -d --build
+echo "==> Reconstruyendo y levantando servicios (sin tocar nginx)..."
+"${COMPOSE[@]}" up -d --build backend frontend redis certbot
 
-echo "==> Reiniciando nginx (aplica nginx.conf y refresca upstreams)..."
-"${COMPOSE[@]}" up -d --force-recreate nginx
+if docker inspect wingconcept_nginx >/dev/null 2>&1; then
+  # shellcheck source=lib/reconnect-nginx-network.sh
+  source "$SCRIPT_DIR/lib/reconnect-nginx-network.sh"
+  echo "==> nginx en producción — reconectar red + reload suave..."
+  reload_wingconcept_nginx
+else
+  echo "==> nginx no existe — creando..."
+  "${COMPOSE[@]}" up -d nginx
+fi
 
 echo "==> Verificando salud (hasta 120s)..."
 ok=false
