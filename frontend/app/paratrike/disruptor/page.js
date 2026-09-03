@@ -16,6 +16,7 @@ import {
   DISRUPTOR_TRIKE_GALLERY,
   DISRUPTOR_TRIKE_HERO,
 } from '@/lib/disruptorTrikeContent'
+import { mergeFeatureList } from '@/lib/contentUtils'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Fuel, Users, Link: Link2, Settings }
 
@@ -69,7 +70,7 @@ export default function DisruptorTrikePage() {
         brand: extra.brand || prev.brand,
         basePrice: DISRUPTOR_TRIKE_BASE_PRICE,
         image: heroImage,
-        features: (extra.features?.length ? extra.features : prev.features).map((f) => ({
+        features: mergeFeatureList(extra.features, prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,
         })),

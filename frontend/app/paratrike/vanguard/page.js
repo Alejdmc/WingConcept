@@ -14,7 +14,7 @@ import {
   VANGUARD_GALLERY_ORDERED,
   VANGUARD_HERO_IMAGE,
 } from '@/lib/vanguardContent'
-import { resolveVanguardGallery } from '@/lib/productImages'
+import { mergeEngineList, mergeFeatureList } from '@/lib/contentUtils'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link: Link2, Settings }
 
@@ -111,11 +111,11 @@ export default function ParatrikePage() {
         tagline: extra.tagline || prev.tagline,
         philosophy: extra.philosophy || prev.philosophy,
         image: VANGUARD_HERO_IMAGE,
-        features: (extra.features || prev.features).map((f) => ({
+        features: mergeFeatureList(extra.features, prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,
         })),
-        engines: extra.engines_list?.length ? extra.engines_list : prev.engines,
+        engines: mergeEngineList(extra.engines_list, prev.engines),
         specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
         gallery: resolveVanguardGallery(extra),
       }))

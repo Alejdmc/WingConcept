@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useSiteBlocks } from '@/hooks/useCms'
+import { mergeCompare, pickText } from '@/lib/contentUtils'
 import { PARATRIKE_HREFS, resolveParatrikeHref } from '@/lib/cmsLabels'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
 import { DISRUPTOR_TRIKE_BASE_PRICE, DISRUPTOR_TRIKE_HERO, DISRUPTOR_TRIKE_SUMMARY } from '@/lib/disruptorTrikeContent'
@@ -63,7 +64,7 @@ const FALLBACK_TRIKES = [
 function mapProductToTrike(product, fallback) {
   const extra = product.contenido_extra || {}
   const listing = extra.listing || {}
-  const compare = extra.compare || fallback?.compare || { description: '', bullets: [] }
+  const compare = mergeCompare(fallback?.compare, extra.compare)
   const price = product.slug === 'nomadic-trike'
     ? NOMADIC_BASE_PRICE
     : product.slug === 'disruptor-trike'
@@ -78,7 +79,10 @@ function mapProductToTrike(product, fallback) {
     slug: product.slug,
     name: product.nombre || product.name || fallback?.name,
     tagline: listing.tagline || extra.tagline || fallback?.tagline,
-    description: listing.description || product.descripcion_corta || product.desc || fallback?.description,
+    description: pickText(
+      listing.description,
+      pickText(product.descripcion_corta, pickText(product.desc, fallback?.description)),
+    ),
     image: resolveProductImage(product, fallback?.image),
     basePrice: price,
     features: listing.features?.length ? listing.features : fallback?.features || [],

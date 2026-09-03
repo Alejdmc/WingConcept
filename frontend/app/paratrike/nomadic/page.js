@@ -16,7 +16,7 @@ import {
   NOMADIC_GALLERY,
   NOMADIC_HERO_IMAGE,
 } from '@/lib/nomadicContent'
-import { resolveNomadicGallery } from '@/lib/productImages'
+import { mergeEngineList, mergeFeatureList } from '@/lib/contentUtils'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Fuel, Users, Link: Link2, Settings, Truck }
 
@@ -91,11 +91,11 @@ export default function NomadicPage() {
         brand: extra.brand || prev.brand,
         basePrice: NOMADIC_BASE_PRICE,
         image: NOMADIC_HERO_IMAGE,
-        features: (extra.features?.length ? extra.features : prev.features).map((f) => ({
+        features: mergeFeatureList(extra.features, prev.features).map((f) => ({
           ...f,
           icon: ICON_MAP[f.icon] || Package,
         })),
-        engines: extra.engines_list?.length ? extra.engines_list : prev.engines,
+        engines: mergeEngineList(extra.engines_list, prev.engines),
         specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
         gallery: resolveNomadicGallery(extra),
       }))

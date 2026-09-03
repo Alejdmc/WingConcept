@@ -13,7 +13,7 @@ import {
   DISRUPTOR_PARAMOTOR_BASE_PRICE,
   DISRUPTOR_PARAMOTOR_HERO,
 } from '@/lib/disruptorParamotorContent'
-import { resolveProductImage } from '@/lib/productImages'
+import { mergeCompare, pickText } from '@/lib/contentUtils'
 
 const FALLBACK_PARAMOTORS = [
   {
@@ -43,7 +43,7 @@ const FALLBACK_PARAMOTORS = [
 function mapProductToParamotor(product, fallback) {
   const extra = product.contenido_extra || {}
   const listing = extra.listing || {}
-  const compare = extra.compare || fallback?.compare || { description: '', bullets: [] }
+  const compare = mergeCompare(fallback?.compare, extra.compare)
   const price = product.slug === 'disruptor-paramotor'
     ? DISRUPTOR_PARAMOTOR_BASE_PRICE
     : typeof product.precio_desde === 'number'
