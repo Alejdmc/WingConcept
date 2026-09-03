@@ -44,6 +44,8 @@ export function mergeCompare(fallbackCompare, cmsCompare) {
     bullets: cmsBullets.length ? cmsBullets : (fb.bullets || []),
   }
 }
+
+function indexByKey(items, key) {
   return new Map(
     (items || [])
       .filter((item) => item?.[key])
