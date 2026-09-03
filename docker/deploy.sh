@@ -14,6 +14,14 @@ DOMAIN="${DOMAIN:-wingconcept.com}"
 EMAIL="${CERTBOT_EMAIL:-admin@wingconcept.com}"
 COMPOSE="docker compose --env-file ../backend/.env -f docker-compose.yml -f docker-compose.prod.yml"
 
+# certbot has a fixed container_name; a leftover instance blocks compose up
+cleanup_stale_certbot() {
+  if docker inspect wingconcept_certbot >/dev/null 2>&1; then
+    echo "==> Eliminando contenedor certbot previo (wingconcept_certbot)..."
+    docker rm -f wingconcept_certbot
+  fi
+}
+
 echo "==> WingConcept deploy — dominio: $DOMAIN"
 
 if [ ! -f ../backend/.env ]; then
@@ -37,6 +45,7 @@ fi
 if [ "$HAS_CERT" = false ]; then
   echo "==> Primera vez: nginx HTTP (bootstrap) para Certbot..."
   export NGINX_CONF=nginx.bootstrap.conf
+  cleanup_stale_certbot
   $COMPOSE up -d --build
 
   echo "==> Esperando servicios..."
@@ -53,10 +62,12 @@ if [ "$HAS_CERT" = false ]; then
 
   echo "==> Activando nginx con HTTPS..."
   export NGINX_CONF=nginx.conf
+  cleanup_stale_certbot
   $COMPOSE up -d
 else
   echo "==> Certificados existentes — despliegue con HTTPS"
   export NGINX_CONF=nginx.conf
+  cleanup_stale_certbot
   $COMPOSE up -d --build
 fi
 
