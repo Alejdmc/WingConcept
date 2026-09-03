@@ -66,6 +66,9 @@ echo ""
 if $RESTART; then
   echo "==> Reiniciando stack..."
   export NGINX_CONF=nginx.conf
+  # shellcheck source=lib/cleanup-stale-containers.sh
+  source "$SCRIPT_DIR/lib/cleanup-stale-containers.sh"
+  cleanup_stale_wingconcept_containers
   "${COMPOSE[@]}" up -d --build
   "${COMPOSE[@]}" up -d --force-recreate nginx
   echo "==> Esperando servicios (90s max)..."

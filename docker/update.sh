@@ -51,11 +51,9 @@ echo "==> .env restaurado"
 
 export NGINX_CONF=nginx.conf
 
-# certbot has a fixed container_name; a leftover instance blocks compose up
-if docker inspect wingconcept_certbot >/dev/null 2>&1; then
-  echo "==> Eliminando contenedor certbot previo (wingconcept_certbot)..."
-  docker rm -f wingconcept_certbot
-fi
+# shellcheck source=lib/cleanup-stale-containers.sh
+source "$SCRIPT_DIR/lib/cleanup-stale-containers.sh"
+cleanup_stale_wingconcept_containers
 
 echo "==> Reconstruyendo backend (requerido para migraciones nuevas)..."
 "${COMPOSE[@]}" build backend
