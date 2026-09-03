@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { padGallery, firstGalleryIndex } from '@/lib/configuratorImages'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 
 function isEmptySlot(item) {
   return !item?.src || item.empty
@@ -15,7 +16,7 @@ function isEmptySlot(item) {
  */
 export default function OptionImageGallery({
   images = [],
-  fallbackSrc = null,
+  fallbackSrc = FALLBACK_IMAGES.logo,
   initialIndex = 0,
 }) {
   const gallery = useMemo(() => padGallery(images), [images])

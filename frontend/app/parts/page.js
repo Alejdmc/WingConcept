@@ -6,59 +6,40 @@ import { ArrowLeft, ShoppingCart, Check, X, ChevronLeft, ChevronRight } from 'lu
 import SafeImage from '@/components/ui/SafeImage'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { useCart } from '@/hooks/useCart'
-import { loadPublicCatalog, parseListPrice } from '@/lib/loadPartsCatalog'
-import { resolveAccessoryImage, resolveAccessoryGallery, normalizeAccessoryId } from '@/lib/accessoryImages'
+import { loadPartsPageCatalog } from '@/lib/loadPartsCatalog'
 import PartCardImageCarousel from '@/components/parts/PartCardImageCarousel'
 
 const MODEL_LABEL = { vanguard: 'Vanguard', nomadic: 'Nomadic' }
-
-function mapApiProduct(item) {
-  const accessoryId = normalizeAccessoryId(item.slug || item.id)
-  const price = parseListPrice(item)
-  const images = resolveAccessoryGallery(accessoryId, {
-    cmsImage: item.image || item.imagenes?.[0],
-    productImages: item.imagenes,
-    productoId: item.id,
-  })
-  return {
-    id: item.id,
-    productoId: item.id,
-    slug: item.slug,
-    name: item.name || item.nombre,
-    price,
-    image: images[0] || resolveAccessoryImage(accessoryId, item.image || item.imagenes?.[0]),
-    images,
-    description: item.desc || item.descripcion_corta || item.descripcion || '',
-    compatibleWith: item.compatible_with?.length ? item.compatible_with : ['vanguard', 'nomadic'],
-  }
-}
 
 export default function PartsPage() {
   const [parts, setParts] = useState([])
   const [accessories, setAccessories] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [usingFallback, setUsingFallback] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
+
     const load = async () => {
       setLoading(true)
-      setError('')
       try {
-        const [partsRows, accRows] = await Promise.all([
-          loadPublicCatalog('repuestos'),
-          loadPublicCatalog('accesorios'),
-        ])
-        setParts(partsRows.map(mapApiProduct))
-        setAccessories(accRows.map(mapApiProduct))
+        const { parts: partsRows, accessories: accRows, fromApi } = await loadPartsPageCatalog()
+        if (cancelled) return
+        setParts(partsRows)
+        setAccessories(accRows)
+        setUsingFallback(!fromApi)
       } catch {
+        if (cancelled) return
         setParts([])
         setAccessories([])
-        setError('Could not load catalog from the server.')
+        setUsingFallback(false)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
+
     load()
+    return () => { cancelled = true }
   }, [])
 
   return (
@@ -80,8 +61,10 @@ export default function PartsPage() {
         <div className="mb-12">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-ink">Parts & Accessories</h1>
           <p className="text-xl text-ink2 mt-2">Structural parts and accessories sold separately for Vanguard and Nomadic</p>
-          {error && (
-            <p className="text-sm text-amber-700 mt-2">{error}</p>
+          {usingFallback && (
+            <p className="text-sm text-amber-700 mt-2">
+              Live catalog unavailable — showing reference list with catalog IDs for cart.
+            </p>
           )}
         </div>
 
@@ -169,7 +152,7 @@ function PartCard({ part }) {
       <PartCardImageCarousel
         images={galleryImages}
         alt={part.name}
-        fallbackSrc={FALLBACK_IMAGES.part}
+        fallbackSrc={FALLBACK_IMAGES.logo}
         onEnlarge={openLightbox}
       />
 
@@ -258,7 +241,7 @@ function PartCard({ part }) {
                 alt={part.name}
                 fill
                 className="object-contain"
-                fallbackSrc={FALLBACK_IMAGES.part}
+                fallbackSrc={FALLBACK_IMAGES.logo}
                 unoptimized
               />
               {galleryImages.length > 1 && (

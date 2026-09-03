@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
+import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 
 /**
  * Product card image area — cycles through gallery on hover when multiple images exist.
@@ -40,7 +41,15 @@ export default function PartCardImageCarousel({
 
   if (!activeSrc) {
     return (
-      <div className="relative aspect-square bg-bg2" aria-hidden />
+      <div className="relative aspect-square bg-bg2">
+        <SafeImage
+          src={fallbackSrc || FALLBACK_IMAGES.logo}
+          alt={alt || 'Wing Concept'}
+          fill
+          className="object-contain p-6"
+          fallbackSrc={FALLBACK_IMAGES.logo}
+        />
+      </div>
     )
   }
 

@@ -10,6 +10,7 @@ export const FALLBACK_IMAGES = {
   accessory: '/images/parts/cockpit-liner.png',
   hero: '/images/front1.jpg',
   founder: '/images/front1.jpg',
+  logo: '/images/logo.png',
 }
 
 /** Resolve CMS / catalog image paths; empty values use the section fallback. */

@@ -284,9 +284,14 @@ export default function NomadicPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-bg2 border border-borderline rounded-xl p-8 text-center hover:shadow-lg hover:border-brand transition-all">
-                <p className="text-3xl font-black text-brand mb-2">{engine.power}</p>
-                <p className="text-ink font-bold uppercase tracking-widest text-sm">{engine.name}</p>
+                className="bg-bg2 border border-borderline rounded-xl p-8 hover:shadow-lg hover:border-brand transition-all">
+                {engine.power && (
+                  <p className="text-3xl font-black text-brand mb-2">{engine.power}</p>
+                )}
+                <p className="text-ink font-bold uppercase tracking-widest text-sm mb-3">{engine.name}</p>
+                {engine.description && (
+                  <p className="text-sm text-ink2 leading-relaxed">{engine.description}</p>
+                )}
               </motion.div>
             ))}
           </div>

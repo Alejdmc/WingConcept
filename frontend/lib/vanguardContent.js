@@ -95,3 +95,31 @@ export const VANGUARD_INCLUDED = [
       'Exclusive multi-engine mount for Rotax 503, Rotax 582, Hirth 35 series, or Simonini Victor 2. Three layers of anti-vibration: raised aluminum plates, support bushings, and independent engine band on nylon bushings.',
   },
 ]
+
+export const VANGUARD_ENGINES = [
+  {
+    name: 'Rotax 912',
+    power: '80 HP',
+    description: 'Four-stroke liquid-cooled aviation engine — the benchmark for reliability and long service life.',
+  },
+  {
+    name: 'Simonini Victor 2 Super',
+    power: '112 HP',
+    description: 'High-output two-stroke engine for performance-focused pilots who need maximum thrust.',
+  },
+  {
+    name: 'RMZ500',
+    power: '',
+    description: 'Rotax 503-compatible powerplant option for proven two-stroke performance on the Vanguard platform.',
+  },
+  {
+    name: 'Vanguard EFI w/ reduction',
+    power: '70 HP',
+    description: '70 HP EFI engine with reduction drive for smooth, efficient operation on short runways.',
+  },
+  {
+    name: 'Hirth 3503',
+    power: '70 HP',
+    description: 'Compact 70 HP two-stroke engine with an excellent power-to-weight ratio for trike operations.',
+  },
+]

@@ -79,10 +79,40 @@ export const DISRUPTOR_PARAMOTOR_SPECS = {
 
 /** Engine lineup highlight (landing page). */
 export const DISRUPTOR_PARAMOTOR_ENGINES = [
-  { name: 'Polini Thor 303 EVO', power: '303 cc', price: '$4,994' },
-  { name: 'Polini Thor 202 Racing', power: '202 cc', price: '$2,882' },
-  { name: 'Polini Thor 130 EVO', power: '130 cc', price: '$2,580' },
-  { name: 'Vittorazi Cosmos 300', power: '36 HP', price: 'TBD' },
-  { name: 'Vittorazi Moster 185', power: '185 cc', price: 'TBD' },
-  { name: 'SKY Zeus 300', power: '44 HP', price: 'TBD' },
+  {
+    name: 'Polini Thor 303 EVO',
+    power: '303 cc',
+    price: '$4,994',
+    description: 'Outstanding performance and reliability — the top-tier Polini option for serious pilots.',
+  },
+  {
+    name: 'Polini Thor 202 Racing',
+    power: '202 cc',
+    price: '$2,882',
+    description: 'Built for slalom competition and sport flying with responsive throttle response.',
+  },
+  {
+    name: 'Polini Thor 130 EVO',
+    power: '130 cc',
+    price: '$2,580',
+    description: 'Advanced dual-carb engine balancing weight savings with dependable power.',
+  },
+  {
+    name: 'Vittorazi Cosmos 300',
+    power: '36 HP',
+    price: 'TBD',
+    description: 'Ideal for paratrikes and tandem flight — smooth torque and proven field support.',
+  },
+  {
+    name: 'Vittorazi Moster 185',
+    power: '185 cc',
+    price: 'TBD',
+    description: 'Versatile mid-displacement engine for sport, travel, and trike adaptation.',
+  },
+  {
+    name: 'SKY Zeus 300',
+    power: '44 HP',
+    price: 'TBD',
+    description: '300 cc boxer engine delivering up to 148 kg of thrust for demanding missions.',
+  },
 ]

@@ -81,7 +81,7 @@ function resolveSingleThumbnail(id, cmsImage, productoId, fallbackImage) {
     return `/images/parts/${key}.png`
   }
 
-  return null
+  return FALLBACK_IMAGES.logo
 }
 
 /**
@@ -122,7 +122,7 @@ export function resolveAccessoryGallery(id, options = {}) {
   }
 
   const single = resolveSingleThumbnail(id, cmsImage, productoId, fallbackImage)
-  return single ? [single] : []
+  return single ? [single] : [FALLBACK_IMAGES.logo]
 }
 
 /**

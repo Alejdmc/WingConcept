@@ -228,7 +228,7 @@ const DEFAULT_OPTIONS = {
   ],
 }
 
-const STEPS = ['Flying Style', 'Engine', 'Hand Throttle', 'Propeller', 'Accessories', 'Review']
+const STEPS = ['Chassis', 'Engine', 'Hand Throttle', 'Propeller', 'Accessories', 'Review']
 
 const DISRUPTOR_PARAMOTOR_PRODUCTO_ID = PRODUCT_IDS.disruptorParamotor
 
@@ -319,7 +319,7 @@ export default function ConfiguratorDisruptorParamotorPage() {
   const quoteDetails = useMemo(() => {
     const lines = []
     if (color?.name) lines.push(`Frame color: ${color.name}`)
-    if (finish?.name) lines.push(`Flying style: ${finish.name}`)
+    if (finish?.name) lines.push(`Chassis: ${finish.name}`)
     if (engine?.name) lines.push(`Engine: ${engine.name}${engine.priceTbd ? ' (price TBD)' : ''}`)
     if (handThrottle?.name) lines.push(`Hand throttle: ${handThrottle.name}`)
     if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
@@ -483,10 +483,8 @@ export default function ConfiguratorDisruptorParamotorPage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
-
             <div className="space-y-4">
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
+              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
                 <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
                   Frame Color
                   <ChevronDown className="group-open:rotate-180 transition-transform" />
@@ -507,6 +505,8 @@ export default function ConfiguratorDisruptorParamotorPage() {
                 </div>
               </details>
             </div>
+
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
           <motion.div
@@ -523,7 +523,7 @@ export default function ConfiguratorDisruptorParamotorPage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
-                  <ConfigSection title="Flying Style. How you fly">
+                  <ConfigSection title="Chassis. Choose your setup">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.chassisFinishes.map((f) => (
                         <OptionCard key={f.id} selected={selectedFinish === f.id} onClick={() => selectFinish(f.id)}>
@@ -616,7 +616,7 @@ export default function ConfiguratorDisruptorParamotorPage() {
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
                       <SummaryRow label="Color" value={color?.name} price={color?.price} />
-                      <SummaryRow label="Flying style" value={finish?.name} price={finish?.price} />
+                      <SummaryRow label="Chassis" value={finish?.name} price={finish?.price} />
                       <SummaryRow
                         label="Engine"
                         value={engine?.name}

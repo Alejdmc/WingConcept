@@ -16,16 +16,20 @@ import QuoteButton from '@/components/configurator/QuoteButton'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
 import { buildOptionGallery, NOMADIC_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
-import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
+import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE, NOMADIC_ENGINES } from '@/lib/nomadicContent'
+
+const NOMADIC_ENGINE_DESCRIPTIONS = Object.fromEntries(
+  NOMADIC_ENGINES.map((engine) => [engine.name, engine.description]),
+)
 
 const DEFAULT_OPTIONS = {
   engines: [
-    { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0 },
-    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-303-evo/' },
-    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-260-2/' },
-    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://www.vittorazi.com/en/cosmos-300/' },
-    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://skyengines.it/en/home/109-zeus-300-boxer/' },
-    { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html' },
+    { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0, description: 'Chassis only — add an engine later.' },
+    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-303-evo/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 303 EVO'] },
+    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-260-2/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 260'] },
+    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://www.vittorazi.com/en/cosmos-300/', description: NOMADIC_ENGINE_DESCRIPTIONS['Vittorazi Cosmos 300'] },
+    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://skyengines.it/en/home/109-zeus-300-boxer/', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
+    { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html', description: NOMADIC_ENGINE_DESCRIPTIONS['Simonini Victor One Super'] },
   ],
   chassisFinishes: [
     { id: 'stainless-brushed', name: 'Stainless Steel Brushed', description: 'Brushed stainless steel, maximum weather resistance.', swatch: '#b5b8bb' },
@@ -271,11 +275,9 @@ export default function ConfiguratorNomadicPage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
-
-            {/* Color Selector */}
+            {/* Color first — then product preview (Nomadic pattern) */}
             <div className="space-y-4">
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
+              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
                 <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
                   Chassis Color
                   <ChevronDown className="group-open:rotate-180 transition-transform" />
@@ -296,6 +298,8 @@ export default function ConfiguratorNomadicPage() {
                 </div>
               </details>
             </div>
+
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
           {/* Right: Wizard step content */}
@@ -363,6 +367,9 @@ export default function ConfiguratorNomadicPage() {
                               )}
                             </div>
                           )}
+                          {e.description && (
+                            <p className="text-sm text-ink2 mt-2 leading-relaxed">{e.description}</p>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -406,8 +413,10 @@ export default function ConfiguratorNomadicPage() {
                             {isSelected && (
                               <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
                                 <OptionThumb src={resolveAccessoryImage(a.id, a.image, NOMADIC_PRODUCTO_ID)} alt={a.name} />
-                                <p className="text-sm text-ink2 text-left">{a.description}</p>
                               </div>
+                            )}
+                            {a.description && (
+                              <p className="text-sm text-ink2 mt-2 leading-relaxed">{a.description}</p>
                             )}
                           </OptionCard>
                         )
@@ -423,6 +432,7 @@ export default function ConfiguratorNomadicPage() {
                 {step === 4 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
+                      <SummaryRow label="Color" value={selectedChassisColor} />
                       <SummaryRow label="Chassis" value={finish?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />

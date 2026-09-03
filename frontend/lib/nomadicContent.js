@@ -85,11 +85,31 @@ export const NOMADIC_INCLUDED = [
 ]
 
 export const NOMADIC_ENGINES = [
-  { name: 'Polini Thor 260', power: '24 HP' },
-  { name: 'Polini Thor 303 EVO', power: '38 HP' },
-  { name: 'Vittorazi Cosmos 300', power: '36 HP' },
-  { name: 'Sky Engine Zeus 300 Boxer', power: '44 HP' },
-  { name: 'Simonini Victor One Super', power: '54 HP' },
+  {
+    name: 'Polini Thor 260',
+    power: '24 HP',
+    description: 'Lightweight 260 cc twin-cylinder engine — ideal for solo expedition flying with excellent fuel economy.',
+  },
+  {
+    name: 'Polini Thor 303 EVO',
+    power: '38 HP',
+    description: 'High-performance 38 HP powerplant for heavier loads, tandem flights, and demanding terrain.',
+  },
+  {
+    name: 'Vittorazi Cosmos 300',
+    power: '36 HP',
+    description: 'Proven 36 HP single-cylinder engine valued for reliability, smooth torque delivery, and field support.',
+  },
+  {
+    name: 'Sky Engine Zeus 300 Boxer',
+    power: '44 HP',
+    description: '44 HP boxer layout with excellent cooling and thrust — a strong choice for expedition builds.',
+  },
+  {
+    name: 'Simonini Victor One Super',
+    power: '54 HP',
+    description: '54 HP powerhouse for pilots who want maximum performance on the Nomadic platform.',
+  },
 ]
 
 export const NOMADIC_SPECS = {

@@ -200,6 +200,7 @@ function mapEngine(o, fallbackEngines = []) {
     power: o.power || fb?.power,
     infoUrl: o.infoUrl || fb?.infoUrl,
     priceTbd: Boolean(o.price_tbd || o.priceTbd || fb?.priceTbd),
+    description: o.description || fb?.description || '',
   }, o)
 }
 function mapHandThrottle(o) {

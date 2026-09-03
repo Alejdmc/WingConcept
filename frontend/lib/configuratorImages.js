@@ -1,10 +1,19 @@
 /**
  * Galería fija de 3 imágenes por opción del configurador.
  * Rutas importadas desde archivos/imagenes ajustes wingconcept.pages
- * Slots sin archivo quedan en blanco.
+ * Slots sin foto usan el logo de Wing Concept.
  */
 
+import { FALLBACK_IMAGES } from './imageDefaults'
+
 export const MAX_OPTION_IMAGES = 3
+
+const LOGO_SLOT = {
+  src: FALLBACK_IMAGES.logo,
+  alt: 'Wing Concept',
+  empty: false,
+  placeholder: true,
+}
 
 export const PROPELLER_BIPALA_IMAGE = '/images/propellers/bipala.jpg'
 
@@ -14,6 +23,10 @@ function partTriplet(slug) {
     `/images/parts/${slug}-2.png`,
     `/images/parts/${slug}-3.png`,
   ]
+}
+
+function partSingle(slug) {
+  return [`/images/parts/${slug}.png`]
 }
 
 function engineTriplet(slug) {
@@ -64,6 +77,44 @@ export const OPTION_GALLERY_BY_ID = {
     '/images/engines/simonini-victor-1-1.jpg',
     '/images/engines/simonini-victor-1-2.jpg',
   ],
+  'front-bar-protection': partSingle('front-bar-protection'),
+  'front-brake': partSingle('front-fork'),
+  'bottom-explorer-bag': partSingle('bottom-explorer-bag'),
+  'lateral-bag-explorer': partSingle('lateral-bag-explorer'),
+  'lateral-bag': partSingle('lateral-bag-explorer'),
+  'rock-guard': partSingle('rock-guard'),
+  'propeller-guard': partSingle('pilot-dynamic-cage'),
+  'instrument-kit-nomadic': partSingle('instrument-kit-nomadic'),
+  'instrument-kit-vanguard': partSingle('instrument-kit-vanguard'),
+  'instrument-kit': partSingle('instrument-kit-vanguard'),
+  'camel-back': partSingle('passenger-harness'),
+  'accelerator-pedal-single': partSingle('accelerator-pedal'),
+}
+
+function normalizeGalleryItem(item, index) {
+  if (typeof item === 'string') {
+    return item.trim()
+      ? { src: item.trim(), alt: `View ${index + 1}`, empty: false }
+      : LOGO_SLOT
+  }
+  if (item?.src) {
+    return { src: item.src, alt: item.alt || `View ${index + 1}`, empty: false }
+  }
+  return LOGO_SLOT
+}
+
+export function padGallery(items = []) {
+  const padded = (items || [])
+    .filter(Boolean)
+    .map(normalizeGalleryItem)
+
+  while (padded.length < MAX_OPTION_IMAGES) {
+    padded.push(LOGO_SLOT)
+  }
+
+  return padded.slice(0, MAX_OPTION_IMAGES).map((item) => (
+    item?.src && !item.empty ? item : LOGO_SLOT
+  ))
 }
 
 /** Vista base configurador Vanguard — foto 3 fija. */
@@ -75,26 +126,6 @@ export const VANGUARD_CONFIGURATOR_GALLERY = padGallery([
 export const NOMADIC_CONFIGURATOR_GALLERY = padGallery([
   { src: '/images/nomadic/2.jpg', alt: 'Nomadic Trike' },
 ])
-
-export function padGallery(items = []) {
-  const padded = (items || [])
-    .filter(Boolean)
-    .map((item, index) => {
-      if (typeof item === 'string') {
-        return item.trim() ? { src: item.trim(), alt: `View ${index + 1}` } : { src: null, alt: '', empty: true }
-      }
-      if (item?.src) {
-        return { src: item.src, alt: item.alt || `View ${index + 1}`, empty: false }
-      }
-      return { src: null, alt: '', empty: true }
-    })
-
-  while (padded.length < MAX_OPTION_IMAGES) {
-    padded.push({ src: null, alt: '', empty: true })
-  }
-
-  return padded.slice(0, MAX_OPTION_IMAGES)
-}
 
 export function resolvePropellerImage(optionId, primaryImage) {
   if (optionId === 'tripala' || optionId === 'bipala') {
@@ -136,16 +167,16 @@ export function buildOptionGallery(optionId, primaryImage, fallbackUrls = [], cm
 }
 
 export function normalizeGallery(urls) {
-  return (urls || [])
-    .map((item, index) => {
+  return padGallery(
+    (urls || []).map((item, index) => {
       if (typeof item === 'string') {
         const src = item.trim()
-        return src ? { src, alt: `Product view ${index + 1}` } : { src: null, alt: '', empty: true }
+        return src ? { src, alt: `Product view ${index + 1}` } : LOGO_SLOT
       }
       if (item?.src) return { src: item.src, alt: item.alt || `Product view ${index + 1}`, empty: false }
-      return { src: null, alt: '', empty: true }
-    })
-    .slice(0, MAX_OPTION_IMAGES)
+      return LOGO_SLOT
+    }),
+  )
 }
 
 export function trikeGalleryProductKey(step) {

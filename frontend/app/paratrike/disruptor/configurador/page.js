@@ -273,10 +273,8 @@ export default function ConfiguratorDisruptorTrikePage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
-
             <div className="space-y-4">
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition" open>
+              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
                 <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
                   Chassis Color
                   <ChevronDown className="group-open:rotate-180 transition-transform" />
@@ -299,6 +297,8 @@ export default function ConfiguratorDisruptorTrikePage() {
                 </div>
               </details>
             </div>
+
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
           <motion.div

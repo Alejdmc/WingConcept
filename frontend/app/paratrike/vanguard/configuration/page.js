@@ -6,7 +6,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
-import { VANGUARD_HERO_IMAGE } from '@/lib/vanguardContent'
+import { VANGUARD_HERO_IMAGE, VANGUARD_ENGINES } from '@/lib/vanguardContent'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
@@ -18,14 +18,16 @@ import OptionImageGallery from '@/components/configurator/OptionImageGallery'
 import { buildOptionGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 
+const vanguardEngineDesc = (name) => VANGUARD_ENGINES.find((engine) => engine.name === name)?.description ?? ''
+
 const DEFAULT_OPTIONS = {
   engines: [
-    { id: 'no-engine', name: 'No Engine', basePrice: 0 },
-    { id: 'rotax-503-preowned', name: 'Pre-Owned Rotax 503', basePrice: 0, priceTbd: true, image: '/images/engines/rotax-503.jpg', infoUrl: 'https://www.rotax.com/' },
-    { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html' },
-    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg' },
-    { id: 'simonini-v2', name: 'Simonini Victor 2 Super (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/127-victor-2.html' },
-    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg' },
+    { id: 'no-engine', name: 'No Engine', basePrice: 0, description: 'Chassis only — add an engine later.' },
+    { id: 'rotax-503-preowned', name: 'Pre-Owned Rotax 503', basePrice: 0, priceTbd: true, image: '/images/engines/rotax-503.jpg', infoUrl: 'https://www.rotax.com/', description: 'Pre-owned Rotax 503 two-stroke option for budget-conscious builds.' },
+    { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html', description: vanguardEngineDesc('Rotax 912') },
+    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg', description: vanguardEngineDesc('RMZ500') },
+    { id: 'simonini-v2', name: 'Simonini Victor 2 Super (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/127-victor-2.html', description: vanguardEngineDesc('Simonini Victor 2 Super') },
+    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg', description: vanguardEngineDesc('Hirth 3503') },
   ],
   chassisTypes: [
     {
@@ -273,11 +275,9 @@ export default function ConfiguratorPage() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
 
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
-
-            {/* Color Selectors */}
+            {/* Color first — then product preview (Nomadic pattern) */}
             <div className="space-y-4">
-              <details className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
+              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
                 <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
                   Chassis Color
                   <ChevronDown className="group-open:rotate-180 transition-transform" />
@@ -298,6 +298,8 @@ export default function ConfiguratorPage() {
                 </div>
               </details>
             </div>
+
+            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
           {/* Right: Wizard step content */}
@@ -364,6 +366,9 @@ export default function ConfiguratorPage() {
                               )}
                             </div>
                           )}
+                          {e.description && (
+                            <p className="text-sm text-ink2 mt-2 leading-relaxed">{e.description}</p>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -405,8 +410,10 @@ export default function ConfiguratorPage() {
                             {isSelected && (
                               <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
                                 <OptionThumb src={resolveAccessoryImage(a.id, a.image, VANGUARD_PRODUCTO_ID)} alt={a.name} />
-                                <p className="text-sm text-ink2 text-left">{a.description}</p>
                               </div>
+                            )}
+                            {a.description && (
+                              <p className="text-sm text-ink2 mt-2 leading-relaxed">{a.description}</p>
                             )}
                           </OptionCard>
                         )
@@ -422,6 +429,7 @@ export default function ConfiguratorPage() {
                 {step === 4 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
+                      <SummaryRow label="Color" value={selectedChassisColor} />
                       <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />

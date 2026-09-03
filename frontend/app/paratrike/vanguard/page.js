@@ -10,6 +10,7 @@ import {
   VANGUARD_BASE_PRICE,
   VANGUARD_CHASSIS_SUMMARY,
   VANGUARD_INCLUDED,
+  VANGUARD_ENGINES,
   VANGUARD_GALLERY_ORDERED,
   VANGUARD_HERO_IMAGE,
 } from '@/lib/vanguardContent'
@@ -86,13 +87,7 @@ const vanguardFallback = {
     },
   ],
 
-  engines: [
-    { name: 'Rotax 912', power: '80 HP' },
-    { name: 'Simonini Victor 2 Super', power: '112 HP' },
-    { name: 'RMZ500', power: '' },
-    { name: 'Vanguard EFI w/ reduction', power: '70 HP' },
-    { name: 'Hirth 3503', power: '70 HP' },
-  ],
+  engines: VANGUARD_ENGINES,
 
   specs: {
     'Orientation': 'Tandem flight & short runway operations',
@@ -262,10 +257,15 @@ export default function ParatrikePage() {
             {vanguard.engines.map((engine, i) => (
               <div key={i} className="bg-white border border-borderline rounded-lg p-6 hover:shadow-lg transition">
                 <div className="flex items-center gap-3 mb-2">
-                  <Check className="w-5 h-5 text-brand" />
+                  <Check className="w-5 h-5 text-brand shrink-0" />
                   <h3 className="font-black text-ink">{engine.name}</h3>
                 </div>
-                <p className="text-sm text-brand font-bold uppercase tracking-widest">{engine.power}</p>
+                {engine.power && (
+                  <p className="text-sm text-brand font-bold uppercase tracking-widest mb-2">{engine.power}</p>
+                )}
+                {engine.description && (
+                  <p className="text-sm text-ink2 leading-relaxed">{engine.description}</p>
+                )}
               </div>
             ))}
           </div>
