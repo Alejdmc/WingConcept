@@ -1,7 +1,7 @@
 'use client'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { api, isBackendUnavailable } from '@/lib/api'
+import { api, resetBackendAvailability } from '@/lib/api'
 
 const CART_ROUTES = ['/cart', '/checkout']
 
@@ -24,11 +24,14 @@ export function CartProvider({ children }) {
   const [total, setTotal] = useState(0)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
+  const skipNextFetchRef = useRef(false)
+  const initialLoadDoneRef = useRef(false)
 
   const applyCartResponse = useCallback((res) => {
     setItems(res?.items || [])
     setTotal(res?.total || 0)
     setError('')
+    resetBackendAvailability()
     return res
   }, [])
 
@@ -37,8 +40,7 @@ export function CartProvider({ children }) {
       const res = await api.carrito.obtener()
       return applyCartResponse(res)
     } catch (err) {
-      setItems([])
-      setTotal(0)
+      // Never wipe items on refresh failure — POST may have succeeded moments ago.
       if (err?.status !== 0) {
         setError(err?.detail || 'Could not load cart.')
       }
@@ -48,11 +50,33 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     getOrCreateSessionId()
-    const needsCart = CART_ROUTES.some((route) => pathname?.startsWith(route))
-    if (needsCart && !isBackendUnavailable()) {
+    if (!initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true
       fetchCarrito()
     }
+  }, [fetchCarrito])
+
+  useEffect(() => {
+    const needsCart = CART_ROUTES.some((route) => pathname?.startsWith(route))
+    if (!needsCart) return
+
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false
+      return
+    }
+
+    fetchCarrito()
   }, [fetchCarrito, pathname])
+
+  useEffect(() => {
+    const onAuthChanged = () => fetchCarrito()
+    window.addEventListener('auth-changed', onAuthChanged)
+    return () => window.removeEventListener('auth-changed', onAuthChanged)
+  }, [fetchCarrito])
+
+  const markSkipNextFetch = useCallback(() => {
+    skipNextFetchRef.current = true
+  }, [])
 
   const addToCart = useCallback(async (product) => {
     setCargando(true)
@@ -66,6 +90,7 @@ export function CartProvider({ children }) {
             configuracion: product.configuracion,
           }
       const res = await api.carrito.agregar(payload)
+      markSkipNextFetch()
       return applyCartResponse(res)
     } catch (err) {
       const msg = err?.detail || 'Error adding to cart.'
@@ -74,7 +99,7 @@ export function CartProvider({ children }) {
     } finally {
       setCargando(false)
     }
-  }, [applyCartResponse])
+  }, [applyCartResponse, markSkipNextFetch])
 
   const addConfiguredProduct = useCallback(async (config) => {
     setCargando(true)
@@ -100,6 +125,7 @@ export function CartProvider({ children }) {
           totalPrice: config.totalPrice,
         },
       })
+      markSkipNextFetch()
       return applyCartResponse(res)
     } catch (err) {
       const msg = err?.detail || 'Error adding to cart.'
@@ -108,7 +134,7 @@ export function CartProvider({ children }) {
     } finally {
       setCargando(false)
     }
-  }, [applyCartResponse])
+  }, [applyCartResponse, markSkipNextFetch])
 
   const removeFromCart = useCallback(async (itemId) => {
     setError('')

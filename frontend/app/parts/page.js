@@ -107,6 +107,7 @@ export default function PartsPage() {
 function PartCard({ part }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
+  const [addError, setAddError] = useState('')
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const hasPrice = typeof part.price === 'number' && part.price > 0
@@ -132,13 +133,15 @@ function PartCard({ part }) {
   const handleAdd = async () => {
     if (!part.productoId) return
     setStatus('loading')
+    setAddError('')
     try {
       await addToCart({ producto_id: part.productoId, cantidad: 1 })
       setStatus('added')
       setTimeout(() => setStatus('idle'), 2000)
-    } catch {
+    } catch (err) {
+      setAddError(err?.detail || 'Could not add to cart.')
       setStatus('error')
-      setTimeout(() => setStatus('idle'), 3000)
+      setTimeout(() => setStatus('idle'), 5000)
     }
   }
 
@@ -211,7 +214,7 @@ function PartCard({ part }) {
         )}
 
         {status === 'error' && canAddToCart && (
-          <p className="text-red-600 text-xs font-semibold mt-2">Could not add to cart.</p>
+          <p className="text-red-600 text-xs font-semibold mt-2">{addError || 'Could not add to cart.'}</p>
         )}
       </div>
 

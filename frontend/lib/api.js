@@ -163,13 +163,13 @@ function sleep(ms) {
 }
 
 async function request(path, options = {}, attempt = 0) {
-  const { skipAuth = false, ...fetchOptions } = options
+  const { skipAuth = false, skipProbe = false, ...fetchOptions } = options
   const isPublic = skipAuth || isPublicPath(path)
   const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
   const method = (fetchOptions.method || 'GET').toUpperCase()
 
-  if (method === 'GET' && typeof window !== 'undefined' && attempt === 0) {
+  if (method === 'GET' && !skipProbe && typeof window !== 'undefined' && attempt === 0) {
     const available = await probeBackendOnce()
     if (!available) {
       throw { status: 0, offline: true, detail: 'Backend unavailable — using local fallbacks.' }
@@ -342,12 +342,12 @@ export const api = {
   },
 
   carrito: {
-    obtener: () => request('/carrito'),
-    agregar: (data) => request('/carrito/items', { method: 'POST', body: JSON.stringify(data) }),
-    actualizar: (itemId, cantidad) => request(`/carrito/items/${itemId}`, { method: 'PUT', body: JSON.stringify({ cantidad }) }),
-    eliminar: (itemId) => request(`/carrito/items/${itemId}`, { method: 'DELETE' }),
-    vaciar: () => request('/carrito', { method: 'DELETE' }),
-    merge: () => request('/carrito/merge', { method: 'POST' }),
+    obtener: () => request('/carrito', { skipProbe: true }),
+    agregar: (data) => request('/carrito/items', { method: 'POST', body: JSON.stringify(data), skipProbe: true }),
+    actualizar: (itemId, cantidad) => request(`/carrito/items/${itemId}`, { method: 'PUT', body: JSON.stringify({ cantidad }), skipProbe: true }),
+    eliminar: (itemId) => request(`/carrito/items/${itemId}`, { method: 'DELETE', skipProbe: true }),
+    vaciar: () => request('/carrito', { method: 'DELETE', skipProbe: true }),
+    merge: () => request('/carrito/merge', { method: 'POST', skipProbe: true }),
   },
 
   configurador: {
