@@ -1,7 +1,9 @@
 """Inserta o actualiza el catálogo alineado con la app (Vanguard, Nomadic, accesorios)."""
+import json
 import os
 import sys
 import uuid
+from typing import Optional
 from urllib.parse import urlparse
 
 import psycopg2
@@ -64,46 +66,121 @@ def _sync_db_url() -> str:
     )
 
 
+def _find_producto_id(cur, slug: str, pid: str) -> Optional[str]:
+    """Resolve an existing row by slug, legacy slug aliases, or deterministic id."""
+    cur.execute("SELECT id FROM productos WHERE slug = %s", (slug,))
+    row = cur.fetchone()
+    if row:
+        return str(row[0])
+
+    if slug.startswith("vanguard-"):
+        bare = slug[len("vanguard-"):]
+        for candidate in (f"acc-{bare}", bare, f"nomadic-{bare}"):
+            cur.execute("SELECT id FROM productos WHERE slug = %s", (candidate,))
+            row = cur.fetchone()
+            if row:
+                return str(row[0])
+    elif slug.startswith("nomadic-"):
+        bare = slug[len("nomadic-"):]
+        for candidate in (f"acc-{bare}", bare, f"vanguard-{bare}"):
+            cur.execute("SELECT id FROM productos WHERE slug = %s", (candidate,))
+            row = cur.fetchone()
+            if row:
+                return str(row[0])
+
+    cur.execute("SELECT id FROM productos WHERE id = %s::uuid", (pid,))
+    row = cur.fetchone()
+    if row:
+        return str(row[0])
+
+    return None
+
+
+def _find_variante_id(cur, sku: str, vid: str) -> Optional[str]:
+    cur.execute("SELECT id FROM variantes WHERE sku = %s", (sku,))
+    row = cur.fetchone()
+    if row:
+        return str(row[0])
+    cur.execute("SELECT id FROM variantes WHERE id = %s::uuid", (vid,))
+    row = cur.fetchone()
+    if row:
+        return str(row[0])
+    return None
+
+
 def _upsert_producto(cur, pid, nombre, slug, descripcion, descripcion_corta, categoria, subcategoria, imagenes, orden, destacado=True):
+    existing_id = _find_producto_id(cur, slug, pid)
+
+    if existing_id:
+        cur.execute(
+            """
+            UPDATE productos SET
+                slug = %s,
+                nombre = %s,
+                descripcion = %s,
+                descripcion_corta = %s,
+                categoria = %s,
+                subcategoria = %s,
+                imagenes = %s,
+                activo = true,
+                destacado = %s,
+                orden_display = %s,
+                updated_at = NOW()
+            WHERE id = %s::uuid
+            """,
+            (
+                slug,
+                nombre,
+                descripcion,
+                descripcion_corta,
+                categoria,
+                subcategoria,
+                imagenes,
+                destacado,
+                orden,
+                existing_id,
+            ),
+        )
+        return existing_id
+
     cur.execute(
         """
         INSERT INTO productos (id, nombre, slug, descripcion, descripcion_corta, categoria, subcategoria, imagenes, activo, destacado, orden_display, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true, %s, %s, NOW(), NOW())
-        ON CONFLICT (slug) DO UPDATE SET
-            nombre = EXCLUDED.nombre,
-            descripcion = EXCLUDED.descripcion,
-            descripcion_corta = EXCLUDED.descripcion_corta,
-            categoria = EXCLUDED.categoria,
-            subcategoria = EXCLUDED.subcategoria,
-            imagenes = EXCLUDED.imagenes,
-            activo = true,
-            destacado = EXCLUDED.destacado,
-            orden_display = EXCLUDED.orden_display,
-            updated_at = NOW()
+        VALUES (%s::uuid, %s, %s, %s, %s, %s, %s, %s, true, %s, %s, NOW(), NOW())
         """,
         (pid, nombre, slug, descripcion, descripcion_corta, categoria, subcategoria, imagenes, destacado, orden),
     )
-    cur.execute("SELECT id FROM productos WHERE slug = %s", (slug,))
-    row = cur.fetchone()
-    return str(row[0]) if row else pid
+    return pid
 
 
 def _upsert_variante(cur, vid, producto_id, nombre, sku, precio, stock, atributos=None, es_principal=True):
+    attrs = atributos if isinstance(atributos, str) else json.dumps(atributos or {})
+    existing_id = _find_variante_id(cur, sku, vid)
+
+    if existing_id:
+        cur.execute(
+            """
+            UPDATE variantes SET
+                producto_id = %s::uuid,
+                nombre = %s,
+                precio = %s,
+                stock = %s,
+                atributos = %s::jsonb,
+                activo = true,
+                es_principal = %s,
+                updated_at = NOW()
+            WHERE id = %s::uuid
+            """,
+            (producto_id, nombre, precio, stock, attrs, es_principal, existing_id),
+        )
+        return
+
     cur.execute(
         """
         INSERT INTO variantes (id, producto_id, nombre, sku, precio, stock, stock_minimo, atributos, activo, es_principal, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, 1, %s::jsonb, true, %s, NOW(), NOW())
-        ON CONFLICT (sku) DO UPDATE SET
-            producto_id = EXCLUDED.producto_id,
-            nombre = EXCLUDED.nombre,
-            precio = EXCLUDED.precio,
-            stock = EXCLUDED.stock,
-            atributos = EXCLUDED.atributos,
-            activo = true,
-            es_principal = EXCLUDED.es_principal,
-            updated_at = NOW()
+        VALUES (%s::uuid, %s::uuid, %s, %s, %s, %s, 1, %s::jsonb, true, %s, NOW(), NOW())
         """,
-        (vid, producto_id, nombre, sku, precio, stock, atributos or "{}", es_principal),
+        (vid, producto_id, nombre, sku, precio, stock, attrs, es_principal),
     )
 
 
