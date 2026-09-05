@@ -4,10 +4,13 @@ Debe coincidir con frontend/lib/parts.js y frontend/lib/accessories.js.
 
 Uso:
   cd backend && python3 scripts/seed_parts_catalog.py
+  cd backend && python3 -m scripts.seed_parts_catalog
 
 Re-ejecutar es idempotente (upsert por slug/SKU). Solo resetea stock a 10 si
 STOCK_RESET=1 en el entorno.
 """
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -18,11 +21,13 @@ from urllib.parse import urlparse
 import psycopg2
 from dotenv import load_dotenv
 
-load_dotenv()
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from scripts.bootstrap import invalidate_product_cache  # noqa: E402
 
 from app.data.parts_catalog import ACCESSORIES, ACCESSORY_SLUG_ALIASES, DEFAULT_STOCK, DEFAULT_STOCK_MINIMO, PARTS  # noqa: E402
+
+load_dotenv()
 STOCK_RESET = os.environ.get("STOCK_RESET", "1") == "1"
 
 NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
@@ -192,24 +197,6 @@ def _seed_group(cur, items, categoria, slug_prefix, sku_prefix, start_order):
     return created
 
 
-def _invalidate_product_cache() -> None:
-    """Evita listados stale en /api/v1/productos tras el seed."""
-    try:
-        import redis
-
-        host = os.environ.get("REDIS_HOST", "localhost")
-        port = int(os.environ.get("REDIS_PORT", "6379"))
-        password = os.environ.get("REDIS_PASSWORD") or None
-        db = int(os.environ.get("REDIS_DB", "0"))
-        client = redis.Redis(host=host, port=port, password=password, db=db)
-        keys = client.keys("productos:*")
-        if keys:
-            client.delete(*keys)
-            print(f"  ✓ Caché Redis productos invalidada ({len(keys)} claves)")
-    except Exception as exc:
-        print(f"  ⚠ No se pudo invalidar caché Redis: {exc}")
-
-
 def main() -> None:
     db_url = _sync_db_url()
     parsed = urlparse(db_url)
@@ -231,7 +218,7 @@ def main() -> None:
     conn.commit()
     cur.close()
     conn.close()
-    _invalidate_product_cache()
+    invalidate_product_cache()
     print(f"\nCompletado: {n_parts} partes + {n_acc} accesorios = {n_parts + n_acc} ítems en carrito")
     print("Tip: STOCK_RESET=0 evita resetear stock en re-ejecuciones.")
 

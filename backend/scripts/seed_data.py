@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 # ── IDs fijos (deben coincidir con frontend/lib/products.js) ─────────────────
 IPRO_ID = "b2c3d4e5-f6a7-4890-b123-456789abcdef"
 VANGUARD_ID = "c1a2b3d4-e5f6-7890-1234-567890abcdef"
@@ -304,6 +306,17 @@ def main() -> None:
     print(f"  Vanguard ID: {vanguard_id}")
     print(f"  Nomadic ID:  {nomadic_id}")
 
+    try:
+        from scripts.bootstrap import invalidate_product_cache
+
+        invalidate_product_cache()
+    except Exception:
+        pass
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"ERROR: seed_data falló: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc

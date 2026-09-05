@@ -1,11 +1,23 @@
 """
 Datos iniciales del CMS y configurador — valores alineados con el frontend.
-Ejecutar tras migración: python -m scripts.seed_cms_configurador
+
+Ejecutar tras migración y seed_data:
+  cd backend && python3 -m scripts.seed_cms_configurador
+  # Docker: python3 -m scripts.seed_cms_configurador  (WORKDIR /app)
 """
 from __future__ import annotations
 
 import asyncio
+import os
+import sys
 import uuid
+
+# Must run before `from app...` — direct `python3 scripts/seed_cms_configurador.py` works too.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from scripts.bootstrap import load_backend_env, invalidate_product_cache
+
+load_backend_env()
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -283,8 +295,16 @@ NOMADIC_OPCIONES = [
 ]
 
 
+async def _producto_exists(db: AsyncSession, producto_id: uuid.UUID) -> bool:
+    result = await db.execute(select(Producto.id).where(Producto.id == producto_id))
+    return result.scalar_one_or_none() is not None
+
+
 async def _upsert_opciones(db: AsyncSession, producto_id: uuid.UUID, rows: list, start_orden: int = 0) -> None:
     """Inserta o actualiza opciones Disruptor por (producto_id, grupo, slug)."""
+    if not await _producto_exists(db, producto_id):
+        print(f"  ⚠ Producto {producto_id} no encontrado — omitiendo opciones del configurador")
+        return
     for i, (grupo, slug, nombre, desc, precio, imagen, extra) in enumerate(rows):
         result = await db.execute(
             select(ConfiguradorOpcion).where(
@@ -390,9 +410,18 @@ async def seed_cms_data(db: AsyncSession) -> None:
 
 async def main() -> None:
     async with AsyncSessionLocal() as db:
-        await seed_cms_data(db)
+        try:
+            await seed_cms_data(db)
+        except Exception:
+            await db.rollback()
+            raise
         print("CMS y configurador seed completado.")
+    invalidate_product_cache()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as exc:
+        print(f"ERROR: seed_cms_configurador falló: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc
