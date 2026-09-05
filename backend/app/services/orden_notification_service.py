@@ -27,6 +27,28 @@ ESTADOS_CON_EMAIL = frozenset({
     "error_stock",
 })
 
+# Órdenes con pago confirmado (o procesadas después del pago)
+ESTADOS_ORDEN_PAGADA = frozenset({
+    "pagado",
+    "procesando",
+    "enviado",
+    "entregado",
+    "error_stock",
+})
+
+
+def _admin_ya_notificado(pago) -> bool:
+    if not pago:
+        return False
+    resp = pago.respuesta_proveedor if isinstance(pago.respuesta_proveedor, dict) else {}
+    return bool(resp.get("admin_notified"))
+
+
+def _marcar_admin_notificado(pago) -> None:
+    resp = dict(pago.respuesta_proveedor or {})
+    resp["admin_notified"] = True
+    pago.respuesta_proveedor = resp
+
 
 class OrdenNotificationService:
 
@@ -186,6 +208,92 @@ class OrdenNotificationService:
                 exc_info=True,
             )
             return False
+
+    async def reenviar_avisos_admin_ordenes_pagadas(
+        self,
+        db: AsyncSession,
+        *,
+        dry_run: bool = False,
+        force: bool = False,
+        numero_orden: Optional[str] = None,
+    ) -> dict:
+        """
+        Envía al admin el aviso de compra para órdenes ya pagadas que no lo recibieron.
+        Útil como backfill puntual tras activar RESEND / ADMIN_ORDER_EMAIL.
+        """
+        from app.models.pago import Pago
+
+        query = (
+            select(Orden)
+            .options(
+                selectinload(Orden.usuario),
+                selectinload(Orden.items),
+                selectinload(Orden.pago),
+            )
+            .where(Orden.estado.in_(ESTADOS_ORDEN_PAGADA))
+            .order_by(Orden.created_at)
+        )
+        if numero_orden:
+            query = query.where(Orden.numero_orden == numero_orden)
+
+        result = await db.execute(query)
+        ordenes = result.scalars().all()
+
+        sent = skipped = failed = 0
+        detalle = []
+
+        for orden in ordenes:
+            pago: Optional[Pago] = orden.pago
+            if not force and _admin_ya_notificado(pago):
+                skipped += 1
+                detalle.append({
+                    "numero_orden": orden.numero_orden,
+                    "accion": "skipped",
+                    "motivo": "admin_notified",
+                })
+                continue
+
+            if dry_run:
+                detalle.append({
+                    "numero_orden": orden.numero_orden,
+                    "accion": "dry_run",
+                    "total": float(orden.total),
+                    "estado": orden.estado,
+                })
+                continue
+
+            ok = await self.notificar_compra_admin(db, orden, proveedor_pago="stripe")
+            if ok:
+                if pago:
+                    _marcar_admin_notificado(pago)
+                sent += 1
+                detalle.append({
+                    "numero_orden": orden.numero_orden,
+                    "accion": "sent",
+                })
+            else:
+                failed += 1
+                detalle.append({
+                    "numero_orden": orden.numero_orden,
+                    "accion": "failed",
+                })
+
+        if not dry_run and (sent or failed):
+            await db.commit()
+
+        summary = {
+            "total": len(ordenes),
+            "sent": sent,
+            "skipped": skipped,
+            "failed": failed,
+            "dry_run": dry_run,
+            "detalle": detalle,
+        }
+        logger.info(
+            "Backfill avisos admin: total=%s sent=%s skipped=%s failed=%s dry_run=%s",
+            summary["total"], sent, skipped, failed, dry_run,
+        )
+        return summary
 
 
 orden_notification_service = OrdenNotificationService()
