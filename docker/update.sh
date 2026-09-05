@@ -61,6 +61,12 @@ echo "==> Reconstruyendo backend (requerido para migraciones nuevas)..."
 echo "==> Migraciones Alembic..."
 "${COMPOSE[@]}" run --rm --no-deps --entrypoint alembic backend upgrade head
 
+echo "==> Seed catálogo de productos (Vanguard, Nomadic, Disruptor)..."
+"${COMPOSE[@]}" run --rm --no-deps backend python3 scripts/seed_data.py
+
+echo "==> Seed opciones del configurador..."
+"${COMPOSE[@]}" run --rm --no-deps backend python3 scripts/seed_cms_configurador.py
+
 echo "==> Reconstruyendo y levantando servicios (sin tocar nginx)..."
 "${COMPOSE[@]}" up -d --build backend frontend redis certbot
 

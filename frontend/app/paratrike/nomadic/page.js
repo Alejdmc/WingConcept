@@ -17,6 +17,7 @@ import {
   NOMADIC_HERO_IMAGE,
 } from '@/lib/nomadicContent'
 import { mergeEngineList, mergeFeatureList } from '@/lib/contentUtils'
+import { resolveNomadicGallery } from '@/lib/productImages'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Fuel, Users, Link: Link2, Settings, Truck }
 

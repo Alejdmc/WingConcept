@@ -1,5 +1,7 @@
 /** Etiquetas amigables para el panel admin (sin jerga técnica). */
 
+import { resolveProductSlug } from './productSlugs'
+
 export const SECCIONES_CONTENIDO = [
   { id: 'adventure', label: 'Adventure', descripcion: 'Expediciones y tarjetas en /adventure' },
   { id: 'shows', label: 'Shows', descripcion: 'Demostraciones en vivo en /shows' },
@@ -48,10 +50,15 @@ export const PARATRIKE_HREFS = {
   'vanguard-v8': '/paratrike/vanguard',
   'nomadic-trike': '/paratrike/nomadic',
   'disruptor-trike': '/paratrike/disruptor',
+  vanguard: '/paratrike/vanguard',
+  nomadic: '/paratrike/nomadic',
+  disruptor: '/paratrike/disruptor',
 }
 
 /** Slug → public landing URL for paratrike cards and CTAs. */
 export function resolveParatrikeHref(slug, fallbackHref) {
+  const canonical = resolveProductSlug(slug)
+  if (canonical && PARATRIKE_HREFS[canonical]) return PARATRIKE_HREFS[canonical]
   if (slug && PARATRIKE_HREFS[slug]) return PARATRIKE_HREFS[slug]
   if (fallbackHref && fallbackHref !== '#') return fallbackHref
   return null

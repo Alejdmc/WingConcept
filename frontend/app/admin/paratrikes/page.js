@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Save, ExternalLink, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/lib/api'
 import { PARATRIKE_HREFS } from '@/lib/cmsLabels'
+import { resolveProductSlug } from '@/lib/productSlugs'
 import { pickNomadicImage, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
@@ -59,7 +60,7 @@ export default function AdminParatrikesPage() {
     try {
       const data = await api.admin.productos({ categoria: 'paratrike', por_pagina: 50 })
       const ids = (data.items || [])
-        .filter((p) => PARATRIKE_HREFS[p.slug])
+        .filter((p) => PARATRIKE_HREFS[resolveProductSlug(p.slug)])
         .map((p) => p.id)
       const fullItems = await Promise.all(
         ids.map((id) => api.admin.obtenerProducto(id).catch(() => null))

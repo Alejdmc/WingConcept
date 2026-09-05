@@ -15,6 +15,7 @@ import {
   VANGUARD_HERO_IMAGE,
 } from '@/lib/vanguardContent'
 import { mergeEngineList, mergeFeatureList } from '@/lib/contentUtils'
+import { resolveVanguardGallery } from '@/lib/productImages'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link: Link2, Settings }
 

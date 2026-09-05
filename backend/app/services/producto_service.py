@@ -77,6 +77,21 @@ NOMADIC_HERO_IMAGE = "/images/nomadic/2.jpg"
 NOMADIC_DOCUMENT_BASE_PRICE = 4879.5
 NOMADIC_GALLERY_URLS = [f"/images/nomadic/{i}.jpg" for i in range(2, 7)]
 
+# Legacy / short slugs → canonical (must match frontend/lib/productSlugs.js)
+PRODUCT_SLUG_ALIASES = {
+    "vanguard": "vanguard-v8",
+    "vanguard-v8-0": "vanguard-v8",
+    "nomadic": "nomadic-trike",
+    "disruptor": "disruptor-trike",
+}
+
+CANONICAL_PRODUCT_IDS = {
+    "vanguard-v8": UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef"),
+    "nomadic-trike": UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef"),
+    "disruptor-trike": UUID("f1e2a3b4-c5d6-7890-1234-567890abcdef"),
+    "disruptor-paramotor": UUID("e1f2a3b4-c5d6-7890-1234-567890abcdef"),
+}
+
 
 def _is_legacy_nomadic_image(url: Optional[str]) -> bool:
     if not url or not isinstance(url, str):
@@ -235,17 +250,22 @@ class ProductoService:
 
     async def obtener_por_slug(self, db: AsyncSession, slug: str) -> ProductoResponse:
         """Obtiene un producto completo por slug."""
-        cache_key = f"{CACHE_PREFIX}:slug:{slug}"
+        canonical = PRODUCT_SLUG_ALIASES.get(slug, slug)
+        cache_key = f"{CACHE_PREFIX}:slug:{canonical}"
         cached = await cache_get(cache_key)
         if cached:
             return ProductoResponse(**cached)
 
-        result = await db.execute(
-            select(Producto)
-            .options(selectinload(Producto.variantes))
-            .where(Producto.slug == slug, Producto.activo == True)
+        producto = await self._fetch_active_producto(
+            db,
+            Producto.slug == canonical,
         )
-        producto = result.scalar_one_or_none()
+        if not producto and canonical in CANONICAL_PRODUCT_IDS:
+            producto = await self._fetch_active_producto(
+                db,
+                Producto.id == CANONICAL_PRODUCT_IDS[canonical],
+            )
+
         if not producto:
             raise RecursoNoEncontradoError("Producto")
 
@@ -253,6 +273,14 @@ class ProductoService:
         response = ProductoResponse.model_validate(producto)
         await cache_set(cache_key, response.model_dump(), ttl=settings.REDIS_CACHE_TTL)
         return response
+
+    async def _fetch_active_producto(self, db: AsyncSession, *where_clauses) -> Optional[Producto]:
+        result = await db.execute(
+            select(Producto)
+            .options(selectinload(Producto.variantes))
+            .where(*where_clauses, Producto.activo == True)
+        )
+        return result.scalar_one_or_none()
 
     async def obtener_por_id(self, db: AsyncSession, producto_id: UUID) -> Producto:
         """Obtiene un producto por ID (para uso interno)."""

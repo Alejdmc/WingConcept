@@ -9,6 +9,7 @@ import { api } from '@/lib/api'
 import { useSiteBlocks } from '@/hooks/useCms'
 import { mergeCompare, pickText } from '@/lib/contentUtils'
 import { PARATRIKE_HREFS, resolveParatrikeHref } from '@/lib/cmsLabels'
+import { resolveProductSlug } from '@/lib/productSlugs'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
 import { DISRUPTOR_TRIKE_BASE_PRICE, DISRUPTOR_TRIKE_HERO, DISRUPTOR_TRIKE_SUMMARY } from '@/lib/disruptorTrikeContent'
 import { resolveProductImage } from '@/lib/productImages'
@@ -62,21 +63,22 @@ const FALLBACK_TRIKES = [
 ]
 
 function mapProductToTrike(product, fallback) {
+  const canonicalSlug = resolveProductSlug(product.slug) || product.slug
   const extra = product.contenido_extra || {}
   const listing = extra.listing || {}
   const compare = mergeCompare(fallback?.compare, extra.compare)
-  const price = product.slug === 'nomadic-trike'
+  const price = canonicalSlug === 'nomadic-trike'
     ? NOMADIC_BASE_PRICE
-    : product.slug === 'disruptor-trike'
+    : canonicalSlug === 'disruptor-trike'
       ? DISRUPTOR_TRIKE_BASE_PRICE
       : typeof product.precio_desde === 'number'
         ? product.precio_desde
         : fallback?.basePrice
 
-  const href = resolveParatrikeHref(product.slug, fallback?.href)
+  const href = resolveParatrikeHref(canonicalSlug, fallback?.href)
 
   return {
-    slug: product.slug,
+    slug: canonicalSlug,
     name: product.nombre || product.name || fallback?.name,
     tagline: listing.tagline || extra.tagline || fallback?.tagline,
     description: pickText(
@@ -86,7 +88,7 @@ function mapProductToTrike(product, fallback) {
     image: resolveProductImage(product, fallback?.image),
     basePrice: price,
     features: listing.features?.length ? listing.features : fallback?.features || [],
-    href: href || fallback?.href || PARATRIKE_HREFS[product.slug] || '/paratrike',
+    href: href || fallback?.href || PARATRIKE_HREFS[canonicalSlug] || '/paratrike',
     ctaLabel: listing.cta_label || fallback?.ctaLabel || `Explore ${(product.nombre || '').split(' ')[0]}`,
     compare,
   }
@@ -98,8 +100,9 @@ function mergeTrikes(apiItems) {
   const bySlug = new Map(FALLBACK_TRIKES.map((t) => [t.slug, { ...t }]))
 
   for (const product of apiItems) {
-    const fallback = bySlug.get(product.slug) || FALLBACK_TRIKES.find((t) => t.slug === product.slug)
-    bySlug.set(product.slug, mapProductToTrike(product, fallback))
+    const canonicalSlug = resolveProductSlug(product.slug) || product.slug
+    const fallback = bySlug.get(canonicalSlug) || FALLBACK_TRIKES.find((t) => t.slug === canonicalSlug)
+    bySlug.set(canonicalSlug, mapProductToTrike({ ...product, slug: canonicalSlug }, fallback))
   }
 
   return TRIKE_ORDER.map((slug) => bySlug.get(slug)).filter(Boolean)
@@ -113,7 +116,10 @@ export default function ParaTrikeSelectionPage() {
     api.productos.listar({ categoria: 'paratrike', por_pagina: 50 })
       .then((res) => {
         const items = (res.items || []).filter(
-          (p) => p.activo !== false && (PARATRIKE_HREFS[p.slug] || FALLBACK_TRIKES.some((t) => t.slug === p.slug)),
+          (p) => p.activo !== false && (
+            PARATRIKE_HREFS[resolveProductSlug(p.slug)] ||
+            FALLBACK_TRIKES.some((t) => t.slug === resolveProductSlug(p.slug))
+          ),
         )
         setTrikes(mergeTrikes(items))
       })

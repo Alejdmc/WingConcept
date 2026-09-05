@@ -6,6 +6,17 @@ const nextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
+  async redirects() {
+    return [
+      { source: '/vanguard', destination: '/paratrike/vanguard', permanent: true },
+      { source: '/nomadic', destination: '/paratrike/nomadic', permanent: true },
+      { source: '/disruptor', destination: '/paratrike/disruptor', permanent: true },
+      { source: '/paratrike/vanguard-v8', destination: '/paratrike/vanguard', permanent: true },
+      { source: '/paratrike/nomadic-trike', destination: '/paratrike/nomadic', permanent: true },
+      { source: '/paratrike/vanguard/configurador', destination: '/paratrike/vanguard/configuration', permanent: true },
+      { source: '/paratrike/nomadic/configuration', destination: '/paratrike/nomadic/configurador', permanent: true },
+    ]
+  },
   async rewrites() {
     // Dev: proxy same-origin /api → backend (evita CORS en uploads multipart)
     if (process.env.NODE_ENV === 'development') {

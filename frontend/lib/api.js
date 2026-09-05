@@ -357,9 +357,20 @@ export const api = {
   },
 
   productos: {
-    destacados: () => request('/productos/destacados', { skipAuth: true }),
-    obtener: (slug) => request(`/productos/${slug}`, { skipAuth: true }),
-    listar: (params = {}) => request(`/productos${buildQuery(params)}`, { skipAuth: true }),
+    destacados: () => request('/productos/destacados', { skipAuth: true, skipProbe: true }),
+    obtener: async (slug) => {
+      const { resolveProductSlug } = await import('./productSlugs')
+      const canonical = resolveProductSlug(slug)
+      try {
+        return await request(`/productos/${encodeURIComponent(canonical)}`, { skipAuth: true, skipProbe: true })
+      } catch (err) {
+        if (canonical !== slug && err?.status === 404) {
+          return request(`/productos/${encodeURIComponent(slug)}`, { skipAuth: true, skipProbe: true })
+        }
+        throw err
+      }
+    },
+    listar: (params = {}) => request(`/productos${buildQuery(params)}`, { skipAuth: true, skipProbe: true }),
   },
 
   admin: {
@@ -467,7 +478,7 @@ export const api = {
     site: (seccion) =>
       request(`/cms/site${seccion ? buildQuery({ seccion }) : ''}`, { skipAuth: true }),
     configurador: (productoId) =>
-      request(`/cms/configurador/${productoId}`, { skipAuth: true }),
+      request(`/cms/configurador/${productoId}`, { skipAuth: true, skipProbe: true }),
   },
   usuarios: {
     perfil: () => request('/usuarios/me'),
