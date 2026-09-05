@@ -271,35 +271,6 @@ function mapAccessory(o, productoId, fallbackAccessories = []) {
   }
 }
 
-export function formatConfigSummary(config) {
-  if (!config || typeof config !== 'object') return []
-  const lines = []
-  const fmt = (value) => String(value ?? '').replace(/-/g, ' ').trim()
+import { formatConfigSummary, normalizeConfigForApi } from '@/lib/configSummary'
 
-  if (config.bookingType === 'tourist-flight') {
-    if (config.firstName || config.lastName) {
-      lines.push({ label: 'Guest', value: [config.firstName, config.lastName].filter(Boolean).join(' ') })
-    }
-    if (config.phone) lines.push({ label: 'Phone', value: config.phone })
-    if (config.age) lines.push({ label: 'Age', value: String(config.age) })
-    if (config.locationName || config.locationId) lines.push({ label: 'Location', value: config.locationName || fmt(config.locationId) })
-    if (config.duration) lines.push({ label: 'Duration', value: config.duration })
-    return lines
-  }
-
-  if (config.engine) lines.push({ label: 'Engine', value: fmt(config.engine) })
-  if (config.chassisType) lines.push({ label: 'Chassis', value: fmt(config.chassisType) })
-  if (config.finish) lines.push({ label: 'Flying style', value: fmt(config.finish) })
-  if (config.handThrottle) lines.push({ label: 'Hand throttle', value: fmt(config.handThrottle) })
-  if (config.propeller) lines.push({ label: 'Propeller', value: fmt(config.propeller) })
-  if (config.color || config.colorId) lines.push({ label: 'Color', value: fmt(config.color || config.colorId) })
-  if (config.chassisColor) lines.push({ label: 'Chassis color', value: String(config.chassisColor) })
-  if (config.accentColor) lines.push({ label: 'Accent color', value: String(config.accentColor) })
-  if (Array.isArray(config.upgrades) && config.upgrades.length) {
-    lines.push({
-      label: 'Accessories',
-      value: config.upgrades.map((u) => fmt(typeof u === 'string' ? u : u?.id || u?.name || u)).filter(Boolean).join(', '),
-    })
-  }
-  return lines
-}
+export { formatConfigSummary, normalizeConfigForApi }

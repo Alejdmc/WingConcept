@@ -309,7 +309,7 @@ def main() -> None:
     try:
         from scripts.bootstrap import invalidate_product_cache
 
-        invalidate_product_cache()
+        invalidate_product_cache(quiet=True)
     except Exception:
         pass
 

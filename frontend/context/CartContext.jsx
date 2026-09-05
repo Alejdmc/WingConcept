@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { api, resetBackendAvailability } from '@/lib/api'
+import { normalizeConfigForApi } from '@/lib/configSummary'
 
 const CART_ROUTES = ['/cart', '/checkout']
 
@@ -83,11 +84,15 @@ export function CartProvider({ children }) {
     setError('')
     try {
       const payload = product.variante_id
-        ? { variante_id: product.variante_id, cantidad: product.cantidad || 1, configuracion: product.configuracion }
+        ? {
+            variante_id: product.variante_id,
+            cantidad: product.cantidad || 1,
+            configuracion: normalizeConfigForApi(product.configuracion),
+          }
         : {
             producto_id: product.producto_id || product.id,
             cantidad: product.cantidad || 1,
-            configuracion: product.configuracion,
+            configuracion: normalizeConfigForApi(product.configuracion),
           }
       const res = await api.carrito.agregar(payload)
       markSkipNextFetch()
@@ -111,7 +116,7 @@ export function CartProvider({ children }) {
       const res = await api.carrito.agregar({
         producto_id: productoId,
         cantidad: config.cantidad || 1,
-        configuracion: {
+        configuracion: normalizeConfigForApi({
           engine: config.engine,
           chassisType: config.chassisType,
           finish: config.finish,
@@ -122,8 +127,7 @@ export function CartProvider({ children }) {
           chassisColor: config.chassisColor,
           accentColor: config.accentColor,
           upgrades: config.upgrades || [],
-          totalPrice: config.totalPrice,
-        },
+        }),
       })
       markSkipNextFetch()
       return applyCartResponse(res)

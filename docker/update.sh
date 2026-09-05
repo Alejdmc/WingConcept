@@ -67,6 +67,13 @@ source "$SCRIPT_DIR/lib/run-seeds.sh"
 echo "==> Reconstruyendo y levantando servicios (sin tocar nginx)..."
 "${COMPOSE[@]}" up -d --build backend frontend redis certbot
 
+echo "==> Invalidando caché Redis (productos)..."
+if docker inspect wingconcept_backend >/dev/null 2>&1; then
+  "${COMPOSE[@]}" exec -T backend python3 -c \
+    "from scripts.bootstrap import invalidate_product_cache; invalidate_product_cache()" \
+    || echo "  ℹ Caché no invalidada (Redis aún iniciando — expira sola en ~5 min)"
+fi
+
 if docker inspect wingconcept_nginx >/dev/null 2>&1; then
   # shellcheck source=lib/reconnect-nginx-network.sh
   source "$SCRIPT_DIR/lib/reconnect-nginx-network.sh"

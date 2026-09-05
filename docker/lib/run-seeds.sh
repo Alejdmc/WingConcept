@@ -7,7 +7,10 @@ run_seed() {
   local name="$1"
   shift
   echo "==> $name..."
-  if ! "${COMPOSE[@]}" run --rm --no-deps backend "$@"; then
+  # Seeds usan --no-deps: Redis aún no está levantado → omitir invalidación de caché.
+  if ! "${COMPOSE[@]}" run --rm --no-deps \
+    -e SKIP_REDIS_CACHE=1 \
+    backend "$@"; then
     echo "ERROR: $name falló."
     exit 1
   fi

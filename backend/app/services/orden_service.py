@@ -32,6 +32,7 @@ from app.schemas.orden import (
 )
 from app.services.orden_timeline_service import orden_timeline_service
 from app.services.orden_notification_service import orden_notification_service
+from app.utils.config_summary import format_config_lines
 from app.utils.tax import calcular_impuestos, get_tax_rate_from_producto
 
 logger = logging.getLogger(__name__)
@@ -169,7 +170,8 @@ class OrdenService:
                 (line_subtotal, get_tax_rate_from_producto(variante.producto))
             )
 
-            # Snapshot del producto para auditoría histórica
+            # Snapshot del producto al momento de compra (incluye configuración del configurador)
+            configuracion = item.configuracion or None
             snapshot = {
                 "nombre": variante.producto.nombre if variante.producto else "Producto",
                 "variante": variante.nombre,
@@ -177,6 +179,11 @@ class OrdenService:
                 "precio": float(variante.precio),
                 "imagen": (variante.producto.imagenes[0] if variante.producto and variante.producto.imagenes else None),
             }
+            if configuracion:
+                snapshot["configuracion"] = configuracion
+                summary = format_config_lines(configuracion)
+                if summary:
+                    snapshot["config_summary"] = summary
 
             items_orden.append(
                 ItemOrden(

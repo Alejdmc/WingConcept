@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from app.models.orden import Orden
 from app.services.email_service import email_service
+from app.utils.config_summary import format_config_lines, format_config_text
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +68,16 @@ class OrdenNotificationService:
             items = []
             for item in orden.items or []:
                 snapshot = item.snapshot or {}
+                configuracion = snapshot.get("configuracion")
+                config_summary = snapshot.get("config_summary") or format_config_lines(configuracion)
                 items.append({
                     "nombre": snapshot.get("nombre") or "Product",
                     "variante": snapshot.get("variante") or "",
                     "cantidad": item.cantidad,
                     "subtotal": float(item.precio_unitario) * item.cantidad,
+                    "configuracion": configuracion,
+                    "config_summary": config_summary,
+                    "config_text": format_config_text(configuracion) if configuracion else "",
                 })
 
             return await email_service.enviar_nueva_compra_admin(

@@ -218,7 +218,7 @@ def main() -> None:
     conn.commit()
     cur.close()
     conn.close()
-    invalidate_product_cache()
+    invalidate_product_cache(quiet=True)
     print(f"\nCompletado: {n_parts} partes + {n_acc} accesorios = {n_parts + n_acc} ítems en carrito")
     print("Tip: STOCK_RESET=0 evita resetear stock en re-ejecuciones.")
 

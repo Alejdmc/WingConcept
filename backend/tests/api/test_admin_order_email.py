@@ -15,7 +15,20 @@ async def test_notificar_compra_admin_envia_email():
     item = SimpleNamespace(
         cantidad=2,
         precio_unitario=Decimal("50.00"),
-        snapshot={"nombre": "Helmet", "variante": "M / Red"},
+        snapshot={
+            "nombre": "Vanguard V8",
+            "variante": "Standard",
+            "configuracion": {
+                "engine": "moster-185",
+                "chassisType": "standard",
+                "upgrades": ["cruise-control", "rear-mirror"],
+            },
+            "config_summary": [
+                {"label": "Engine", "value": "Moster 185"},
+                {"label": "Chassis", "value": "Standard"},
+                {"label": "Accessories", "value": "Cruise control, Rear mirror"},
+            ],
+        },
     )
     usuario = SimpleNamespace(nombre="Jane Doe", email="jane@example.com")
     orden = SimpleNamespace(
@@ -46,5 +59,6 @@ async def test_notificar_compra_admin_envia_email():
     kwargs = send_mock.await_args.kwargs
     assert kwargs["cliente_email"] == "jane@example.com"
     assert kwargs["numero_orden"] == "WC-2026-001"
-    assert kwargs["items"][0]["nombre"] == "Helmet"
+    assert kwargs["items"][0]["nombre"] == "Vanguard V8"
     assert kwargs["items"][0]["subtotal"] == 100.0
+    assert kwargs["items"][0]["config_summary"][0]["label"] == "Engine"

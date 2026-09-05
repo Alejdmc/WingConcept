@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { ArrowLeft, Package, Save } from 'lucide-react'
 import { api } from '@/lib/api'
 import OrderTimeline from '@/components/orders/OrderTimeline'
+import OrderItemConfiguration from '@/components/orders/OrderItemConfiguration'
 
 const STATUS_OPTIONS = [
   { value: 'Pending', estado: 'pendiente' },
@@ -221,7 +222,8 @@ export default function AdminOrderDetail() {
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-ink">{item.snapshot?.nombre || 'Product'}</p>
                     {item.snapshot?.variante && <p className="text-sm text-ink2">{item.snapshot.variante}</p>}
-                    <p className="text-sm text-ink2">Qty: {item.cantidad}</p>
+                    <OrderItemConfiguration snapshot={item.snapshot} />
+                    <p className="text-sm text-ink2 mt-2">Qty: {item.cantidad}</p>
                   </div>
                   <p className="font-black text-ink">${Number(item.subtotal || 0).toLocaleString()}</p>
                 </div>

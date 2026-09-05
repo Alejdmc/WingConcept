@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ValidacionError
 from app.models.variante import Variante
+from app.utils.config_summary import extract_option_id
 
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
 NOMADIC_PRODUCT_ID = uuid.UUID("d1e2f3a4-b5c6-7890-1234-567890abcdef")
@@ -103,6 +104,11 @@ class PrecioConfiguracion:
 
 class ConfiguradorService:
 
+    @staticmethod
+    def _coerce_option_id(value: Any) -> Any:
+        extracted = extract_option_id(value)
+        return extracted if extracted is not None else value
+
     def _normalizar_opciones(self, configuracion: Dict[str, Any]) -> Dict[str, Any]:
         if not configuracion:
             return {}
@@ -111,13 +117,25 @@ class ConfiguradorService:
             for key in ("engine", "finish", "upgrades", "propeller", "handThrottle", "color", "colorId"):
                 if key in configuracion and configuracion[key] is not None:
                     merged[key] = configuracion[key]
+            for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId"):
+                if key in merged and merged[key] is not None:
+                    merged[key] = self._coerce_option_id(merged[key])
+            if "upgrades" in merged and isinstance(merged["upgrades"], list):
+                merged["upgrades"] = [
+                    self._coerce_option_id(item) for item in merged["upgrades"] if item is not None
+                ]
             return merged
 
         merged = dict(configuracion)
         for key in ("chassisType", "chassisColor", "accentColor", "peripheralColor", "totalPrice"):
             merged.pop(key, None)
-        if "finish" not in merged and merged.get("chassisType"):
-            pass  # vanguard chassis_type no afecta precio
+        for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId"):
+            if key in merged and merged[key] is not None:
+                merged[key] = self._coerce_option_id(merged[key])
+        if "upgrades" in merged and isinstance(merged["upgrades"], list):
+            merged["upgrades"] = [
+                self._coerce_option_id(item) for item in merged["upgrades"] if item is not None
+            ]
         return merged
 
     async def _load_catalog(self, db: AsyncSession, producto_id: uuid.UUID) -> Optional[Dict[str, Any]]:

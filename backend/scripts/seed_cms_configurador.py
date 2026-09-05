@@ -416,7 +416,7 @@ async def main() -> None:
             await db.rollback()
             raise
         print("CMS y configurador seed completado.")
-    invalidate_product_cache()
+    invalidate_product_cache(quiet=True)
 
 
 if __name__ == "__main__":

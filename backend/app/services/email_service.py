@@ -464,8 +464,26 @@ class EmailService:
                 detalle += f" ({variante})"
             if subtotal is not None:
                 detalle += f" — {subtotal:,.2f} {moneda}"
+
+            config_html = ""
+            config_lines = item.get("config_summary") or []
+            if config_lines:
+                rows = "".join(
+                    f'<li style="margin:2px 0;"><strong>{escape(line.get("label") or "")}:</strong> '
+                    f'{escape(str(line.get("value") or ""))}</li>'
+                    for line in config_lines
+                )
+                config_html = (
+                    f'<ul style="margin:6px 0 0;padding-left:18px;font-size:13px;color:{_INK2};">{rows}</ul>'
+                )
+            elif item.get("config_text"):
+                config_html = (
+                    f'<p style="margin:6px 0 0;font-size:13px;color:{_INK2};">'
+                    f'{escape(item.get("config_text"))}</p>'
+                )
+
             filas_items += (
-                f'<li style="margin:0 0 8px;color:{_INK};">{detalle} × {cantidad}</li>'
+                f'<li style="margin:0 0 12px;color:{_INK};">{detalle} × {cantidad}{config_html}</li>'
             )
 
         items_html = (

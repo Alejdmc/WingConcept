@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { ArrowLeft, MapPin, Package } from 'lucide-react'
 import { api } from '@/lib/api'
 import OrderTimeline, { ORDER_TERMINAL } from '@/components/orders/OrderTimeline'
+import OrderItemConfiguration from '@/components/orders/OrderItemConfiguration'
 
 const ESTADO_COLORS = {
   pendiente: 'bg-yellow-100 text-yellow-700',
@@ -128,7 +129,8 @@ export default function OrderDetailPage() {
                     <div className="flex-1">
                       <p className="font-bold text-ink">{item.snapshot?.nombre || 'Product'}</p>
                       {item.snapshot?.variante && <p className="text-sm text-ink2">{item.snapshot.variante}</p>}
-                      <p className="text-sm text-ink2">Qty: {item.cantidad} · ${Number(item.precio_unitario).toLocaleString()} each</p>
+                      <OrderItemConfiguration snapshot={item.snapshot} />
+                      <p className="text-sm text-ink2 mt-2">Qty: {item.cantidad} · ${Number(item.precio_unitario).toLocaleString()} each</p>
                     </div>
                     <p className="font-black text-ink">${Number(item.subtotal).toLocaleString()}</p>
                   </div>

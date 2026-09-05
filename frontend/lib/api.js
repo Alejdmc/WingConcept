@@ -473,6 +473,11 @@ export const api = {
   },
   pagos: {
     checkout: (data) => request('/pagos/checkout', { method: 'POST', body: JSON.stringify(data) }),
+    confirmarSesion: (sessionId) =>
+      request('/pagos/confirm-session', {
+        method: 'POST',
+        body: JSON.stringify({ session_id: sessionId }),
+      }),
   },
   cms: {
     site: (seccion) =>

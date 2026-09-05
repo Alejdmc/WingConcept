@@ -16,6 +16,12 @@ from urllib.parse import urlparse
 import psycopg2
 from dotenv import load_dotenv
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from scripts.bootstrap import invalidate_product_cache  # noqa: E402
+
+load_dotenv()
+
 JUNK_PREFIXES = ("vanguard-", "nomadic-", "test-")
 
 DUPLICATE_RULES = [
@@ -34,25 +40,7 @@ DUPLICATE_RULES = [
 ]
 
 
-def _clear_product_cache() -> None:
-    try:
-        import redis
-        r = redis.Redis(
-            host=os.environ.get("REDIS_HOST", "localhost"),
-            port=int(os.environ.get("REDIS_PORT", 6379)),
-            db=int(os.environ.get("REDIS_DB", 0)),
-            password=os.environ.get("REDIS_PASSWORD") or None,
-        )
-        keys = list(r.scan_iter("productos:*"))
-        if keys:
-            r.delete(*keys)
-            print(f"Caché Redis limpiada ({len(keys)} claves).")
-    except Exception as exc:
-        print(f"Nota: no se pudo limpiar Redis ({exc}).")
-
-
 def _sync_db_url() -> str:
-    load_dotenv()
     url = os.environ.get("DATABASE_URL", "")
     if not url:
         sys.exit("DATABASE_URL no configurado")
@@ -116,7 +104,7 @@ def main() -> None:
         conn.rollback()
     else:
         conn.commit()
-        _clear_product_cache()
+        invalidate_product_cache()
         print(f"\nListo: {len(to_deactivate)} desactivados.")
 
     cur.close()

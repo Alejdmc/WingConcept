@@ -1,17 +1,20 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useCart } from '@/hooks/useCart'
 
 export default function SuccessPage() {
+  const searchParams = useSearchParams()
   const { refetch } = useCart()
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const orderId = typeof window !== 'undefined' ? sessionStorage.getItem('current_order_id') : null
+    const sessionId = searchParams.get('session_id')
 
     const cleanup = () => {
       sessionStorage.removeItem('current_order_id')
@@ -21,18 +24,33 @@ export default function SuccessPage() {
 
     refetch()
 
-    if (!orderId) {
-      setLoading(false)
-      return
-    }
+    const loadOrder = async () => {
+      try {
+        if (sessionId) {
+          await api.pagos.confirmarSesion(sessionId)
+        }
 
-    api.ordenes.detalle(orderId)
-      .then((data) => setOrder(data))
-      .catch((err) => console.error('Error fetching order:', err))
-      .finally(() => {
+        if (orderId) {
+          const data = await api.ordenes.detalle(orderId)
+          setOrder(data)
+        }
+      } catch (err) {
+        console.error('Error confirming payment or fetching order:', err)
+        if (orderId) {
+          try {
+            const data = await api.ordenes.detalle(orderId)
+            setOrder(data)
+          } catch (fetchErr) {
+            console.error('Error fetching order:', fetchErr)
+          }
+        }
+      } finally {
         setLoading(false)
         cleanup()
-      })
+      }
+    }
+
+    loadOrder()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

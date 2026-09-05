@@ -21,6 +21,17 @@ class CheckoutResponse(BaseModel):
     estado: str = "pending"
 
 
+class ConfirmSessionRequest(BaseModel):
+    session_id: str = Field(..., min_length=8, max_length=200)
+
+
+class ConfirmSessionResponse(BaseModel):
+    status: str
+    numero_orden: Optional[str] = None
+    orden_estado: Optional[str] = None
+    admin_notified: Optional[bool] = None
+
+
 class PagoResponse(BaseModel):
     id: uuid.UUID
     orden_id: uuid.UUID

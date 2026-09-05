@@ -24,19 +24,47 @@ def load_backend_env() -> str:
     return backend_root
 
 
-def invalidate_product_cache() -> None:
-    """Clear Redis product list cache after catalog seeds."""
+def _skip_redis_cache() -> bool:
+    return os.environ.get("SKIP_REDIS_CACHE", "").strip().lower() in ("1", "true", "yes")
+
+
+def invalidate_product_cache(*, quiet: bool = False, required: bool = False) -> bool:
+    """
+    Clear Redis product cache (productos:*).
+    Returns True on success or when skipped; False only if required=True and Redis fails.
+    """
+    if _skip_redis_cache():
+        return True
+
+    host = os.environ.get("REDIS_HOST", "localhost")
+    port = int(os.environ.get("REDIS_PORT", "6379"))
+    password = os.environ.get("REDIS_PASSWORD") or None
+    db = int(os.environ.get("REDIS_DB", "0"))
+
     try:
         import redis
 
-        host = os.environ.get("REDIS_HOST", "localhost")
-        port = int(os.environ.get("REDIS_PORT", "6379"))
-        password = os.environ.get("REDIS_PASSWORD") or None
-        db = int(os.environ.get("REDIS_DB", "0"))
-        client = redis.Redis(host=host, port=port, password=password, db=db)
-        keys = client.keys("productos:*")
-        if keys:
-            client.delete(*keys)
-            print(f"  ✓ Caché Redis productos invalidada ({len(keys)} claves)")
+        client = redis.Redis(
+            host=host,
+            port=port,
+            password=password,
+            db=db,
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+        )
+        client.ping()
+        deleted = 0
+        for key in client.scan_iter("productos:*", count=200):
+            client.delete(key)
+            deleted += 1
+        if deleted and not quiet:
+            print(f"  ✓ Caché Redis productos invalidada ({deleted} claves)")
+        return True
     except Exception as exc:
-        print(f"  ⚠ No se pudo invalidar caché Redis: {exc}")
+        if required:
+            print(f"ERROR: Redis requerido pero no disponible ({host}:{port}): {exc}", file=sys.stderr)
+            return False
+        if not quiet:
+            print(f"  ℹ Caché Redis omitida ({host}:{port} no disponible)")
+        return True

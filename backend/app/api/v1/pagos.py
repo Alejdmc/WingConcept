@@ -14,7 +14,7 @@ from app.core.exceptions import PermisosDenegadosError, RecursoNoEncontradoError
 from app.database import get_db
 from app.models.orden import Orden
 from app.models.pago import Pago
-from app.schemas.pago import CheckoutRequest, CheckoutResponse
+from app.schemas.pago import CheckoutRequest, CheckoutResponse, ConfirmSessionRequest, ConfirmSessionResponse
 from app.services.pago_service import pago_service
 
 router = APIRouter(prefix="/pagos", tags=["Pagos"])
@@ -68,3 +68,19 @@ async def iniciar_checkout(
         f"usuario={current_user.id}"
     )
     return await pago_service.crear_checkout_stripe(db, orden)
+
+
+@router.post("/confirm-session", response_model=ConfirmSessionResponse)
+async def confirmar_sesion_checkout(
+    data: ConfirmSessionRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(require_verified_email),
+):
+    """
+    Confirma un pago Stripe desde la página de éxito si el webhook aún no llegó.
+    Idempotente: no duplica stock ni emails de cliente.
+    """
+    result = await pago_service.confirmar_sesion_stripe(
+        db, data.session_id.strip(), current_user.id
+    )
+    return ConfirmSessionResponse(**result)

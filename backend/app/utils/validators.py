@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 from email_validator import EmailNotValidError, validate_email
 
 from app.config import settings
+from app.utils.config_summary import extract_option_id
 
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _HTML_TAG = re.compile(r"<[^>]*>")
@@ -247,13 +248,24 @@ def sanitizar_configuracion(config: Optional[Dict[str, Any]]) -> Optional[Dict[s
         if key == "upgrades" and isinstance(value, list):
             upgrades: List[str] = []
             for item in value[:30]:
-                if isinstance(item, str):
-                    upgrades.append(sanitizar_texto(item, max_length=80))
-            result[key] = upgrades
+                raw = extract_option_id(item) if not isinstance(item, str) else item
+                if raw:
+                    upgrades.append(sanitizar_texto(str(raw), max_length=80))
+            if upgrades:
+                result[key] = upgrades
         elif key == "opciones" and isinstance(value, dict):
             nested = sanitizar_configuracion(value)
             if nested:
                 result[key] = nested
+        elif key in ("chassisColor", "accentColor", "peripheralColor") and isinstance(value, dict):
+            parts = [value.get("name"), value.get("hex")]
+            joined = ", ".join(str(part).strip() for part in parts if part)
+            if joined:
+                result[key] = sanitizar_texto(joined, max_length=200)
+        elif isinstance(value, dict):
+            raw = extract_option_id(value)
+            if raw:
+                result[key] = sanitizar_texto(str(raw), max_length=200)
         elif isinstance(value, str):
             result[key] = sanitizar_texto(value, max_length=200)
         elif isinstance(value, (int, float, bool)):

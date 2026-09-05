@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.core.exceptions import PagoFallidoError, RecursoNoEncontradoError
+from app.core.exceptions import PagoFallidoError, PermisosDenegadosError, RecursoNoEncontradoError
 from app.models.orden import Orden
 from app.models.pago import Pago
 from app.schemas.pago import CheckoutResponse
@@ -115,6 +115,100 @@ def _checkout_response(pago: Pago, checkout_url: str) -> CheckoutResponse:
 
 
 class PagoService:
+
+    @staticmethod
+    def _admin_ya_notificado(pago: Pago) -> bool:
+        resp = pago.respuesta_proveedor if isinstance(pago.respuesta_proveedor, dict) else {}
+        return bool(resp.get("admin_notified"))
+
+    @staticmethod
+    def _marcar_admin_notificado(pago: Pago) -> None:
+        resp = dict(pago.respuesta_proveedor or {})
+        resp["admin_notified"] = True
+        pago.respuesta_proveedor = resp
+
+    async def _notificar_admin_si_corresponde(
+        self,
+        db: AsyncSession,
+        pago: Pago,
+        *,
+        proveedor_pago: str = "stripe",
+    ) -> None:
+        if pago.estado != "approved" or not pago.orden or self._admin_ya_notificado(pago):
+            return
+        sent = await orden_notification_service.notificar_compra_admin(
+            db, pago.orden, proveedor_pago=proveedor_pago,
+        )
+        if sent:
+            self._marcar_admin_notificado(pago)
+        elif settings.is_production:
+            logger.error(
+                "Aviso admin NO enviado para orden %s — verifica RESEND_API_KEY, "
+                "FROM_EMAIL (dominio verificado) y ADMIN_ORDER_EMAIL=%s",
+                pago.orden.numero_orden,
+                settings.ADMIN_ORDER_EMAIL,
+            )
+
+    async def confirmar_sesion_stripe(
+        self,
+        db: AsyncSession,
+        session_id: str,
+        usuario_id: uuid.UUID,
+    ) -> dict:
+        """
+        Fallback cuando el webhook de Stripe tarda o falla.
+        Confirma el pago desde la página de éxito del checkout.
+        """
+        if not settings.STRIPE_SECRET_KEY:
+            raise PagoFallidoError("Stripe no está configurado")
+
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+        except stripe.StripeError as e:
+            raise PagoFallidoError(
+                f"No se pudo verificar la sesión de pago: {getattr(e, 'user_message', str(e))}"
+            ) from e
+
+        referencia = session.client_reference_id or (session.metadata or {}).get("referencia")
+        payment_intent = session.payment_intent
+        if not referencia or not payment_intent:
+            raise PagoFallidoError("Sesión de Stripe incompleta")
+
+        pago = await self._obtener_pago(db, referencia=referencia)
+        if not pago.orden or pago.orden.usuario_id != usuario_id:
+            raise PermisosDenegadosError()
+
+        if session.payment_status != "paid":
+            return {
+                "status": session.payment_status or "pending",
+                "numero_orden": pago.orden.numero_orden,
+                "orden_estado": pago.orden.estado,
+            }
+
+        if pago.estado != "approved":
+            await self.procesar_pago_aprobado(
+                db,
+                referencia=referencia,
+                transaction_id=str(payment_intent),
+                respuesta_proveedor={
+                    "session_id": session.id,
+                    "payment_status": session.payment_status,
+                    "source": "confirm_session",
+                },
+            )
+        else:
+            await self._notificar_admin_si_corresponde(db, pago, proveedor_pago="stripe")
+
+        await db.refresh(pago)
+        if pago.orden:
+            await db.refresh(pago.orden)
+
+        return {
+            "status": "paid",
+            "numero_orden": pago.orden.numero_orden if pago.orden else None,
+            "orden_estado": pago.orden.estado if pago.orden else None,
+            "admin_notified": self._admin_ya_notificado(pago),
+        }
 
     async def crear_checkout_stripe(
         self, db: AsyncSession, orden: Orden
@@ -315,14 +409,13 @@ class PagoService:
             await orden_notification_service.notificar_estado(
                 db, pago.orden, estado_prev, proveedor_pago="stripe",
             )
-            await orden_notification_service.notificar_compra_admin(
-                db, pago.orden, proveedor_pago="stripe",
-            )
             if not stock_ok:
                 logger.error(
                     "Orden %s pagada pero sin stock — marcada error_stock",
                     pago.orden.numero_orden,
                 )
+
+        await self._notificar_admin_si_corresponde(db, pago, proveedor_pago="stripe")
 
         logger.info(
             f"Pago aprobado: {referencia} tx:{transaction_id} "
