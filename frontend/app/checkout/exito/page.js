@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
@@ -7,6 +7,32 @@ import { api } from '@/lib/api'
 import { useCart } from '@/hooks/useCart'
 
 export default function SuccessPage() {
+  return (
+    <Suspense fallback={<SuccessPageFallback loading />}>
+      <SuccessPageContent />
+    </Suspense>
+  )
+}
+
+function SuccessPageFallback({ loading = false }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-16">
+      <div className="max-w-xl w-full bg-white border border-borderline rounded-2xl p-8 text-center">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-8 h-8 text-green-600" />
+        </div>
+        <h1 className="text-3xl font-black text-ink mb-2">Payment Received</h1>
+        <p className="text-ink2 mb-6">Thank you! We&apos;re confirming your payment…</p>
+        <div className="bg-bg2 rounded-lg p-6 mb-8">
+          <p className="text-sm text-ink2 mb-2">Order Number</p>
+          <p className="text-3xl font-black text-brand">{loading ? '...' : 'N/A'}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SuccessPageContent() {
   const searchParams = useSearchParams()
   const { refetch } = useCart()
   const [order, setOrder] = useState(null)
@@ -52,7 +78,7 @@ export default function SuccessPage() {
 
     loadOrder()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-16">
