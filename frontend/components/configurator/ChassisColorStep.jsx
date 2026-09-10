@@ -15,14 +15,19 @@ export default function ChassisColorStep({
   onSelectPreset,
   onSelectCustom,
   onCustomTextChange,
+  presets = CHASSIS_COLOR_PRESETS,
+  customColorId = CUSTOM_COLOR_ID,
+  customSurcharge = CUSTOM_COLOR_SURCHARGE,
+  title = 'Chassis Color. Choose your finish',
+  presetIncludedLabel = 'Included in base price',
 }) {
   return (
     <div>
       <h2 className="text-2xl font-black uppercase text-ink mb-6 tracking-tight">
-        Chassis Color. Choose your finish
+        {title}
       </h2>
       <div className="space-y-3">
-        {CHASSIS_COLOR_PRESETS.map((color) => (
+        {presets.map((color) => (
           <OptionCard
             key={color.id}
             selected={selectedColorId === color.id}
@@ -36,22 +41,22 @@ export default function ChassisColorStep({
               />
               <div>
                 <p className="font-bold uppercase text-ink">{color.name}</p>
-                <p className="text-sm text-ink2 mt-1">Included in base price</p>
+                <p className="text-sm text-ink2 mt-1">{presetIncludedLabel}</p>
               </div>
             </div>
           </OptionCard>
         ))}
 
         <OptionCard
-          selected={selectedColorId === CUSTOM_COLOR_ID}
+          selected={selectedColorId === customColorId}
           onClick={onSelectCustom}
         >
           <div className="pr-8">
             <p className="font-bold uppercase text-ink">Custom Color</p>
             <p className="text-sm text-ink2 mt-1">
-              Describe your desired color — +${CUSTOM_COLOR_SURCHARGE}
+              Describe your desired color — +${customSurcharge}
             </p>
-            {selectedColorId === CUSTOM_COLOR_ID && (
+            {selectedColorId === customColorId && (
               <input
                 type="text"
                 value={customColorText}

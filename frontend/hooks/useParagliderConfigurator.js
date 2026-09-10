@@ -10,12 +10,15 @@ import {
   resolveParagliderColorLabel,
 } from '@/lib/trikeParagliderOptions'
 
-export function useParagliderConfigurator() {
-  const [selectedParagliderId, setSelectedParagliderId] = useState(NO_PARAGLIDER_ID)
+export function useParagliderConfigurator({
+  findParaglider = findTrikeParaglider,
+  noParagliderId = NO_PARAGLIDER_ID,
+} = {}) {
+  const [selectedParagliderId, setSelectedParagliderId] = useState(noParagliderId)
   const [selectedParagliderColor, setSelectedParagliderColor] = useState('')
   const [selectedParagliderSize, setSelectedParagliderSize] = useState('')
 
-  const paraglider = findTrikeParaglider(selectedParagliderId)
+  const paraglider = findParaglider(selectedParagliderId)
   const paragliderPrice = paraglider?.price || 0
 
   const validateParaglider = useCallback(() => {
@@ -26,10 +29,10 @@ export function useParagliderConfigurator() {
   }, [paraglider, selectedParagliderColor, selectedParagliderSize])
 
   const paragliderCartFields = useMemo(() => ({
-    paraglider: selectedParagliderId !== NO_PARAGLIDER_ID ? selectedParagliderId : undefined,
+    paraglider: selectedParagliderId !== noParagliderId ? selectedParagliderId : undefined,
     paragliderColor: selectedParagliderColor || undefined,
     paragliderSize: selectedParagliderSize || undefined,
-  }), [selectedParagliderId, selectedParagliderColor, selectedParagliderSize])
+  }), [selectedParagliderId, selectedParagliderColor, selectedParagliderSize, noParagliderId])
 
   const appendParagliderQuoteLines = useCallback((lines) => {
     if (!paraglider) return lines

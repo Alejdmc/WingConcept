@@ -40,6 +40,21 @@ TRIKE_PARAGLIDER_CATALOG: Dict[str, Tuple[float, FrozenSet[str], FrozenSet[str]]
     ),
 }
 
+# Disruptor Paramotor — 12 wings (doc: archivos/Seccion de parapente...)
+PARAMOTOR_PARAGLIDER_CATALOG: Dict[str, Tuple[float, FrozenSet[str], FrozenSet[str]]] = {
+    **TRIKE_PARAGLIDER_CATALOG,
+    "dudek-universal-11": (3560.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "dudek-solo-2": (3673.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "dudek-nucleon-4": (3969.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "dudek-snake-4": (4234.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "dudek-driftair-2": (3855.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "apco-nrg-iii": (3355.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "apco-hybrid-paramotor": (3195.0, frozenset({"standard"}), frozenset({"Standard"})),
+    "apco-f3-mkii": (3341.0, frozenset({"standard"}), frozenset({"Standard"})),
+}
+
+PARAGLIDER_CATALOG = PARAMOTOR_PARAGLIDER_CATALOG
+
 
 def normalize_paraglider_id(paraglider_id: str | None) -> str | None:
     if not paraglider_id:
@@ -55,7 +70,7 @@ def validate_paraglider_selection(
     color: str | None,
     size: str | None,
 ) -> None:
-    meta = TRIKE_PARAGLIDER_CATALOG.get(paraglider_id)
+    meta = PARAGLIDER_CATALOG.get(paraglider_id)
     if not meta:
         return
     _price, colors, sizes = meta

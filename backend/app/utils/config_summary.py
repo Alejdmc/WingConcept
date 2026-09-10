@@ -34,6 +34,14 @@ PARAGLIDER_LABELS = {
     "apco-play-42-ul": "APCO Play 42 UL",
     "apco-game-mkiii": "APCO Game MKIII",
     "apco-f3bi-mkii": "APCO F3Bi MKII",
+    "dudek-universal-11": "DUDEK Universal 1.1",
+    "dudek-solo-2": "DUDEK Solo 2",
+    "dudek-nucleon-4": "DUDEK Nucleon 4",
+    "dudek-snake-4": "DUDEK Snake 4",
+    "dudek-driftair-2": "DUDEK DriftAir 2",
+    "apco-nrg-iii": "APCO NRG III",
+    "apco-hybrid-paramotor": "APCO Hybrid Paramotor",
+    "apco-f3-mkii": "APCO F3 MKII",
 }
 
 UPGRADE_LABELS = {

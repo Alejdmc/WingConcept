@@ -66,6 +66,20 @@ TRIKE_PARAGLIDERS: Dict[str, float] = {
     "apco-game-mkiii": 3531.0,
     "apco-f3bi-mkii": 3580.0,
 }
+PARAMOTOR_PARAGLIDERS: Dict[str, float] = {
+    "dudek-universal-11": 3560.0,
+    "dudek-solo-2": 3673.0,
+    "dudek-nucleon-4": 3969.0,
+    "dudek-snake-4": 4234.0,
+    "dudek-driftair-2": 3855.0,
+    "apco-nrg-iii": 3355.0,
+    "apco-hybrid-paramotor": 3195.0,
+    "apco-f3-mkii": 3341.0,
+    "dudek-orca-6": 4252.0,
+    "dudek-cabrio": 4524.0,
+    "dudek-boson": 4542.0,
+    "apco-f3bi-mkii": 3580.0,
+}
 NOMADIC_PARAGLIDERS = TRIKE_PARAGLIDERS
 
 LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
@@ -95,6 +109,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "propellers": {"no-propeller": 0, "bipala": 350, "tripala": 450},
         "hand_throttles": {"no-throttle": 0},
         "colors": {},
+        "paragliders": PARAMOTOR_PARAGLIDERS,
         "default_engine": "no-engine",
     },
     DISRUPTOR_TRIKE_PRODUCT_ID: {
@@ -216,7 +231,7 @@ class ConfiguradorService:
             raise ValidacionError(f"Hand throttle '{hand_id}' no válido para este producto")
         if paraglider_id and not paragliders:
             raise ValidacionError("Parapente no disponible para este producto")
-        if paraglider_id and paraglider_id not in paragliders:
+        if paraglider_id and paragliders and paraglider_id not in paragliders:
             raise ValidacionError(f"Parapente '{paraglider_id}' no válido para este producto")
         if paraglider_id:
             try:

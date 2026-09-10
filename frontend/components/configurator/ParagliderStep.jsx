@@ -33,9 +33,12 @@ export default function ParagliderStep({
   onSelectColor,
   onSelectSize,
   onPreviewChange,
+  paragliders = TRIKE_PARAGLIDERS,
+  findParaglider = findTrikeParaglider,
+  noParagliderId = NO_PARAGLIDER_ID,
 }) {
   const updatePreview = (wingId, colorId) => {
-    const selectedWing = findTrikeParaglider(wingId)
+    const selectedWing = findParaglider(wingId)
     if (!selectedWing) {
       onPreviewChange?.({ wingId, gallery: [], initialIndex: 0 })
       return
@@ -50,10 +53,10 @@ export default function ParagliderStep({
     onSelectParaglider(id)
     onSelectColor('')
     onSelectSize('')
-    if (id === NO_PARAGLIDER_ID) {
-      onPreviewChange?.({ wingId: NO_PARAGLIDER_ID, gallery: [], initialIndex: 0 })
+    if (id === noParagliderId) {
+      onPreviewChange?.({ wingId: noParagliderId, gallery: [], initialIndex: 0 })
     } else {
-      const wing = findTrikeParaglider(id)
+      const wing = findParaglider(id)
       const defaultColor = wing?.colors?.[0]?.id || ''
       if (defaultColor) onSelectColor(defaultColor)
       updatePreview(id, defaultColor)
@@ -73,14 +76,14 @@ export default function ParagliderStep({
 
       <div className="space-y-3">
         <OptionCard
-          selected={selectedParagliderId === NO_PARAGLIDER_ID}
-          onClick={() => handleSelectParaglider(NO_PARAGLIDER_ID)}
+          selected={selectedParagliderId === noParagliderId}
+          onClick={() => handleSelectParaglider(noParagliderId)}
         >
           <p className="font-bold uppercase text-ink pr-8">No paraglider</p>
           <p className="text-sm text-ink2 mt-1">Trike only — add a wing later or supply your own.</p>
         </OptionCard>
 
-        {TRIKE_PARAGLIDERS.map((item) => {
+        {paragliders.map((item) => {
           const isSelected = selectedParagliderId === item.id
 
           return (

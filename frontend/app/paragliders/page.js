@@ -3,18 +3,20 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink, ShoppingCart } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import {
   PARAGLIDER_TABS,
   PARAGLIDER_EXAMPLE,
-  PARAGLIDER_WINGS,
+  PG_FREE_WINGS,
+  PPG_WINGS,
+  TRIKE_WING_CATALOG,
   PARAGLIDER_ACCESSORIES,
   PARAGLIDER_HARNESSES,
 } from '@/lib/paraglidersContent'
 
 export default function ParaglidersPage() {
-  const [activeTab, setActiveTab] = useState('pg-free')
+  const [activeTab, setActiveTab] = useState('ppg')
 
   return (
     <div className="min-h-screen bg-white">
@@ -37,7 +39,7 @@ export default function ParaglidersPage() {
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase text-ink tracking-tight mb-4">Paragliders</h1>
           <div className="h-1 w-16 bg-brand mx-auto mb-6" />
           <p className="text-lg text-ink2 max-w-2xl mx-auto">
-            PG Free, PPG wings, harnesses, and accessories — each with expandable photos, technical specs, manual links, and pricing on request.
+            Browse PG Free wings, PPG paramotor canopies, trike-compatible wings, harnesses, and accessories — with pricing and links to configure your Disruptor build.
           </p>
         </div>
       </section>
@@ -67,18 +69,33 @@ export default function ParaglidersPage() {
               <p className="text-ink2 text-lg mb-10 max-w-3xl">{tab.description}</p>
 
               {activeTab === 'pg-free' && (
-                <ProductGrid items={PARAGLIDER_WINGS.pg.map((name) => ({ name, category: 'PG Free' }))} />
+                <WingGrid items={PG_FREE_WINGS.map((w) => ({ ...w, category: 'PG Free' }))} />
               )}
 
               {activeTab === 'ppg' && (
-                <ProductGrid items={PARAGLIDER_WINGS.ppg.map((name) => ({ name, category: 'PPG' }))} />
+                <>
+                  <div className="mb-8 p-4 bg-brand-soft border border-brand/30 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <p className="text-sm text-ink">
+                      <span className="font-bold">12 PPG wings</span> available on the Disruptor Paramotor configurador — select color, size, and add to cart with your full build.
+                    </p>
+                    <Link
+                      href="/paramotors/disruptor/configurador"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-bold uppercase hover:bg-brand/90 transition shrink-0">
+                      <ShoppingCart className="w-4 h-4" /> Configure Paramotor
+                    </Link>
+                  </div>
+                  <WingGrid items={PPG_WINGS} showConfiguratorLink />
+                  <h2 className="text-xl font-black uppercase text-ink mt-16 mb-6">Also on Trike Configurators</h2>
+                  <p className="text-ink2 mb-6 max-w-2xl">These wings are also available when configuring Vanguard, Nomadic, or Disruptor Trike.</p>
+                  <WingGrid items={TRIKE_WING_CATALOG.filter((w) => !PPG_WINGS.some((p) => p.id === w.id))} />
+                </>
               )}
 
               {activeTab === 'harnesses' && (
                 <>
                   <ExampleCard product={PARAGLIDER_EXAMPLE} />
-                  <h2 className="text-xl font-black uppercase text-ink mt-12 mb-6">More Harnesses</h2>
-                  <ProductGrid items={PARAGLIDER_HARNESSES.map((name) => ({ name, category: 'Harness' }))} />
+                  <h2 className="text-xl font-black uppercase text-ink mt-12 mb-6">Harness Catalog</h2>
+                  <HarnessGrid items={PARAGLIDER_HARNESSES} />
                 </>
               )}
             </motion.div>
@@ -92,7 +109,10 @@ export default function ParaglidersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {PARAGLIDER_ACCESSORIES.map((item) => (
               <div key={item.name} className="bg-white border border-borderline rounded-xl p-6 hover:border-brand transition">
-                <h3 className="font-black uppercase text-ink mb-2">{item.name}</h3>
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <h3 className="font-black uppercase text-ink">{item.name}</h3>
+                  <span className="text-sm font-bold text-brand shrink-0">{item.priceLabel}</span>
+                </div>
                 <p className="text-ink2 text-sm leading-relaxed">{item.description}</p>
               </div>
             ))}
@@ -102,23 +122,82 @@ export default function ParaglidersPage() {
 
       <section className="py-16 px-6 bg-gradient-to-r from-brand to-brand/80 text-white text-center">
         <h2 className="text-2xl sm:text-4xl font-black uppercase mb-4">Need a Wing Quote?</h2>
-        <p className="text-white/90 mb-8 max-w-xl mx-auto">Contact us with the model you are interested in — we will provide pricing, availability, and manual links.</p>
-        <Link href="/contact" className="inline-block bg-white text-brand px-10 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
-          Contact Us
-        </Link>
+        <p className="text-white/90 mb-8 max-w-xl mx-auto">
+          Configure a Disruptor Paramotor with your preferred wing, or contact us for PG Free models and harness fitment.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link href="/paramotors/disruptor/configurador" className="inline-block bg-white text-brand px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-white/90 transition">
+            Configure Paramotor
+          </Link>
+          <Link href="/contact" className="inline-block border-2 border-white text-white px-8 py-4 font-black uppercase tracking-widest rounded-lg hover:bg-white/10 transition">
+            Contact Us
+          </Link>
+        </div>
       </section>
     </div>
   )
 }
 
-function ProductGrid({ items }) {
+function WingGrid({ items, showConfiguratorLink = false }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {items.map((item) => (
+        <WingCard key={item.id || item.name} item={item} showConfiguratorLink={showConfiguratorLink} />
+      ))}
+    </div>
+  )
+}
+
+function WingCard({ item, showConfiguratorLink }) {
+  const price = item.priceLabel || (item.price ? `$${item.price.toLocaleString()}` : 'Contact for price')
+  return (
+    <div className="bg-bg2 border border-borderline rounded-xl overflow-hidden hover:border-brand transition group">
+      <div className="relative aspect-[4/3] bg-white">
+        <SafeImage
+          src={item.image || '/images/front1.jpg'}
+          alt={`${item.brand || ''} ${item.name}`.trim()}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+      <div className="p-5">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-brand mb-1">{item.category || item.brand}</p>
+        <h3 className="font-black uppercase text-ink">{item.brand ? `${item.brand} ${item.name}` : item.name}</h3>
+        {item.description && <p className="text-ink2 text-sm mt-2 leading-relaxed line-clamp-3">{item.description}</p>}
+        <p className="text-lg font-black text-brand mt-3">{price}</p>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {item.infoUrl && (
+            <a href={item.infoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold uppercase text-brand hover:underline">
+              More info <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+          {showConfiguratorLink && item.configuratorHref && (
+            <Link href={item.configuratorHref} className="inline-flex items-center gap-1 text-xs font-bold uppercase text-ink hover:text-brand">
+              Add in configurador →
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HarnessGrid({ items }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map((item) => (
         <div key={item.name} className="bg-bg2 border border-borderline rounded-xl p-5 hover:border-brand transition">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand mb-1">{item.category}</p>
-          <p className="font-black uppercase text-ink text-sm">{item.name}</p>
-          <p className="text-ink2 text-xs mt-2">Specs & pricing on request</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand mb-1">{item.brand}</p>
+          <div className="flex justify-between items-start gap-2">
+            <h3 className="font-black uppercase text-ink">{item.name}</h3>
+            <span className="text-sm font-bold text-brand shrink-0">{item.priceLabel}</span>
+          </div>
+          <p className="text-ink2 text-sm mt-2 leading-relaxed">{item.description}</p>
+          {item.productUrl && (
+            <a href={item.productUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold uppercase text-brand mt-3 hover:underline">
+              More info <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
       ))}
     </div>
@@ -132,7 +211,7 @@ function ExampleCard({ product }) {
         <SafeImage src={product.images[0]} alt={product.name} fill className="object-cover" />
       </div>
       <div className="p-8 flex flex-col justify-center">
-        <p className="text-brand font-bold uppercase tracking-widest text-xs mb-2">Example listing</p>
+        <p className="text-brand font-bold uppercase tracking-widest text-xs mb-2">Featured harness</p>
         <h2 className="text-2xl font-black uppercase text-ink mb-2">{product.brand} {product.name}</h2>
         <p className="text-ink2 leading-relaxed mb-6">{product.description}</p>
         <p className="text-xl font-black text-brand mb-6">{product.priceLabel}</p>
