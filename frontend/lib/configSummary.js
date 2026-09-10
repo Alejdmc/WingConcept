@@ -16,7 +16,7 @@ const UPGRADE_LABELS = {
   'bottom-explorer-bag': 'Bottom explorer bag',
   'reserve-chute': 'Reserve parachute',
   'auxiliary-lights': 'Auxiliary lights',
-  carabiners: 'Carabiners',
+  'phone-holder': 'Phone holder',
   'propeller-guard': 'Propeller guard',
   'rock-guard': 'Rock guard',
   'fuel-gauge-vanguard': 'Fuel gauge',

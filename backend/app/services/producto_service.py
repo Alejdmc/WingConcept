@@ -74,7 +74,7 @@ LEGACY_NOMADIC_BASENAMES = frozenset({
 })
 
 NOMADIC_HERO_IMAGE = "/images/nomadic/2.jpg"
-NOMADIC_DOCUMENT_BASE_PRICE = 4879.5
+NOMADIC_DOCUMENT_BASE_PRICE = 5329.5
 NOMADIC_GALLERY_URLS = [f"/images/nomadic/{i}.jpg" for i in range(2, 7)]
 
 # Legacy / short slugs → canonical (must match frontend/lib/productSlugs.js)

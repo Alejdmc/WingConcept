@@ -1,7 +1,7 @@
 /** Nomadic Trike — archivos/Nomadic TRIKE DESCRIPTION ITEMS AND PRICE for web side.pages */
 
 /** Base chassis price — managed separately; do not change without business approval. */
-export const NOMADIC_BASE_PRICE = 4879.5
+export const NOMADIC_BASE_PRICE = 5329.5
 
 export const NOMADIC_PRICE_LABEL = `$${NOMADIC_BASE_PRICE.toLocaleString(undefined, {
   minimumFractionDigits: 2,
