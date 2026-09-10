@@ -13,10 +13,14 @@ import WizardProgress from '@/components/configurator/WizardProgress'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
 import QuoteButton from '@/components/configurator/QuoteButton'
 import ChassisColorStep from '@/components/configurator/ChassisColorStep'
+import ParagliderStep from '@/components/configurator/ParagliderStep'
+import ParagliderPreviewPanel from '@/components/configurator/ParagliderPreviewPanel'
 import OptionCard from '@/components/configurator/OptionCard'
 import ConfigSection from '@/components/configurator/ConfigSection'
 import SummaryRow from '@/components/configurator/SummaryRow'
-import { buildOptionGallery } from '@/lib/configuratorImages'
+import { buildOptionGallery, normalizeGallery } from '@/lib/configuratorImages'
+import { useParagliderConfigurator } from '@/hooks/useParagliderConfigurator'
+import { NO_PARAGLIDER_ID, paragliderDisplayName, resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import {
   CHASSIS_COLOR_PRESETS,
@@ -33,7 +37,8 @@ import {
   DISRUPTOR_TRIKE_SUMMARY,
 } from '@/lib/disruptorTrikeContent'
 
-const STEPS = ['Color', 'Chassis', 'Accessories', 'Review']
+const STEPS = ['Color', 'Chassis', 'Paraglider', 'Accessories', 'Review']
+const PARAGLIDER_STEP = 2
 
 const DISRUPTOR_TRIKE_PRODUCTO_ID = PRODUCT_IDS.disruptorTrike
 const selectedEngine = 'no-engine'
@@ -72,6 +77,20 @@ export default function ConfiguratorDisruptorTrikePage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const {
+    selectedParagliderId,
+    setSelectedParagliderId,
+    selectedParagliderColor,
+    setSelectedParagliderColor,
+    selectedParagliderSize,
+    setSelectedParagliderSize,
+    paraglider,
+    paragliderPrice,
+    validateParaglider,
+    paragliderCartFields,
+    appendParagliderQuoteLines,
+    getParagliderPreviewGallery,
+  } = useParagliderConfigurator()
 
   const applyDefaults = useCallback((d) => {
     if (d.colorId) setSelectedColorId(d.colorId)
@@ -93,8 +112,8 @@ export default function ConfiguratorDisruptorTrikePage() {
       (sum, id) => sum + (CONFIG_OPTIONS.accessories.find((a) => a.id === id)?.price || 0),
       0,
     )
-    return base + colorPrice + finishPrice + upgradesPrice
-  }, [finish, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
+    return base + colorPrice + finishPrice + paragliderPrice + upgradesPrice
+  }, [finish, paragliderPrice, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
 
   const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
@@ -102,18 +121,22 @@ export default function ConfiguratorDisruptorTrikePage() {
     const lines = []
     if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
     if (finish?.name) lines.push(`Chassis: ${finish.name}`)
+    appendParagliderQuoteLines(lines)
     if (selectedAccessoryItems.length > 0) {
       lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
     }
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, finish, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, finish, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice])
 
   const previewGallery = useMemo(() => {
+    if (previewOption?.gallery?.length) {
+      return normalizeGallery(previewOption.gallery)
+    }
     if (!previewOption?.id) {
       return buildOptionGallery(null, null, PRODUCT_IMAGES)
     }
-    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES)
   }, [previewOption, step])
 
   const selectColorPreset = (color) => {
@@ -153,6 +176,14 @@ export default function ConfiguratorDisruptorTrikePage() {
         setPreviewOption({ id: selectedFinish, image: DISRUPTOR_TRIKE_HERO })
         break
       case 2: {
+        if (paraglider) {
+          setPreviewOption({ id: selectedParagliderId, gallery: getParagliderPreviewGallery() })
+        } else {
+          setPreviewOption({ id: NO_PARAGLIDER_ID, image: DISRUPTOR_TRIKE_HERO })
+        }
+        break
+      }
+      case 3: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -169,12 +200,38 @@ export default function ConfiguratorDisruptorTrikePage() {
       default:
         break
     }
-  }, [step, selectedColorId, selectedFinish, selectedUpgrades, CONFIG_OPTIONS.accessories])
+  }, [
+    step,
+    selectedColorId,
+    selectedFinish,
+    selectedParagliderId,
+    selectedParagliderColor,
+    paraglider,
+    getParagliderPreviewGallery,
+    selectedUpgrades,
+    CONFIG_OPTIONS.accessories,
+  ])
 
-  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  const goNext = () => {
+    if (step === PARAGLIDER_STEP) {
+      const validationError = validateParaglider()
+      if (validationError) {
+        setError(validationError)
+        return
+      }
+    }
+    setError('')
+    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
   const goPrev = () => setStep((s) => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
+    const validationError = validateParaglider()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -185,6 +242,7 @@ export default function ConfiguratorDisruptorTrikePage() {
         engine: selectedEngine,
         finish: selectedFinish,
         propeller: selectedPropeller,
+        ...paragliderCartFields,
         chassisColor: colorLabel,
         colorId: selectedColorId,
         customColor: selectedColorId === CUSTOM_COLOR_ID ? customColorText.trim() : undefined,
@@ -229,7 +287,19 @@ export default function ConfiguratorDisruptorTrikePage() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            {step === PARAGLIDER_STEP && paraglider ? (
+              <ParagliderPreviewPanel
+                wing={paraglider}
+                previewGallery={previewGallery}
+                selectedColorId={selectedParagliderColor}
+                onSelectColor={(colorId, gallery) => {
+                  setSelectedParagliderColor(colorId)
+                  setPreviewOption({ id: selectedParagliderId, gallery })
+                }}
+              />
+            ) : (
+              <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            )}
           </motion.div>
 
           <motion.div
@@ -274,7 +344,21 @@ export default function ConfiguratorDisruptorTrikePage() {
                   </ConfigSection>
                 )}
 
-                {step === 2 && (
+                {step === PARAGLIDER_STEP && (
+                  <ParagliderStep
+                    selectedParagliderId={selectedParagliderId}
+                    selectedColorId={selectedParagliderColor}
+                    selectedSize={selectedParagliderSize}
+                    onSelectParaglider={setSelectedParagliderId}
+                    onSelectColor={setSelectedParagliderColor}
+                    onSelectSize={setSelectedParagliderSize}
+                    onPreviewChange={({ wingId, gallery }) => {
+                      setPreviewOption({ id: wingId || selectedParagliderId, gallery })
+                    }}
+                  />
+                )}
+
+                {step === 3 && (
                   <ConfigSection title="Accessories. Enhance Your Flight">
                     <p className="text-ink2 mb-6 leading-relaxed">
                       Add pilot seat, passenger seat, and expedition accessories — photos update in the gallery as you select each item.
@@ -302,11 +386,18 @@ export default function ConfiguratorDisruptorTrikePage() {
                   </ConfigSection>
                 )}
 
-                {step === 3 && (
+                {step === 4 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
                       <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis" value={finish?.name} price={finish?.price} />
+                      {paraglider && (
+                        <>
+                          <SummaryRow label="Paraglider" value={paragliderDisplayName(paraglider)} price={paraglider.price} />
+                          <SummaryRow label="Wing color" value={resolveParagliderColorLabel(paraglider, selectedParagliderColor)} />
+                          <SummaryRow label="Wing size" value={selectedParagliderSize} />
+                        </>
+                      )}
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>

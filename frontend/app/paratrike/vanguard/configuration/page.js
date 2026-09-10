@@ -15,10 +15,14 @@ import WizardProgress from '@/components/configurator/WizardProgress'
 import QuoteButton from '@/components/configurator/QuoteButton'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
 import ChassisColorStep from '@/components/configurator/ChassisColorStep'
+import ParagliderStep from '@/components/configurator/ParagliderStep'
+import ParagliderPreviewPanel from '@/components/configurator/ParagliderPreviewPanel'
 import OptionCard from '@/components/configurator/OptionCard'
 import ConfigSection from '@/components/configurator/ConfigSection'
 import SummaryRow from '@/components/configurator/SummaryRow'
-import { buildOptionGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import { buildOptionGallery, normalizeGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import { useParagliderConfigurator } from '@/hooks/useParagliderConfigurator'
+import { NO_PARAGLIDER_ID, paragliderDisplayName, resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import {
   CHASSIS_COLOR_PRESETS,
@@ -84,7 +88,8 @@ const DEFAULT_OPTIONS = {
   ]
 }
 
-const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
+const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
+const PARAGLIDER_STEP = 4
 
 const VANGUARD_PRODUCTO_ID = PRODUCT_IDS.vanguard
 
@@ -107,6 +112,20 @@ export default function ConfiguratorPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const {
+    selectedParagliderId,
+    setSelectedParagliderId,
+    selectedParagliderColor,
+    setSelectedParagliderColor,
+    selectedParagliderSize,
+    setSelectedParagliderSize,
+    paraglider,
+    paragliderPrice,
+    validateParaglider,
+    paragliderCartFields,
+    appendParagliderQuoteLines,
+    getParagliderPreviewGallery,
+  } = useParagliderConfigurator()
 
   const applyDefaults = useCallback((d) => {
     if (d.engineId) setSelectedEngine(d.engineId)
@@ -128,8 +147,8 @@ export default function ConfiguratorPage() {
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + propellerPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
-  }, [engine, propeller, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
+    return baseChassis + enginePrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
+  }, [engine, propeller, paragliderPrice, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
 
   const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
@@ -139,12 +158,13 @@ export default function ConfiguratorPage() {
     if (chassisType?.name) lines.push(`Chassis type: ${chassisType.name}`)
     if (engine?.name) lines.push(`Engine: ${engine.name}`)
     if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    appendParagliderQuoteLines(lines)
     if (selectedAccessoryItems.length > 0) {
       lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
     }
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, chassisType, engine, propeller, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice])
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
@@ -157,10 +177,13 @@ export default function ConfiguratorPage() {
   }
 
   const previewGallery = useMemo(() => {
+    if (previewOption?.gallery?.length) {
+      return normalizeGallery(previewOption.gallery)
+    }
     if (!previewOption?.id) {
       return buildOptionGallery(null, null, PRODUCT_IMAGES)
     }
-    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES)
   }, [previewOption, step])
 
   const selectChassisType = (id) => {
@@ -212,6 +235,14 @@ export default function ConfiguratorPage() {
         break
       }
       case 4: {
+        if (paraglider) {
+          setPreviewOption({ id: selectedParagliderId, gallery: getParagliderPreviewGallery() })
+        } else {
+          setPreviewOption({ id: NO_PARAGLIDER_ID, image: VANGUARD_HERO_IMAGE })
+        }
+        break
+      }
+      case 5: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -234,6 +265,10 @@ export default function ConfiguratorPage() {
     selectedChassisType,
     selectedEngine,
     selectedPropeller,
+    selectedParagliderId,
+    selectedParagliderColor,
+    paraglider,
+    getParagliderPreviewGallery,
     selectedUpgrades,
     CONFIG_OPTIONS.chassisTypes,
     CONFIG_OPTIONS.engines,
@@ -241,10 +276,26 @@ export default function ConfiguratorPage() {
     CONFIG_OPTIONS.accessories,
   ])
 
-  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  const goNext = () => {
+    if (step === PARAGLIDER_STEP) {
+      const validationError = validateParaglider()
+      if (validationError) {
+        setError(validationError)
+        return
+      }
+    }
+    setError('')
+    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
   const goPrev = () => setStep(s => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
+    const validationError = validateParaglider()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -255,6 +306,7 @@ export default function ConfiguratorPage() {
         engine: selectedEngine,
         chassisType: selectedChassisType,
         propeller: selectedPropeller,
+        ...paragliderCartFields,
         chassisColor: colorLabel,
         colorId: selectedColorId,
         customColor: selectedColorId === CUSTOM_COLOR_ID ? customColorText.trim() : undefined,
@@ -301,7 +353,19 @@ export default function ConfiguratorPage() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            {step === PARAGLIDER_STEP && paraglider ? (
+              <ParagliderPreviewPanel
+                wing={paraglider}
+                previewGallery={previewGallery}
+                selectedColorId={selectedParagliderColor}
+                onSelectColor={(colorId, gallery) => {
+                  setSelectedParagliderColor(colorId)
+                  setPreviewOption({ id: selectedParagliderId, gallery })
+                }}
+              />
+            ) : (
+              <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            )}
           </motion.div>
 
           {/* Right: Wizard step content */}
@@ -393,7 +457,21 @@ export default function ConfiguratorPage() {
                   </ConfigSection>
                 )}
 
-                {step === 4 && (
+                {step === PARAGLIDER_STEP && (
+                  <ParagliderStep
+                    selectedParagliderId={selectedParagliderId}
+                    selectedColorId={selectedParagliderColor}
+                    selectedSize={selectedParagliderSize}
+                    onSelectParaglider={setSelectedParagliderId}
+                    onSelectColor={setSelectedParagliderColor}
+                    onSelectSize={setSelectedParagliderSize}
+                    onPreviewChange={({ wingId, gallery }) => {
+                      setPreviewOption({ id: wingId || selectedParagliderId, gallery })
+                    }}
+                  />
+                )}
+
+                {step === 5 && (
                   <ConfigSection title="Accessories. Enhance your flight">
                     <div className="space-y-3">
                       {accessories.map(a => {
@@ -418,13 +496,20 @@ export default function ConfiguratorPage() {
                   </ConfigSection>
                 )}
 
-                {step === 5 && (
+                {step === 6 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
                       <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
+                      {paraglider && (
+                        <>
+                          <SummaryRow label="Paraglider" value={paragliderDisplayName(paraglider)} price={paraglider.price} />
+                          <SummaryRow label="Wing color" value={resolveParagliderColorLabel(paraglider, selectedParagliderColor)} />
+                          <SummaryRow label="Wing size" value={selectedParagliderSize} />
+                        </>
+                      )}
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>

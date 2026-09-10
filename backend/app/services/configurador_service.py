@@ -56,7 +56,7 @@ NOMADIC_ACCESSORIES: Dict[str, float] = {
     "instrument-kit": 350,
 }
 NOMADIC_PROPELLERS: Dict[str, float] = {"no-propeller": 0, "bipala": 534.75, "tripala": 677.35}
-NOMADIC_PARAGLIDERS: Dict[str, float] = {
+TRIKE_PARAGLIDERS: Dict[str, float] = {
     "dudek-orca-6": 4252.0,
     "dudek-cabrio": 4524.0,
     "dudek-boson": 4542.0,
@@ -64,6 +64,7 @@ NOMADIC_PARAGLIDERS: Dict[str, float] = {
     "apco-game-mkiii": 3531.0,
     "apco-f3bi-mkii": 3580.0,
 }
+NOMADIC_PARAGLIDERS = TRIKE_PARAGLIDERS
 
 LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
     VANGUARD_PRODUCT_ID: {
@@ -72,6 +73,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "finishes": VANGUARD_FINISHES,
         "accessories": VANGUARD_ACCESSORIES,
         "propellers": VANGUARD_PROPELLERS,
+        "paragliders": TRIKE_PARAGLIDERS,
         "default_engine": "no-engine",
     },
     NOMADIC_PRODUCT_ID: {
@@ -80,7 +82,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "finishes": NOMADIC_FINISHES,
         "accessories": NOMADIC_ACCESSORIES,
         "propellers": NOMADIC_PROPELLERS,
-        "paragliders": NOMADIC_PARAGLIDERS,
+        "paragliders": TRIKE_PARAGLIDERS,
         "default_engine": "no-engine",
     },
     DISRUPTOR_PARAMOTOR_PRODUCT_ID: {
@@ -100,6 +102,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "accessories": {},
         "propellers": {"no-propeller": 0, "bipala": 350, "tripala": 450},
         "colors": {},
+        "paragliders": TRIKE_PARAGLIDERS,
         "default_engine": "no-engine",
     },
 }
