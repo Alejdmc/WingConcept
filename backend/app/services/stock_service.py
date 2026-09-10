@@ -19,7 +19,7 @@ from app.utils.redis_client import cache_delete_pattern
 
 logger = logging.getLogger(__name__)
 
-CATALOG_CATEGORIES = frozenset({"repuestos", "accesorios"})
+CATALOG_CATEGORIES = frozenset({"repuestos", "accesorios", "vela"})
 CACHE_PREFIX = "productos"
 
 

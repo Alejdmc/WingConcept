@@ -72,7 +72,7 @@ export default function AdminLayout({ children }) {
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
         <span className={`font-semibold leading-tight ${!sidebarOpen && 'md:hidden'}`}>{label}</span>
-        {href === '/admin/parts' && lowStockCount > 0 && (
+        {(href === '/admin/parts' || href === '/admin/paragliders') && lowStockCount > 0 && (
           <span className={`ml-auto px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold ${!sidebarOpen && 'md:absolute md:top-1 md:right-1 md:ml-0'}`}>
             {lowStockCount}
           </span>

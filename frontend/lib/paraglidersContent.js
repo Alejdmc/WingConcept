@@ -2,6 +2,11 @@
 
 import { PARAMOTOR_PARAGLIDERS } from './paramotorParagliderOptions'
 import { TRIKE_PARAGLIDERS } from './trikeParagliderOptions'
+import {
+  catalogSlugForHarness,
+  catalogSlugForWing,
+  resolveParagliderProductoId,
+} from './paraglidersCatalogIds'
 
 export const PARAGLIDER_TABS = [
   {
@@ -56,8 +61,11 @@ function wingToCatalogItem(wing, category) {
   const image = wing.galleryImages?.[0]?.src
     || wing.colors?.[0]?.images?.[0]?.src
     || '/images/front1.jpg'
+  const catalogSlug = catalogSlugForWing(wing.id)
   return {
     id: wing.id,
+    catalogSlug,
+    productoId: resolveParagliderProductoId({ wingId: wing.id, slug: catalogSlug }),
     name: wing.name,
     brand: wing.brand,
     category,
@@ -65,6 +73,8 @@ function wingToCatalogItem(wing, category) {
     price: wing.price,
     priceLabel: `$${wing.price.toLocaleString(undefined, { minimumFractionDigits: wing.price % 1 ? 2 : 0 })}`,
     image,
+    colors: wing.colors || [],
+    sizes: wing.sizes || ['Standard'],
     infoUrl: wing.infoUrl,
     configuratorHref: '/paramotors/disruptor/configurador',
   }
@@ -102,5 +112,16 @@ export const PARAGLIDER_HARNESSES = [
   { name: 'SEAT FORTA STANDARD', brand: 'Dudek', description: 'Standard seat harness for everyday flying.', priceLabel: 'Contact for price' },
   { name: 'AIRA', brand: 'Dudek', description: 'Lightweight harness for cross-country pilots.', priceLabel: 'Contact for price' },
   { name: 'SPED B INK', brand: 'Dudek', description: 'Speed-focused harness design.', priceLabel: 'Contact for price' },
-  { name: 'POWERSEAT COMFORT', brand: 'Dudek', description: 'Paramotor harness with enhanced comfort padding — also available on Disruptor configurador.', priceLabel: '$733', productUrl: 'https://dudek.eu/en/produkt/powerseat-comfort-dp/' },
+  {
+    id: 'powerseat-comfort',
+    harnessId: 'powerseat-comfort',
+    catalogSlug: catalogSlugForHarness('powerseat-comfort'),
+    productoId: resolveParagliderProductoId({ harnessId: 'powerseat-comfort', slug: catalogSlugForHarness('powerseat-comfort') }),
+    name: 'POWERSEAT COMFORT',
+    brand: 'Dudek',
+    description: 'Paramotor harness with enhanced comfort padding — also available on Disruptor configurador.',
+    price: 733,
+    priceLabel: '$733',
+    productUrl: 'https://dudek.eu/en/produkt/powerseat-comfort-dp/',
+  },
 ]

@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 <h2 className="font-black text-lg text-orange-900">Low stock alert</h2>
                 <p className="text-sm text-orange-800 mt-1">
                   {stats.stock_bajo_total} item{stats.stock_bajo_total !== 1 ? 's' : ''} at or below{' '}
-                  {stats.stock_bajo_umbral ?? 2} units in Parts &amp; Accessories catalog.
+                  {stats.stock_bajo_umbral ?? 2} units in Parts, Paragliders, and Accessories catalog.
                 </p>
               </div>
             </div>

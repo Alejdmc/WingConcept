@@ -14,6 +14,7 @@ import {
   Newspaper,
   Star,
   Wind,
+  Feather,
   LayoutDashboard,
 } from 'lucide-react'
 
@@ -43,6 +44,7 @@ export const ADMIN_NAV = [
     items: [
       { label: 'Configurators', href: '/admin/configurador', icon: Sliders, hint: 'Engines, colors, accessories and prices' },
       { label: 'Parts & accessories', href: '/admin/parts', icon: Wrench, hint: 'Shop catalog, stock and photos' },
+      { label: 'Paragliders', href: '/admin/paragliders', icon: Feather, hint: 'Wings and harnesses on /paragliders' },
     ],
   },
   {
