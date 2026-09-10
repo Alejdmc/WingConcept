@@ -93,7 +93,6 @@ export default function ConfiguratorDisruptorTrikePage() {
   } = useParagliderConfigurator()
 
   const applyDefaults = useCallback((d) => {
-    if (d.colorId) setSelectedColorId(d.colorId)
     if (d.finishId) setSelectedFinish(d.finishId)
   }, [])
 

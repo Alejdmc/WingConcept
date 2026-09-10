@@ -38,10 +38,11 @@ def _normalize_gallery(op: ConfiguradorOpcion) -> List[str]:
 
 
 def _opcion_to_dict(op: ConfiguradorOpcion) -> Dict[str, Any]:
+    extra = op.extra or {}
     base = {
         "id": op.slug,
         "name": op.nombre,
-        "description": op.descripcion,
+        "description": op.descripcion or extra.get("description"),
         "price": op.precio,
         "basePrice": op.precio,
         "image": op.imagen,

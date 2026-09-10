@@ -1,5 +1,14 @@
 /** Human-readable configuration lines — shared by cart, orders, and admin. */
 
+const PARAGLIDER_LABELS = {
+  'dudek-orca-6': 'DUDEK Orca 6',
+  'dudek-cabrio': 'DUDEK Cabrio',
+  'dudek-boson': 'DUDEK Boson',
+  'apco-play-42-ul': 'APCO Play 42 UL',
+  'apco-game-mkiii': 'APCO Game MKIII',
+  'apco-f3bi-mkii': 'APCO F3Bi MKII',
+}
+
 const UPGRADE_LABELS = {
   'sun-roof-netting': 'Sun-roof netting',
   'cruise-control': 'Cruise control',
@@ -35,6 +44,7 @@ export function extractOptionId(value) {
 export function fmtOption(value) {
   const raw = extractOptionId(value) || String(value ?? '').trim()
   if (!raw) return ''
+  if (PARAGLIDER_LABELS[raw]) return PARAGLIDER_LABELS[raw]
   if (UPGRADE_LABELS[raw]) return UPGRADE_LABELS[raw]
   const stripped = raw.replace(/^(vanguard|nomadic|acc|part)-/i, '')
   return stripped.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
@@ -57,9 +67,13 @@ export function normalizeConfigForApi(config = {}) {
     color: pick(config.color),
     colorId: pick(config.colorId),
     upgrades: (config.upgrades || []).map(pickUpgrade).filter(Boolean),
-    paraglider: pick(config.paraglider),
+    paraglider: (() => {
+      const id = pick(config.paraglider)
+      return id && id !== 'no-paraglider' ? id : null
+    })(),
     paragliderColor: config.paragliderColor ? String(config.paragliderColor) : null,
     paragliderSize: config.paragliderSize ? String(config.paragliderSize) : null,
+    customColor: config.customColor ? String(config.customColor).trim() : null,
     bookingType: config.bookingType,
     firstName: config.firstName,
     lastName: config.lastName,

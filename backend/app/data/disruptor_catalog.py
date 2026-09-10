@@ -99,11 +99,16 @@ PARAMOTOR_ACCESSORIES = [
 ]
 
 # ── Trike Disruptor ───────────────────────────────────────────────────────────
+# IDs aligned with frontend/lib/chassisColors.js (ChassisColorStep on all trikes)
 TRIKE_COLORS = [
-    ("color", "white", "White", None, 0, None, {"hex": "#ffffff", "displayName": "White"}),
-    ("color", "red-candy", "Red Candy", None, 0, None, {"hex": "#e74c3c", "displayName": "Red Candy"}),
-    ("color", "blue-candy", "Blue Candy", None, 0, None, {"hex": "#3498db", "displayName": "Blue Candy"}),
-    ("color", "purple-candy", "Purple Candy", None, 0, None, {"hex": "#9b59b6", "displayName": "Purple Candy"}),
+    ("color", "candy-red-white", "Candy Red & White", None, 0, None,
+     {"hex": "#e74c3c", "accent": "#ffffff", "displayName": "Candy Red & White"}),
+    ("color", "candy-blue-white", "Candy Blue & White", None, 0, None,
+     {"hex": "#3498db", "accent": "#ffffff", "displayName": "Candy Blue & White"}),
+    ("color", "candy-purple-white", "Candy Purple & White", None, 0, None,
+     {"hex": "#9b59b6", "accent": "#ffffff", "displayName": "Candy Purple & White"}),
+    ("color", "custom", "Custom Color", "Describe your desired color.", 100, None,
+     {"hex": "#cccccc", "displayName": "Custom Color"}),
 ]
 
 TRIKE_FINISHES = [

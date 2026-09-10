@@ -3,10 +3,11 @@
 export const CUSTOM_COLOR_ID = 'custom'
 export const CUSTOM_COLOR_SURCHARGE = 100
 
+/** IDs must match CMS seed (candy-*-white) and backend chassis_colors.py */
 export const CHASSIS_COLOR_PRESETS = [
-  { id: 'red-candy-white', name: 'Red Candy & White', hex: '#e74c3c', accent: '#ffffff' },
-  { id: 'blue-candy-white', name: 'Blue Candy & White', hex: '#3498db', accent: '#ffffff' },
-  { id: 'purple-candy-white', name: 'Purple Candy & White', hex: '#9b59b6', accent: '#ffffff' },
+  { id: 'candy-red-white', name: 'Red Candy & White', hex: '#e74c3c', accent: '#ffffff' },
+  { id: 'candy-blue-white', name: 'Blue Candy & White', hex: '#3498db', accent: '#ffffff' },
+  { id: 'candy-purple-white', name: 'Purple Candy & White', hex: '#9b59b6', accent: '#ffffff' },
 ]
 
 export function resolveChassisColorLabel(colorId, customText = '') {

@@ -113,21 +113,11 @@ export function CartProvider({ children }) {
       const productoId = config.producto_id || config.productoId
       if (!productoId) throw new Error('Missing producto_id')
 
+      const { producto_id: _pid, productoId: _pId, cantidad: _qty, totalPrice: _total, ...configFields } = config
       const res = await api.carrito.agregar({
         producto_id: productoId,
         cantidad: config.cantidad || 1,
-        configuracion: normalizeConfigForApi({
-          engine: config.engine,
-          chassisType: config.chassisType,
-          finish: config.finish,
-          handThrottle: config.handThrottle,
-          propeller: config.propeller,
-          color: config.color,
-          colorId: config.colorId,
-          chassisColor: config.chassisColor,
-          accentColor: config.accentColor,
-          upgrades: config.upgrades || [],
-        }),
+        configuracion: normalizeConfigForApi(configFields),
       })
       markSkipNextFetch()
       return applyCartResponse(res)

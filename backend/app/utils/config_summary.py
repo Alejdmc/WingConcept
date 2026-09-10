@@ -109,6 +109,10 @@ def format_config_lines(config: Optional[Dict[str, Any]]) -> List[Dict[str, str]
                 lines.append({"label": label, "value": _fmt_slug(val) if key.endswith("Id") else str(val)})
         return lines
 
+    custom_color = config.get("customColor")
+    if custom_color:
+        lines.append({"label": "Custom color", "value": str(custom_color)})
+
     for key in (
         "engine", "chassisType", "finish", "handThrottle", "propeller",
         "color", "colorId", "chassisColor", "accentColor", "peripheralColor",

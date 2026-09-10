@@ -159,7 +159,6 @@ export function useConfigOptions(productoId, fallbackOptions) {
     chassisTypeId: options.chassisTypes?.[0]?.id ?? null,
     finishId: options.chassisFinishes?.[0]?.id ?? null,
     handThrottleId: pickDefaultId(options.handThrottles, 'no-throttle'),
-    colorId: options.colors?.[0]?.id ?? null,
   }
 
   return { options, basePrice, loading, defaultSelections }
@@ -194,6 +193,7 @@ function withOptionalGallery(base, o) {
 
 function mapEngine(o, fallbackEngines = []) {
   const fb = (fallbackEngines || []).find((item) => item.id === o.id)
+  const cmsDescription = typeof o.description === 'string' ? o.description.trim() : ''
   return withOptionalGallery({
     id: o.id,
     name: o.name,
@@ -202,7 +202,7 @@ function mapEngine(o, fallbackEngines = []) {
     power: o.power || fb?.power,
     infoUrl: o.infoUrl || fb?.infoUrl,
     priceTbd: Boolean(o.price_tbd || o.priceTbd || fb?.priceTbd),
-    description: pickText(o.description, fb?.description),
+    description: cmsDescription || fb?.description || '',
   }, o)
 }
 function mapHandThrottle(o, fallbackHandThrottles = []) {

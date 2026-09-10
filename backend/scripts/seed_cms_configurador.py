@@ -227,12 +227,12 @@ SITE_BLOCKS = [
 ]
 
 VANGUARD_OPCIONES = [
-    ("engine", "no-engine", "No Engine", None, 0, None, {}),
-    ("engine", "rotax-503-preowned", "Pre-Owned Rotax 503", None, 0, "/images/engines/rotax-503.jpg", {"infoUrl": "https://www.rotax.com/", "price_tbd": True}),
-    ("engine", "rotax-912", "Rotax 912 ULS (80HP)", None, 25000, "/images/engines/rotax-912.jpg", {"infoUrl": "https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html", "power": "80 HP"}),
-    ("engine", "RMZ500", "RMZ500 (Rotax 503 compatible)", None, 15000, "/images/engines/rmz500.jpg", {}),
-    ("engine", "simonini-v2", "Simonini Victor 2 Super (112HP)", None, 12000, "/images/engines/simonini-v2.jpg", {"infoUrl": "https://www.simonini-flying.com/en/home/127-victor-2.html", "power": "112 HP"}),
-    ("engine", "hirth-3503", "Hirth 3503 (70HP)", None, 11000, "/images/engines/hirth-3503.jpg", {"power": "70 HP"}),
+    ("engine", "no-engine", "No Engine", "Chassis only — add an engine later.", 0, None, {}),
+    ("engine", "rotax-503-preowned", "Pre-Owned Rotax 503", "Pre-owned Rotax 503 two-stroke option for budget-conscious builds.", 0, "/images/engines/rotax-503.jpg", {"infoUrl": "https://www.rotax.com/", "price_tbd": True}),
+    ("engine", "rotax-912", "Rotax 912 ULS (80HP)", "Four-stroke liquid-cooled aviation engine — the benchmark for reliability and long service life.", 25000, "/images/engines/rotax-912.jpg", {"infoUrl": "https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html", "power": "80 HP"}),
+    ("engine", "RMZ500", "RMZ500 (Rotax 503 compatible)", "Rotax 503-compatible powerplant option for proven two-stroke performance on the Vanguard platform.", 15000, "/images/engines/rmz500.jpg", {}),
+    ("engine", "simonini-v2", "Simonini Victor 2 Super (112HP)", "High-output two-stroke engine for performance-focused pilots who need maximum thrust.", 12000, "/images/engines/simonini-v2.jpg", {"infoUrl": "https://www.simonini-flying.com/en/home/127-victor-2.html", "power": "112 HP"}),
+    ("engine", "hirth-3503", "Hirth 3503 (70HP)", "Compact 70 HP two-stroke engine with an excellent power-to-weight ratio for trike operations.", 11000, "/images/engines/hirth-3503.jpg", {"power": "70 HP"}),
     ("chassis_type", "commercial", "Commercial", "Designed for tandem flying. The passenger has easy access from the front. The harness positions the passenger deep inside the trike for safety.", 0, "/images/chassis/commercial.jpg", {}),
     ("chassis_type", "adventure", "Adventure", "For pilots who want to fly fast with a dynamic style — more penetration, less drag. Ideal for adventurers with optional camera mount.", 0, "/images/chassis/adventure.jpg", {}),
     ("chassis_type", "reportage", "Reportage", "Stable platform for aerial photography and filming. Optional weapon mount with full left or right-hand access.", 0, "/images/chassis/reportage.jpg", {}),
@@ -263,11 +263,11 @@ VANGUARD_OPCIONES = [
 
 NOMADIC_OPCIONES = [
     ("engine", "no-engine", "No Engine", "Chassis only — add an engine later or supply your own.", 0, None, {}),
-    ("engine", "polini-303", "Polini Thor 303 EVO", None, 3950, "/images/engines/polini-303.jpg", {"power": "38 HP", "infoUrl": "https://www.polini.com/en/polini-thor-303-evo/"}),
-    ("engine", "polini-260", "Polini Thor 260", None, 4200, "/images/engines/polini-260.jpg", {"power": "24 HP", "infoUrl": "https://www.polini.com/en/polini-thor-260-2/"}),
-    ("engine", "vittorazi-300-my25", "Vittorazi Cosmos 300", None, 4560, "/images/engines/vittorazi-300-my25.jpg", {"power": "36 HP", "infoUrl": "https://www.vittorazi.com/en/cosmos-300/"}),
-    ("engine", "zeus-300", "Sky Engine Zeus 300 Boxer", None, 0, "/images/engines/zeus-300.jpg", {"power": "44 HP", "infoUrl": "https://skyengines.it/en/home/109-zeus-300-boxer/", "price_tbd": True}),
-    ("engine", "simonini-victor-1", "Simonini Victor One Super", None, 0, "/images/engines/simonini-v1.jpg", {"power": "54 HP", "infoUrl": "https://www.simonini-flying.com/en/home/109-victor-1.html", "price_tbd": True}),
+    ("engine", "polini-303", "Polini Thor 303 EVO", "Compact and powerful — ideal for pilots who want responsive thrust without excessive weight.", 3950, "/images/engines/polini-303.jpg", {"power": "38 HP", "infoUrl": "https://www.polini.com/en/polini-thor-303-evo/"}),
+    ("engine", "polini-260", "Polini Thor 260", "Lightweight two-stroke engine with excellent fuel economy for cross-country exploration.", 4200, "/images/engines/polini-260.jpg", {"power": "24 HP", "infoUrl": "https://www.polini.com/en/polini-thor-260-2/"}),
+    ("engine", "vittorazi-300-my25", "Vittorazi Cosmos 300", "Proven paramotor engine with smooth power delivery and strong low-end torque.", 4560, "/images/engines/vittorazi-300-my25.jpg", {"power": "36 HP", "infoUrl": "https://www.vittorazi.com/en/cosmos-300/"}),
+    ("engine", "zeus-300", "Sky Engine Zeus 300 Boxer", "High-displacement boxer engine for pilots who need maximum power on heavy trike setups.", 0, "/images/engines/zeus-300.jpg", {"power": "44 HP", "infoUrl": "https://skyengines.it/en/home/109-zeus-300-boxer/", "price_tbd": True}),
+    ("engine", "simonini-victor-1", "Simonini Victor One Super", "Top-tier performance engine for experienced pilots demanding the highest output.", 0, "/images/engines/simonini-v1.jpg", {"power": "54 HP", "infoUrl": "https://www.simonini-flying.com/en/home/109-victor-1.html", "price_tbd": True}),
     ("finish", "stainless-brushed", "Stainless Steel Brushed", "Brushed stainless steel, maximum weather resistance.", 0, None, {"swatch": "#b5b8bb"}),
     ("finish", "anodized-black", "Anodized Black", "Black anodized finish, aggressive look and extra corrosion protection.", 600, None, {"swatch": "#1c1c1c"}),
     ("finish", "titanium-finish", "Titanium Finish", "Titanium finish, lightweight with high structural strength.", 1200, None, {"swatch": "#8e8e8e"}),

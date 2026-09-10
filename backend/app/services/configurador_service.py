@@ -15,6 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ValidacionError
 from app.models.variante import Variante
+from app.data.chassis_colors import CUSTOM_COLOR_SURCHARGE, is_allowed_chassis_color, chassis_color_price
+from app.data.paragliders import normalize_paraglider_id, validate_paraglider_selection
 from app.utils.config_summary import extract_option_id
 
 VANGUARD_PRODUCT_ID = uuid.UUID("c1a2b3d4-e5f6-7890-1234-567890abcdef")
@@ -141,7 +143,7 @@ class ConfiguradorService:
         merged = dict(configuracion)
         for key in ("chassisType", "chassisColor", "accentColor", "peripheralColor", "totalPrice"):
             merged.pop(key, None)
-        for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId"):
+        for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId", "paraglider"):
             if key in merged and merged[key] is not None:
                 merged[key] = self._coerce_option_id(merged[key])
         if "upgrades" in merged and isinstance(merged["upgrades"], list):
@@ -164,8 +166,7 @@ class ConfiguradorService:
                 db_catalog["hand_throttles"] = legacy.get("hand_throttles", {})
             if not db_catalog.get("colors"):
                 db_catalog["colors"] = legacy.get("colors", {})
-            if not db_catalog.get("paragliders"):
-                db_catalog["paragliders"] = legacy.get("paragliders", {})
+            db_catalog.setdefault("paragliders", legacy.get("paragliders", {}))
             return db_catalog
         return LEGACY_CATALOGS.get(producto_id)
 
@@ -202,7 +203,7 @@ class ConfiguradorService:
         propeller_id = opciones.get("propeller")
         hand_id = opciones.get("handThrottle")
         color_id = opciones.get("color") or opciones.get("colorId")
-        paraglider_id = opciones.get("paraglider")
+        paraglider_id = normalize_paraglider_id(opciones.get("paraglider"))
         upgrades: List[str] = opciones.get("upgrades") or []
 
         if engines and engine_id and engine_id not in engines:
@@ -213,18 +214,25 @@ class ConfiguradorService:
             raise ValidacionError(f"Hélice '{propeller_id}' no válida para este producto")
         if hand_id and hand_throttles and hand_id not in hand_throttles:
             raise ValidacionError(f"Hand throttle '{hand_id}' no válido para este producto")
-        if paraglider_id and paragliders and paraglider_id not in paragliders:
+        if paraglider_id and not paragliders:
+            raise ValidacionError("Parapente no disponible para este producto")
+        if paraglider_id and paraglider_id not in paragliders:
             raise ValidacionError(f"Parapente '{paraglider_id}' no válido para este producto")
-        if paraglider_id and paragliders and not opciones.get("paragliderColor"):
-            raise ValidacionError("Debe seleccionar color del parapente")
-        if paraglider_id and paragliders and not opciones.get("paragliderSize"):
-            raise ValidacionError("Debe seleccionar talla del parapente")
-        if color_id == "custom" or opciones.get("customColor"):
-            color_price = 100.0
-        elif color_id and colors and color_id not in colors:
+        if paraglider_id:
+            try:
+                validate_paraglider_selection(
+                    paraglider_id,
+                    opciones.get("paragliderColor"),
+                    opciones.get("paragliderSize"),
+                )
+            except ValueError as exc:
+                raise ValidacionError(str(exc)) from exc
+        if color_id in ("custom", "customized") or opciones.get("customColor"):
+            color_price = CUSTOM_COLOR_SURCHARGE
+        elif color_id and not is_allowed_chassis_color(color_id, colors):
             raise ValidacionError(f"Color '{color_id}' no válido para este producto")
         else:
-            color_price = colors.get(color_id, 0.0) if color_id else 0.0
+            color_price = chassis_color_price(color_id, colors)
 
         engine_price = engines.get(engine_id, 0.0) if engine_id else 0.0
         finish_price = finishes.get(finish_id, 0.0) if finish_id else 0.0

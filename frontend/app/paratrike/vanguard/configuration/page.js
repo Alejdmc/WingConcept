@@ -31,7 +31,11 @@ import {
   resolveChassisColorLabel,
 } from '@/lib/chassisColors'
 
-const vanguardEngineDesc = (name) => VANGUARD_ENGINES.find((engine) => engine.name === name)?.description ?? ''
+const VANGUARD_ENGINE_DESCRIPTIONS = Object.fromEntries(
+  VANGUARD_ENGINES.map((engine) => [engine.name, engine.description]),
+)
+
+const vanguardEngineDesc = (name) => VANGUARD_ENGINE_DESCRIPTIONS[name] ?? ''
 
 const DEFAULT_OPTIONS = {
   engines: [
