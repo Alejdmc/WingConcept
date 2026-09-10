@@ -15,6 +15,9 @@ CONFIG_LABELS = {
     "chassisColor": "Chassis color",
     "accentColor": "Accent color",
     "peripheralColor": "Peripheral color",
+    "paraglider": "Paraglider",
+    "paragliderColor": "Wing color",
+    "paragliderSize": "Wing size",
     "firstName": "Guest first name",
     "lastName": "Guest last name",
     "phone": "Phone",
@@ -22,6 +25,15 @@ CONFIG_LABELS = {
     "locationId": "Location",
     "locationName": "Location",
     "duration": "Duration",
+}
+
+PARAGLIDER_LABELS = {
+    "dudek-orca-6": "DUDEK Orca 6",
+    "dudek-cabrio": "DUDEK Cabrio",
+    "dudek-boson": "DUDEK Boson",
+    "apco-play-42-ul": "APCO Play 42 UL",
+    "apco-game-mkiii": "APCO Game MKIII",
+    "apco-f3bi-mkii": "APCO F3Bi MKII",
 }
 
 UPGRADE_LABELS = {
@@ -67,6 +79,8 @@ def _fmt_slug(value: Any) -> str:
     raw = extract_option_id(value) or str(value or "").strip()
     if not raw:
         return ""
+    if raw in PARAGLIDER_LABELS:
+        return PARAGLIDER_LABELS[raw]
     if raw in UPGRADE_LABELS:
         return UPGRADE_LABELS[raw]
     cleaned = re.sub(r"^(vanguard|nomadic|acc|part)-", "", raw, flags=re.I)
@@ -98,6 +112,7 @@ def format_config_lines(config: Optional[Dict[str, Any]]) -> List[Dict[str, str]
     for key in (
         "engine", "chassisType", "finish", "handThrottle", "propeller",
         "color", "colorId", "chassisColor", "accentColor", "peripheralColor",
+        "paraglider", "paragliderColor", "paragliderSize",
     ):
         val = config.get(key)
         if val:

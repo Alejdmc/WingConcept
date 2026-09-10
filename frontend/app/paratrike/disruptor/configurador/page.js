@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft } from 'lucide-react'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
@@ -12,27 +12,32 @@ import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
 import QuoteButton from '@/components/configurator/QuoteButton'
+import ChassisColorStep from '@/components/configurator/ChassisColorStep'
+import OptionCard from '@/components/configurator/OptionCard'
+import ConfigSection from '@/components/configurator/ConfigSection'
+import SummaryRow from '@/components/configurator/SummaryRow'
 import { buildOptionGallery } from '@/lib/configuratorImages'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
-import { DISRUPTOR_ENGINES, DISRUPTOR_PROPELLERS } from '@/lib/disruptorSharedOptions'
+import {
+  CHASSIS_COLOR_PRESETS,
+  CUSTOM_COLOR_ID,
+  chassisColorSurcharge,
+  resolveChassisColorLabel,
+} from '@/lib/chassisColors'
 import {
   DISRUPTOR_TRIKE_BASE_PRICE,
   DISRUPTOR_TRIKE_GALLERY,
+  DISRUPTOR_TRIKE_HERO,
   DISRUPTOR_TRIKE_ACCESSORIES,
   DISRUPTOR_TRIKE_CHASSIS_FINISHES,
   DISRUPTOR_TRIKE_SUMMARY,
 } from '@/lib/disruptorTrikeContent'
 
-const DEFAULT_COLORS = [
-  { id: 'white', name: 'White', hex: '#ffffff', price: 0 },
-  { id: 'red-candy', name: 'Red Candy', hex: '#e74c3c', price: 0 },
-  { id: 'blue-candy', name: 'Blue Candy', hex: '#3498db', price: 0 },
-  { id: 'purple-candy', name: 'Purple Candy', hex: '#9b59b6', price: 0 },
-]
-
-const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
+const STEPS = ['Color', 'Chassis', 'Accessories', 'Review']
 
 const DISRUPTOR_TRIKE_PRODUCTO_ID = PRODUCT_IDS.disruptorTrike
+const selectedEngine = 'no-engine'
+const selectedPropeller = 'no-propeller'
 
 const PRODUCT_IMAGES = DISRUPTOR_TRIKE_GALLERY
 
@@ -41,131 +46,89 @@ function formatOptionPrice(price) {
   return `+$${price.toLocaleString(undefined, { minimumFractionDigits: price % 1 === 0 ? 0 : 2 })}`
 }
 
-function formatEnginePrice(engine) {
-  if (engine?.priceTbd) return 'Price TBD'
-  if (!engine || engine.basePrice === 0) return 'Included'
-  return `+$${engine.basePrice.toLocaleString()}`
-}
-
 export default function ConfiguratorDisruptorTrikePage() {
   const router = useRouter()
   const { addConfiguredProduct } = useCart()
   const { options, loading: optionsLoading, defaultSelections } = useConfigOptions(DISRUPTOR_TRIKE_PRODUCTO_ID, {
-    engines: DISRUPTOR_ENGINES,
+    engines: [],
     chassisTypes: [],
     chassisFinishes: DISRUPTOR_TRIKE_CHASSIS_FINISHES,
-    propellers: DISRUPTOR_PROPELLERS,
-    colors: DEFAULT_COLORS,
+    propellers: [],
+    colors: [],
     accessories: DISRUPTOR_TRIKE_ACCESSORIES,
   })
   const CONFIG_OPTIONS = {
-    engines: options.engines,
     chassisFinishes: options.chassisFinishes?.length ? options.chassisFinishes : DISRUPTOR_TRIKE_CHASSIS_FINISHES,
-    propellers: options.propellers,
-    colors: options.colors,
     accessories: options.accessories,
   }
   const [step, setStep] = useState(0)
-  const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0].id)
+  const [selectedColorId, setSelectedColorId] = useState(CHASSIS_COLOR_PRESETS[0].id)
+  const [customColorText, setCustomColorText] = useState('')
   const [selectedFinish, setSelectedFinish] = useState(DISRUPTOR_TRIKE_CHASSIS_FINISHES[0].id)
-  const [selectedEngine, setSelectedEngine] = useState('no-engine')
-  const [selectedPropeller, setSelectedPropeller] = useState(DISRUPTOR_PROPELLERS[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
-  const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_COLORS[0].name)
   const [previewOption, setPreviewOption] = useState({
-    id: DISRUPTOR_TRIKE_CHASSIS_FINISHES[0].id,
-    image: null,
+    id: `color-${CHASSIS_COLOR_PRESETS[0].id}`,
+    image: DISRUPTOR_TRIKE_HERO,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const applyDefaults = useCallback((d) => {
-    if (d.colorId) {
-      setSelectedColor(d.colorId)
-      const c = DEFAULT_COLORS.find((x) => x.id === d.colorId)
-      if (c) setSelectedChassisColor(c.name)
-    }
+    if (d.colorId) setSelectedColorId(d.colorId)
     if (d.finishId) setSelectedFinish(d.finishId)
-    if (d.engineId) setSelectedEngine(d.engineId)
-    if (d.propellerId) setSelectedPropeller(d.propellerId)
   }, [])
 
   useApplyConfigDefaults(defaultSelections, optionsLoading, applyDefaults)
 
   const accessories = CONFIG_OPTIONS.accessories
 
-  const color = CONFIG_OPTIONS.colors.find((c) => c.id === selectedColor)
   const finish = CONFIG_OPTIONS.chassisFinishes.find((f) => f.id === selectedFinish)
-  const engine = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
-  const propeller = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
   const selectedAccessoryItems = accessories.filter((a) => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
     const base = DISRUPTOR_TRIKE_BASE_PRICE
-    const colorPrice = color?.price || 0
+    const colorPrice = chassisColorSurcharge(selectedColorId)
     const finishPrice = finish?.price || 0
-    const enginePrice = engine?.priceTbd ? 0 : engine?.basePrice || 0
-    const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce(
       (sum, id) => sum + (CONFIG_OPTIONS.accessories.find((a) => a.id === id)?.price || 0),
       0,
     )
-    return base + colorPrice + finishPrice + enginePrice + propellerPrice + upgradesPrice
-  }, [color, finish, engine, propeller, selectedUpgrades, CONFIG_OPTIONS.accessories])
+    return base + colorPrice + finishPrice + upgradesPrice
+  }, [finish, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
 
-  const cartBlocked = Boolean(engine?.priceTbd)
+  const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (color?.name) lines.push(`Chassis color: ${color.name}`)
+    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
     if (finish?.name) lines.push(`Chassis: ${finish.name}`)
-    if (engine?.name) lines.push(`Engine: ${engine.name}${engine.priceTbd ? ' (price TBD)' : ''}`)
-    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
     if (selectedAccessoryItems.length > 0) {
       lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
     }
-    if (!cartBlocked) lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
+    lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [color, finish, engine, propeller, selectedAccessoryItems, cartBlocked, totalPrice])
+  }, [colorLabel, finish, selectedAccessoryItems, totalPrice])
 
   const previewGallery = useMemo(() => {
     if (!previewOption?.id) {
       return buildOptionGallery(null, null, PRODUCT_IMAGES)
     }
-    const optionId = previewOption.id.startsWith('color-')
-      ? previewOption.id.replace('color-', '')
-      : previewOption.id
-    const primary = previewOption.image
-      || (previewOption.id.startsWith('color-')
-        ? `/images/disruptor/colors/${optionId}-1.jpg`
-        : undefined)
-    return buildOptionGallery(optionId, primary, PRODUCT_IMAGES, previewOption.gallery)
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
   }, [previewOption, step])
 
-  const selectColor = (colorOption) => {
-    setSelectedColor(colorOption.id)
-    setSelectedChassisColor(colorOption.name)
-    setPreviewOption({
-      id: `color-${colorOption.id}`,
-      image: `/images/disruptor/colors/${colorOption.id}-1.jpg`,
-    })
+  const selectColorPreset = (color) => {
+    setSelectedColorId(color.id)
+    setPreviewOption({ id: `color-${color.id}`, image: DISRUPTOR_TRIKE_HERO })
+  }
+
+  const selectCustomColor = () => {
+    setSelectedColorId(CUSTOM_COLOR_ID)
+    setPreviewOption({ id: 'color-custom', image: DISRUPTOR_TRIKE_HERO })
   }
 
   const selectFinish = (id) => {
     setSelectedFinish(id)
-    setPreviewOption({ id, image: null })
-  }
-
-  const selectEngine = (id) => {
-    setSelectedEngine(id)
-    const eng = CONFIG_OPTIONS.engines.find((e) => e.id === id)
-    setPreviewOption({ id, image: eng?.image || null, gallery: eng?.gallery })
-  }
-
-  const selectPropeller = (id) => {
-    setSelectedPropeller(id)
-    const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === id)
-    setPreviewOption({ id, image: prop?.image || null, gallery: prop?.gallery })
+    setPreviewOption({ id, image: DISRUPTOR_TRIKE_HERO })
   }
 
   const toggleUpgrade = (id) => {
@@ -181,19 +144,15 @@ export default function ConfiguratorDisruptorTrikePage() {
   useEffect(() => {
     switch (step) {
       case 0:
-        setPreviewOption({ id: selectedFinish, image: null })
+        setPreviewOption({
+          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
+          image: DISRUPTOR_TRIKE_HERO,
+        })
         break
-      case 1: {
-        const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
-        setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
+      case 1:
+        setPreviewOption({ id: selectedFinish, image: DISRUPTOR_TRIKE_HERO })
         break
-      }
       case 2: {
-        const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
-        setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
-        break
-      }
-      case 3: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -203,21 +162,19 @@ export default function ConfiguratorDisruptorTrikePage() {
             gallery: acc?.gallery,
           })
         } else {
-          setPreviewOption({ id: 'accessories', image: null })
+          setPreviewOption({ id: 'accessories', image: DISRUPTOR_TRIKE_HERO })
         }
         break
       }
       default:
         break
     }
-  }, [step, selectedFinish, selectedEngine, selectedPropeller, selectedUpgrades, CONFIG_OPTIONS.engines, CONFIG_OPTIONS.propellers, CONFIG_OPTIONS.accessories])
+  }, [step, selectedColorId, selectedFinish, selectedUpgrades, CONFIG_OPTIONS.accessories])
 
   const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
   const goPrev = () => setStep((s) => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
-    if (cartBlocked) return
-
     setLoading(true)
     setError('')
 
@@ -228,9 +185,9 @@ export default function ConfiguratorDisruptorTrikePage() {
         engine: selectedEngine,
         finish: selectedFinish,
         propeller: selectedPropeller,
-        color: selectedColor,
-        colorId: selectedColor,
-        chassisColor: selectedChassisColor,
+        chassisColor: colorLabel,
+        colorId: selectedColorId,
+        customColor: selectedColorId === CUSTOM_COLOR_ID ? customColorText.trim() : undefined,
         upgrades: selectedUpgrades,
         totalPrice,
       })
@@ -272,32 +229,6 @@ export default function ConfiguratorDisruptorTrikePage() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-
-            <div className="space-y-4">
-              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
-                <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
-                  Chassis Color
-                  <ChevronDown className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-4 flex gap-3 flex-wrap">
-                  {CONFIG_OPTIONS.colors.map((c) => (
-                    <motion.button
-                      key={c.id}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => selectColor(c)}
-                      className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center
-                        ${selectedColor === c.id ? 'border-brand scale-110' : 'border-borderline hover:border-brand/50'}`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}>
-                      {selectedColor === c.id && (
-                        <Check className={`w-5 h-5 drop-shadow ${c.hex === '#ffffff' ? 'text-ink' : 'text-white'}`} />
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </details>
-            </div>
-
             <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
@@ -315,6 +246,16 @@ export default function ConfiguratorDisruptorTrikePage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
+                  <ChassisColorStep
+                    selectedColorId={selectedColorId}
+                    customColorText={customColorText}
+                    onSelectPreset={selectColorPreset}
+                    onSelectCustom={selectCustomColor}
+                    onCustomTextChange={setCustomColorText}
+                  />
+                )}
+
+                {step === 1 && (
                   <ConfigSection title="Chassis. Standard package">
                     <p className="text-ink2 mb-6 leading-relaxed">
                       Base trike includes Tundra wheels, stainless chassis, adapters, main straps, and Gravity Control System. Harnesses sold separately.
@@ -333,40 +274,7 @@ export default function ConfiguratorDisruptorTrikePage() {
                   </ConfigSection>
                 )}
 
-                {step === 1 && (
-                  <ConfigSection title="Engine. Pure Power">
-                    <div className="space-y-3">
-                      {CONFIG_OPTIONS.engines.map((e) => (
-                        <OptionCard key={e.id} selected={selectedEngine === e.id} onClick={() => selectEngine(e.id)}>
-                          <p className="font-bold uppercase text-ink">{e.name}</p>
-                          <p className="text-sm text-ink2 mt-1">
-                            {e.power ? `${e.power} — ` : ''}
-                            {formatEnginePrice(e)}
-                          </p>
-                          {e.description && <p className="text-sm text-ink2 mt-1">{e.description}</p>}
-                        </OptionCard>
-                      ))}
-                    </div>
-                  </ConfigSection>
-                )}
-
                 {step === 2 && (
-                  <ConfigSection title="Propeller. Precision in every flight">
-                    <div className="space-y-3">
-                      {CONFIG_OPTIONS.propellers.map((p) => (
-                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
-                          <div className="flex justify-between items-center pr-8">
-                            <p className="font-bold uppercase text-ink">{p.name}</p>
-                            <p className="text-sm text-ink2">{formatOptionPrice(p.price || 0)}</p>
-                          </div>
-                          {p.description && <p className="text-sm text-ink2 mt-1">{p.description}</p>}
-                        </OptionCard>
-                      ))}
-                    </div>
-                  </ConfigSection>
-                )}
-
-                {step === 3 && (
                   <ConfigSection title="Accessories. Enhance Your Flight">
                     <p className="text-ink2 mb-6 leading-relaxed">
                       Add pilot seat, passenger seat, and expedition accessories — photos update in the gallery as you select each item.
@@ -394,18 +302,11 @@ export default function ConfiguratorDisruptorTrikePage() {
                   </ConfigSection>
                 )}
 
-                {step === 4 && (
+                {step === 3 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
-                      <SummaryRow label="Color" value={color?.name} price={color?.price} />
+                      <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis" value={finish?.name} price={finish?.price} />
-                      <SummaryRow
-                        label="Engine"
-                        value={engine?.name}
-                        price={engine?.priceTbd ? undefined : engine?.basePrice}
-                        priceLabel={engine?.priceTbd ? 'Price TBD' : undefined}
-                      />
-                      <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>
@@ -413,11 +314,6 @@ export default function ConfiguratorDisruptorTrikePage() {
                         </div>
                       )}
                     </div>
-                    {cartBlocked && (
-                      <p className="mt-4 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                        The selected engine has a price to be confirmed. Please choose a different engine or contact us to complete your order.
-                      </p>
-                    )}
                   </ConfigSection>
                 )}
               </motion.div>
@@ -439,11 +335,10 @@ export default function ConfiguratorDisruptorTrikePage() {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 className="text-4xl font-black text-brand">
-                {cartBlocked ? 'From TBD' : `$${totalPrice.toLocaleString()}`}
+                ${totalPrice.toLocaleString()}
               </motion.p>
               <p className="text-xs text-brand/70 mt-2">
                 Base trike ${DISRUPTOR_TRIKE_BASE_PRICE.toLocaleString()} — harnesses not included.
-                {cartBlocked && ' Engine price pending.'}
               </p>
             </motion.div>
 
@@ -469,56 +364,16 @@ export default function ConfiguratorDisruptorTrikePage() {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={loading || cartBlocked}
+                  disabled={loading}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-sm hover:bg-brand/90 disabled:opacity-50 transition-all">
                   <ShoppingCart className="w-4 h-4" />
-                  {loading ? 'Adding to cart...' : cartBlocked ? 'Price TBD — Contact Us' : 'Add to Cart'}
+                  {loading ? 'Adding to cart...' : 'Add to Cart'}
                 </button>
               )}
             </div>
           </motion.div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function ConfigSection({ title, children }) {
-  return (
-    <div>
-      <h2 className="text-2xl font-black uppercase text-ink mb-6 tracking-tight">{title}</h2>
-      {children}
-    </div>
-  )
-}
-
-function OptionCard({ selected, onClick, children }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-      className={`relative w-full p-4 border-2 rounded-xl text-left transition-all
-        ${selected ? 'border-green-600 bg-green-50' : 'border-borderline hover:border-brand/50'}`}>
-      {selected && (
-        <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-green-600">
-          <Check className="w-3 h-3 text-white" />
-        </span>
-      )}
-      {children}
-    </motion.button>
-  )
-}
-
-function SummaryRow({ label, value, price, priceLabel }) {
-  return (
-    <div className="flex justify-between items-start gap-3 py-1 border-b border-borderline/60">
-      <span className="text-ink2 min-w-0 pr-2 break-words">{value ? `${label} — ${value}` : label}</span>
-      {priceLabel ? (
-        <span className="font-semibold text-ink">{priceLabel}</span>
-      ) : typeof price === 'number' ? (
-        <span className="font-semibold text-ink">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</span>
-      ) : null}
     </div>
   )
 }

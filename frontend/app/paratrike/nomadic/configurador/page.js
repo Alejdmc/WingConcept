@@ -4,19 +4,37 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
-import SafeImage from '@/components/ui/SafeImage'
+import { ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft } from 'lucide-react'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
-import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 import QuoteButton from '@/components/configurator/QuoteButton'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
-import { buildOptionGallery, NOMADIC_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import ChassisColorStep from '@/components/configurator/ChassisColorStep'
+import ParagliderStep from '@/components/configurator/ParagliderStep'
+import ParagliderPreviewPanel from '@/components/configurator/ParagliderPreviewPanel'
+import OptionCard from '@/components/configurator/OptionCard'
+import ConfigSection from '@/components/configurator/ConfigSection'
+import SummaryRow from '@/components/configurator/SummaryRow'
+import { buildOptionGallery, normalizeGallery, NOMADIC_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE, NOMADIC_ENGINES } from '@/lib/nomadicContent'
+import {
+  CHASSIS_COLOR_PRESETS,
+  CUSTOM_COLOR_ID,
+  chassisColorSurcharge,
+  resolveChassisColorLabel,
+} from '@/lib/chassisColors'
+import {
+  NO_PARAGLIDER_ID,
+  findTrikeParaglider,
+  getParagliderColorGallery,
+  getParagliderDefaultGallery,
+  paragliderDisplayName,
+  resolveParagliderColorLabel,
+} from '@/lib/trikeParagliderOptions'
 
 const NOMADIC_ENGINE_DESCRIPTIONS = Object.fromEntries(
   NOMADIC_ENGINES.map((engine) => [engine.name, engine.description]),
@@ -31,21 +49,12 @@ const DEFAULT_OPTIONS = {
     { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://skyengines.it/en/home/109-zeus-300-boxer/', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
     { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html', description: NOMADIC_ENGINE_DESCRIPTIONS['Simonini Victor One Super'] },
   ],
-  chassisFinishes: [
-    { id: 'stainless-brushed', name: 'Stainless Steel Brushed', description: 'Brushed stainless steel, maximum weather resistance.', swatch: '#b5b8bb' },
-    { id: 'anodized-black', name: 'Anodized Black', description: 'Black anodized finish, aggressive look and extra corrosion protection.', swatch: '#1c1c1c' },
-    { id: 'titanium-finish', name: 'Titanium Finish', description: 'Titanium finish, lightweight with high structural strength.', swatch: '#8e8e8e' },
-  ],
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
     { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Special build for Rotax 503, 582, RMZ500 and high-thrust trikes.', price: 534.75, image: '/images/propellers/bipala.jpg' },
     { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
   ],
-  colors: [
-    { name: 'Candy Red & White', hex: '#e74c3c', accent: '#ffffff' },
-    { name: 'Candy Blue & White', hex: '#3498db', accent: '#ffffff' },
-    { name: 'Candy Purple & White', hex: '#9b59b6', accent: '#ffffff' },
-  ],
+  colors: [],
   accessories: [
     { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment.', image: '/images/parts/sun-roof-netting.png' },
     { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/cruise-control.png' },
@@ -65,7 +74,7 @@ const DEFAULT_OPTIONS = {
   ]
 }
 
-const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
+const STEPS = ['Color', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
 
 const NOMADIC_PRODUCTO_ID = PRODUCT_IDS.nomadic
 
@@ -77,26 +86,27 @@ export default function ConfiguratorNomadicPage() {
   const { options, loading: optionsLoading, defaultSelections } = useConfigOptions(NOMADIC_PRODUCTO_ID, {
     engines: DEFAULT_OPTIONS.engines,
     chassisTypes: [],
-    chassisFinishes: DEFAULT_OPTIONS.chassisFinishes,
     propellers: DEFAULT_OPTIONS.propellers,
     colors: DEFAULT_OPTIONS.colors,
     accessories: DEFAULT_OPTIONS.accessories,
   })
   const CONFIG_OPTIONS = {
     engines: options.engines,
-    chassisFinishes: options.chassisFinishes || DEFAULT_OPTIONS.chassisFinishes,
     propellers: options.propellers,
     colors: options.colors,
     accessories: options.accessories,
   }
   const [step, setStep] = useState(0)
   const [selectedEngine, setSelectedEngine] = useState('no-engine')
-  const [selectedFinish, setSelectedFinish] = useState(DEFAULT_OPTIONS.chassisFinishes[0].id)
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
+  const [selectedParagliderId, setSelectedParagliderId] = useState(NO_PARAGLIDER_ID)
+  const [selectedParagliderColor, setSelectedParagliderColor] = useState('')
+  const [selectedParagliderSize, setSelectedParagliderSize] = useState('')
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
-  const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
+  const [selectedColorId, setSelectedColorId] = useState(CHASSIS_COLOR_PRESETS[0].id)
+  const [customColorText, setCustomColorText] = useState('')
   const [previewOption, setPreviewOption] = useState({
-    id: DEFAULT_OPTIONS.chassisFinishes[0].id,
+    id: `color-${CHASSIS_COLOR_PRESETS[0].id}`,
     image: NOMADIC_HERO_IMAGE,
   })
   const [loading, setLoading] = useState(false)
@@ -105,7 +115,6 @@ export default function ConfiguratorNomadicPage() {
   const applyDefaults = useCallback((d) => {
     if (d.engineId) setSelectedEngine(d.engineId)
     if (d.propellerId) setSelectedPropeller(d.propellerId)
-    if (d.finishId) setSelectedFinish(d.finishId)
   }, [])
 
   useApplyConfigDefaults(defaultSelections, optionsLoading, applyDefaults)
@@ -113,42 +122,58 @@ export default function ConfiguratorNomadicPage() {
   const accessories = CONFIG_OPTIONS.accessories
 
   const engine = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
-  const finish = CONFIG_OPTIONS.chassisFinishes.find(f => f.id === selectedFinish)
   const propeller = CONFIG_OPTIONS.propellers.find(p => p.id === selectedPropeller)
+  const paraglider = findTrikeParaglider(selectedParagliderId)
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
 
   const totalPrice = useMemo(() => {
     const baseChassis = NOMADIC_BASE_PRICE
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
-    const finishPrice = finish?.price || 0
+    const paragliderPrice = paraglider?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + propellerPrice + finishPrice + upgradesPrice
-  }, [engine, propeller, finish, selectedUpgrades, CONFIG_OPTIONS.accessories])
+    return baseChassis + enginePrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
+  }, [engine, propeller, paraglider, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
+
+  const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (selectedChassisColor) lines.push(`Chassis color: ${selectedChassisColor}`)
-    if (finish?.name) lines.push(`Chassis finish: ${finish.name}`)
+    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
     if (engine?.name) lines.push(`Engine: ${engine.name}`)
     if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    if (paraglider) {
+      lines.push(`Paraglider: ${paragliderDisplayName(paraglider)}`)
+      if (selectedParagliderColor) {
+        lines.push(`Wing color: ${resolveParagliderColorLabel(paraglider, selectedParagliderColor)}`)
+      }
+      if (selectedParagliderSize) lines.push(`Wing size: ${selectedParagliderSize}`)
+    }
     if (selectedAccessoryItems.length > 0) {
       lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
     }
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [selectedChassisColor, finish, engine, propeller, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, engine, propeller, paraglider, selectedParagliderColor, selectedParagliderSize, selectedAccessoryItems, totalPrice])
 
   const previewGallery = useMemo(() => {
+    if (previewOption?.gallery?.length) {
+      return normalizeGallery(previewOption.gallery)
+    }
     if (!previewOption?.id) {
       return buildOptionGallery(null, null, PRODUCT_IMAGES)
     }
-    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES, previewOption.gallery)
+    return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES)
   }, [previewOption, step])
 
-  const selectFinish = (id) => {
-    setSelectedFinish(id)
-    setPreviewOption({ id, image: NOMADIC_HERO_IMAGE })
+  const selectColorPreset = (color) => {
+    setSelectedColorId(color.id)
+    setPreviewOption({ id: `color-${color.id}`, image: NOMADIC_HERO_IMAGE })
+  }
+
+  const selectCustomColor = () => {
+    setSelectedColorId(CUSTOM_COLOR_ID)
+    setPreviewOption({ id: 'color-custom', image: NOMADIC_HERO_IMAGE })
   }
 
   const selectEngine = (id) => {
@@ -176,7 +201,10 @@ export default function ConfiguratorNomadicPage() {
   useEffect(() => {
     switch (step) {
       case 0:
-        setPreviewOption({ id: selectedFinish, image: NOMADIC_HERO_IMAGE })
+        setPreviewOption({
+          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
+          image: NOMADIC_HERO_IMAGE,
+        })
         break
       case 1: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
@@ -189,6 +217,17 @@ export default function ConfiguratorNomadicPage() {
         break
       }
       case 3: {
+        if (paraglider) {
+          const gallery = selectedParagliderColor
+            ? getParagliderColorGallery(paraglider, selectedParagliderColor)
+            : getParagliderDefaultGallery(paraglider)
+          setPreviewOption({ id: selectedParagliderId, gallery })
+        } else {
+          setPreviewOption({ id: NO_PARAGLIDER_ID, image: NOMADIC_HERO_IMAGE })
+        }
+        break
+      }
+      case 4: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -207,19 +246,36 @@ export default function ConfiguratorNomadicPage() {
     }
   }, [
     step,
-    selectedFinish,
+    selectedColorId,
     selectedEngine,
     selectedPropeller,
+    selectedParagliderId,
+    selectedParagliderColor,
+    paraglider,
     selectedUpgrades,
     CONFIG_OPTIONS.engines,
     CONFIG_OPTIONS.propellers,
     CONFIG_OPTIONS.accessories,
   ])
 
-  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  const goNext = () => {
+    if (step === 3 && paraglider) {
+      if (!selectedParagliderColor || !selectedParagliderSize) {
+        setError('Please select wing color and size before continuing.')
+        return
+      }
+    }
+    setError('')
+    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
   const goPrev = () => setStep(s => Math.max(s - 1, 0))
 
   const handleAddToCart = async () => {
+    if (paraglider && (!selectedParagliderColor || !selectedParagliderSize)) {
+      setError('Please select wing color and size before adding to cart.')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -228,9 +284,13 @@ export default function ConfiguratorNomadicPage() {
         producto_id: NOMADIC_PRODUCTO_ID,
         cantidad: 1,
         engine: selectedEngine,
-        finish: selectedFinish,
         propeller: selectedPropeller,
-        chassisColor: selectedChassisColor,
+        paraglider: selectedParagliderId !== NO_PARAGLIDER_ID ? selectedParagliderId : undefined,
+        paragliderColor: selectedParagliderColor || undefined,
+        paragliderSize: selectedParagliderSize || undefined,
+        chassisColor: colorLabel,
+        colorId: selectedColorId,
+        customColor: selectedColorId === CUSTOM_COLOR_ID ? customColorText.trim() : undefined,
         upgrades: selectedUpgrades,
         totalPrice,
       })
@@ -269,37 +329,24 @@ export default function ConfiguratorNomadicPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-          {/* Left: Image & Colors (persistent across steps) */}
+          {/* Left: product preview gallery */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-
-            {/* Color first — then product preview (Nomadic pattern) */}
-            <div className="space-y-4">
-              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
-                <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
-                  Chassis Color
-                  <ChevronDown className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-4 flex gap-3 flex-wrap">
-                  {CONFIG_OPTIONS.colors.map(c => (
-                    <motion.button
-                      key={c.name}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSelectedChassisColor(c.name)}
-                      className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center
-                        ${selectedChassisColor === c.name ? 'border-brand scale-110' : 'border-borderline hover:border-brand/50'}`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}>
-                      {selectedChassisColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
-                    </motion.button>
-                  ))}
-                </div>
-              </details>
-            </div>
-
-            <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            {step === 3 && paraglider ? (
+              <ParagliderPreviewPanel
+                wing={paraglider}
+                previewGallery={previewGallery}
+                selectedColorId={selectedParagliderColor}
+                onSelectColor={(colorId, gallery) => {
+                  setSelectedParagliderColor(colorId)
+                  setPreviewOption({ id: selectedParagliderId, gallery })
+                }}
+              />
+            ) : (
+              <OptionImageGallery images={previewGallery} fallbackSrc={null} />
+            )}
           </motion.div>
 
           {/* Right: Wizard step content */}
@@ -317,25 +364,13 @@ export default function ConfiguratorNomadicPage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
-                  <ConfigSection title="Chassis. Choose your finish">
-                    <div className="grid sm:grid-cols-1 gap-4">
-                      {CONFIG_OPTIONS.chassisFinishes.map(f => (
-                        <OptionCard
-                          key={f.id}
-                          selected={selectedFinish === f.id}
-                          onClick={() => selectFinish(f.id)}
-                        >
-                          <div className="flex items-center gap-4">
-                            <span className="w-14 h-14 rounded-lg shrink-0 border border-borderline" style={{ backgroundColor: f.swatch }} />
-                            <div className="flex-1">
-                              <p className="font-bold uppercase text-ink">{f.name}</p>
-                              <p className="text-sm text-ink2 mt-1">{f.description}</p>
-                            </div>
-                          </div>
-                        </OptionCard>
-                      ))}
-                    </div>
-                  </ConfigSection>
+                  <ChassisColorStep
+                    selectedColorId={selectedColorId}
+                    customColorText={customColorText}
+                    onSelectPreset={selectColorPreset}
+                    onSelectCustom={selectCustomColor}
+                    onCustomTextChange={setCustomColorText}
+                  />
                 )}
 
                 {step === 1 && (
@@ -352,23 +387,18 @@ export default function ConfiguratorNomadicPage() {
                                 ? 'Included'
                                 : `+$${e.basePrice.toLocaleString()}`}
                           </p>
-                          {selectedEngine === e.id && e.image && (
-                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                              <OptionThumb src={e.image} alt={e.name} />
-                              {e.infoUrl && (
-                                <a
-                                  href={e.infoUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(ev) => ev.stopPropagation()}
-                                  className="text-sm text-brand font-bold hover:underline mt-1">
-                                  More engine info →
-                                </a>
-                              )}
-                            </div>
-                          )}
                           {e.description && (
                             <p className="text-sm text-ink2 mt-2 leading-relaxed">{e.description}</p>
+                          )}
+                          {selectedEngine === e.id && e.infoUrl && (
+                            <a
+                              href={e.infoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(ev) => ev.stopPropagation()}
+                              className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More engine info →
+                            </a>
                           )}
                         </OptionCard>
                       ))}
@@ -386,11 +416,6 @@ export default function ConfiguratorNomadicPage() {
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
-                          {selectedPropeller === p.id && p.image && (
-                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                              <OptionThumb src={p.image} alt={p.name} />
-                            </div>
-                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -398,6 +423,20 @@ export default function ConfiguratorNomadicPage() {
                 )}
 
                 {step === 3 && (
+                  <ParagliderStep
+                    selectedParagliderId={selectedParagliderId}
+                    selectedColorId={selectedParagliderColor}
+                    selectedSize={selectedParagliderSize}
+                    onSelectParaglider={setSelectedParagliderId}
+                    onSelectColor={setSelectedParagliderColor}
+                    onSelectSize={setSelectedParagliderSize}
+                    onPreviewChange={({ wingId, gallery }) => {
+                      setPreviewOption({ id: wingId || selectedParagliderId, gallery })
+                    }}
+                  />
+                )}
+
+                {step === 4 && (
                   <ConfigSection title="Accessories. Enhance Adventure">
                     <div className="space-y-3">
                       {accessories.map(a => {
@@ -410,11 +449,6 @@ export default function ConfiguratorNomadicPage() {
                                 +${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}
                               </p>
                             </div>
-                            {isSelected && (
-                              <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                                <OptionThumb src={resolveAccessoryImage(a.id, a.image, NOMADIC_PRODUCTO_ID)} alt={a.name} />
-                              </div>
-                            )}
                             {a.description && (
                               <p className="text-sm text-ink2 mt-2 leading-relaxed">{a.description}</p>
                             )}
@@ -429,13 +463,19 @@ export default function ConfiguratorNomadicPage() {
                   </ConfigSection>
                 )}
 
-                {step === 4 && (
+                {step === 5 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
-                      <SummaryRow label="Color" value={selectedChassisColor} />
-                      <SummaryRow label="Chassis" value={finish?.name} />
+                      <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
+                      {paraglider && (
+                        <>
+                          <SummaryRow label="Paraglider" value={paragliderDisplayName(paraglider)} price={paraglider.price} />
+                          <SummaryRow label="Wing color" value={resolveParagliderColorLabel(paraglider, selectedParagliderColor)} />
+                          <SummaryRow label="Wing size" value={selectedParagliderSize} />
+                        </>
+                      )}
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>
@@ -503,66 +543,6 @@ export default function ConfiguratorNomadicPage() {
           </motion.div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function ConfigSection({ title, children }) {
-  return (
-    <div>
-      <h2 className="text-2xl font-black uppercase text-ink mb-6 tracking-tight">{title}</h2>
-      {children}
-    </div>
-  )
-}
-
-function OptionCard({ selected, onClick, children }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-      className={`relative w-full p-4 border-2 rounded-xl text-left transition-all
-        ${selected ? 'border-green-600 bg-green-50' : 'border-borderline hover:border-brand/50'}`}>
-      {selected && (
-        <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-green-600">
-          <Check className="w-3 h-3 text-white" />
-        </span>
-      )}
-      {children}
-    </motion.button>
-  )
-}
-
-function SummaryRow({ label, value, price }) {
-  return (
-    <div className="flex justify-between items-start gap-3 py-1 border-b border-borderline/60">
-      <span className="text-ink2 min-w-0 pr-2 break-words">{value ? `${label} — ${value}` : label}</span>
-      {typeof price === 'number' && (
-        <span className="font-semibold text-ink">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</span>
-      )}
-    </div>
-  )
-}
-
-function OptionThumb({ src, alt }) {
-  const hasSrc = typeof src === 'string' && src.trim().length > 0
-
-  return (
-    <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      {hasSrc ? (
-        <SafeImage
-          src={src.trim()}
-          alt={alt}
-          fill
-          className="object-cover"
-          fallbackSrc={FALLBACK_IMAGES.engine}
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <Package className="w-8 h-8 text-ink2/40" />
-        </div>
-      )}
     </div>
   )
 }

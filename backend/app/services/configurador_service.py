@@ -56,6 +56,14 @@ NOMADIC_ACCESSORIES: Dict[str, float] = {
     "instrument-kit": 350,
 }
 NOMADIC_PROPELLERS: Dict[str, float] = {"no-propeller": 0, "bipala": 534.75, "tripala": 677.35}
+NOMADIC_PARAGLIDERS: Dict[str, float] = {
+    "dudek-orca-6": 4252.0,
+    "dudek-cabrio": 4524.0,
+    "dudek-boson": 4542.0,
+    "apco-play-42-ul": 3456.2,
+    "apco-game-mkiii": 3531.0,
+    "apco-f3bi-mkii": 3580.0,
+}
 
 LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
     VANGUARD_PRODUCT_ID: {
@@ -72,6 +80,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "finishes": NOMADIC_FINISHES,
         "accessories": NOMADIC_ACCESSORIES,
         "propellers": NOMADIC_PROPELLERS,
+        "paragliders": NOMADIC_PARAGLIDERS,
         "default_engine": "no-engine",
     },
     DISRUPTOR_PARAMOTOR_PRODUCT_ID: {
@@ -114,10 +123,10 @@ class ConfiguradorService:
             return {}
         if "opciones" in configuracion and isinstance(configuracion["opciones"], dict):
             merged = dict(configuracion["opciones"])
-            for key in ("engine", "finish", "upgrades", "propeller", "handThrottle", "color", "colorId"):
+            for key in ("engine", "finish", "upgrades", "propeller", "handThrottle", "color", "colorId", "paraglider", "paragliderColor", "paragliderSize"):
                 if key in configuracion and configuracion[key] is not None:
                     merged[key] = configuracion[key]
-            for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId"):
+            for key in ("engine", "finish", "propeller", "handThrottle", "color", "colorId", "paraglider"):
                 if key in merged and merged[key] is not None:
                     merged[key] = self._coerce_option_id(merged[key])
             if "upgrades" in merged and isinstance(merged["upgrades"], list):
@@ -152,6 +161,8 @@ class ConfiguradorService:
                 db_catalog["hand_throttles"] = legacy.get("hand_throttles", {})
             if not db_catalog.get("colors"):
                 db_catalog["colors"] = legacy.get("colors", {})
+            if not db_catalog.get("paragliders"):
+                db_catalog["paragliders"] = legacy.get("paragliders", {})
             return db_catalog
         return LEGACY_CATALOGS.get(producto_id)
 
@@ -181,12 +192,14 @@ class ConfiguradorService:
         propellers: Dict[str, float] = catalog.get("propellers") or {}
         hand_throttles: Dict[str, float] = catalog.get("hand_throttles") or {}
         colors: Dict[str, float] = catalog.get("colors") or {}
+        paragliders: Dict[str, float] = catalog.get("paragliders") or {}
 
         engine_id = opciones.get("engine") or catalog.get("default_engine")
         finish_id = opciones.get("finish")
         propeller_id = opciones.get("propeller")
         hand_id = opciones.get("handThrottle")
         color_id = opciones.get("color") or opciones.get("colorId")
+        paraglider_id = opciones.get("paraglider")
         upgrades: List[str] = opciones.get("upgrades") or []
 
         if engines and engine_id and engine_id not in engines:
@@ -197,14 +210,24 @@ class ConfiguradorService:
             raise ValidacionError(f"Hélice '{propeller_id}' no válida para este producto")
         if hand_id and hand_throttles and hand_id not in hand_throttles:
             raise ValidacionError(f"Hand throttle '{hand_id}' no válido para este producto")
-        if color_id and colors and color_id not in colors:
+        if paraglider_id and paragliders and paraglider_id not in paragliders:
+            raise ValidacionError(f"Parapente '{paraglider_id}' no válido para este producto")
+        if paraglider_id and paragliders and not opciones.get("paragliderColor"):
+            raise ValidacionError("Debe seleccionar color del parapente")
+        if paraglider_id and paragliders and not opciones.get("paragliderSize"):
+            raise ValidacionError("Debe seleccionar talla del parapente")
+        if color_id == "custom" or opciones.get("customColor"):
+            color_price = 100.0
+        elif color_id and colors and color_id not in colors:
             raise ValidacionError(f"Color '{color_id}' no válido para este producto")
+        else:
+            color_price = colors.get(color_id, 0.0) if color_id else 0.0
 
         engine_price = engines.get(engine_id, 0.0) if engine_id else 0.0
         finish_price = finishes.get(finish_id, 0.0) if finish_id else 0.0
         propeller_price = propellers.get(propeller_id, 0.0) if propeller_id else 0.0
         hand_price = hand_throttles.get(hand_id, 0.0) if hand_id else 0.0
-        color_price = colors.get(color_id, 0.0) if color_id else 0.0
+        paraglider_price = paragliders.get(paraglider_id, 0.0) if paraglider_id else 0.0
         accessories_price = 0.0
         for acc_id in upgrades:
             if acc_id not in accessories:
@@ -219,6 +242,7 @@ class ConfiguradorService:
                 "helice": propeller_price,
                 "hand_throttle": hand_price,
                 "color": color_price,
+                "parapente": paraglider_price,
                 "accesorios": accessories_price,
             },
         )
@@ -242,6 +266,7 @@ class ConfiguradorService:
             and not opciones.get("handThrottle")
             and not opciones.get("color")
             and not opciones.get("colorId")
+            and not opciones.get("paraglider")
         ):
             return None
 

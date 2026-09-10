@@ -1,0 +1,220 @@
+{
+  "dudek-orca-6": {
+    "techImages": [
+      "/images/paragliders/dudek-orca-6/tech-weight-ranges.png"
+    ],
+    "galleryImages": [
+      "/images/paragliders/dudek-orca-6/gallery-1.jpg",
+      "/images/paragliders/dudek-orca-6/gallery-2.jpg",
+      "/images/paragliders/dudek-orca-6/gallery-3.jpg"
+    ],
+    "colors": [
+      {
+        "id": "petrol",
+        "name": "Petrol",
+        "thumb": "/images/paragliders/dudek-orca-6/petrol-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-orca-6/petrol-main.png",
+          "/images/paragliders/dudek-orca-6/petrol-2.png",
+          "/images/paragliders/dudek-orca-6/petrol-3.png"
+        ]
+      },
+      {
+        "id": "orange",
+        "name": "Orange",
+        "thumb": "/images/paragliders/dudek-orca-6/orange-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-orca-6/orange-main.png",
+          "/images/paragliders/dudek-orca-6/orange-2.png",
+          "/images/paragliders/dudek-orca-6/orange-3.png"
+        ]
+      },
+      {
+        "id": "rubine",
+        "name": "Rubine",
+        "thumb": "/images/paragliders/dudek-orca-6/rubine-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-orca-6/rubine-main.png",
+          "/images/paragliders/dudek-orca-6/rubine-2.png",
+          "/images/paragliders/dudek-orca-6/rubine-3.png"
+        ]
+      }
+    ]
+  },
+  "dudek-cabrio": {
+    "techImages": [],
+    "galleryImages": [
+      "/images/paragliders/dudek-cabrio/gallery-1.jpg",
+      "/images/paragliders/dudek-cabrio/gallery-2.jpg",
+      "/images/paragliders/dudek-cabrio/gallery-3.jpg"
+    ],
+    "colors": [
+      {
+        "id": "boogie",
+        "name": "Boogie",
+        "thumb": "/images/paragliders/dudek-cabrio/boogie-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-cabrio/boogie-main.png",
+          "/images/paragliders/dudek-cabrio/boogie-2.png"
+        ]
+      },
+      {
+        "id": "modern",
+        "name": "Modern",
+        "thumb": "/images/paragliders/dudek-cabrio/modern-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-cabrio/modern-main.png",
+          "/images/paragliders/dudek-cabrio/modern-2.png"
+        ]
+      },
+      {
+        "id": "tribal",
+        "name": "Tribal",
+        "thumb": "/images/paragliders/dudek-cabrio/tribal-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-cabrio/tribal-main.png",
+          "/images/paragliders/dudek-cabrio/tribal-2.png"
+        ]
+      }
+    ]
+  },
+  "dudek-boson": {
+    "techImages": [
+      "/images/paragliders/dudek-boson/tech-weight-ranges.png"
+    ],
+    "galleryImages": [
+      "/images/paragliders/dudek-boson/gallery-1.jpg"
+    ],
+    "colors": [
+      {
+        "id": "mambo",
+        "name": "Mambo",
+        "thumb": "/images/paragliders/dudek-boson/mambo-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-boson/mambo-main.png",
+          "/images/paragliders/dudek-boson/mambo-2.png"
+        ]
+      },
+      {
+        "id": "modern",
+        "name": "Modern",
+        "thumb": "/images/paragliders/dudek-boson/modern-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-boson/modern-main.png",
+          "/images/paragliders/dudek-boson/modern-2.png"
+        ]
+      },
+      {
+        "id": "rumba",
+        "name": "Rumba",
+        "thumb": "/images/paragliders/dudek-boson/rumba-thumb.png",
+        "images": [
+          "/images/paragliders/dudek-boson/rumba-main.png",
+          "/images/paragliders/dudek-boson/rumba-2.png"
+        ]
+      }
+    ]
+  },
+  "apco-play-42-ul": {
+    "techImages": [
+      "/images/paragliders/apco-play-42-ul/tech-3d.jpg"
+    ],
+    "galleryImages": [
+      "/images/paragliders/apco-play-42-ul/scheme-1-main.jpg"
+    ],
+    "colors": [
+      {
+        "id": "scheme-1",
+        "name": "Scheme 1",
+        "thumb": "/images/paragliders/apco-play-42-ul/scheme-1-thumb.png",
+        "images": [
+          "/images/paragliders/apco-play-42-ul/scheme-1-main.jpg",
+          "/images/paragliders/apco-play-42-ul/scheme-1-2.jpg"
+        ]
+      },
+      {
+        "id": "scheme-2",
+        "name": "Scheme 2",
+        "thumb": "/images/paragliders/apco-play-42-ul/scheme-2-thumb.png",
+        "images": [
+          "/images/paragliders/apco-play-42-ul/scheme-2-main.jpg",
+          "/images/paragliders/apco-play-42-ul/scheme-2-2.jpg"
+        ]
+      },
+      {
+        "id": "scheme-3",
+        "name": "Scheme 3",
+        "thumb": "/images/paragliders/apco-play-42-ul/scheme-3-thumb.png",
+        "images": [
+          "/images/paragliders/apco-play-42-ul/scheme-3-main.jpg",
+          "/images/paragliders/apco-play-42-ul/scheme-3-2.jpg"
+        ]
+      }
+    ]
+  },
+  "apco-game-mkiii": {
+    "techImages": [
+      "/images/paragliders/apco-game-mkiii/tech-3d.jpg"
+    ],
+    "galleryImages": [
+      "/images/paragliders/apco-game-mkiii/azure-main.jpg"
+    ],
+    "colors": [
+      {
+        "id": "azure",
+        "name": "Azure",
+        "thumb": "/images/paragliders/apco-game-mkiii/azure-thumb.jpg",
+        "images": [
+          "/images/paragliders/apco-game-mkiii/azure-main.jpg",
+          "/images/paragliders/apco-game-mkiii/azure-2.jpg"
+        ]
+      },
+      {
+        "id": "fire",
+        "name": "Fire",
+        "thumb": "/images/paragliders/apco-game-mkiii/fire-thumb.jpg",
+        "images": [
+          "/images/paragliders/apco-game-mkiii/fire-main.jpg",
+          "/images/paragliders/apco-game-mkiii/fire-2.jpg"
+        ]
+      },
+      {
+        "id": "classic",
+        "name": "Classic",
+        "thumb": "/images/paragliders/apco-game-mkiii/classic-thumb.jpg",
+        "images": [
+          "/images/paragliders/apco-game-mkiii/classic-main.jpg",
+          "/images/paragliders/apco-game-mkiii/classic-2.jpg"
+        ]
+      }
+    ]
+  },
+  "apco-f3bi-mkii": {
+    "techImages": [
+      "/images/paragliders/apco-f3bi-mkii/tech-plan.png"
+    ],
+    "galleryImages": [
+      "/images/paragliders/apco-f3bi-mkii/red-main.png"
+    ],
+    "colors": [
+      {
+        "id": "red",
+        "name": "Red",
+        "thumb": "/images/paragliders/apco-f3bi-mkii/red-thumb.png",
+        "images": [
+          "/images/paragliders/apco-f3bi-mkii/red-main.png",
+          "/images/paragliders/apco-f3bi-mkii/red-2.jpg"
+        ]
+      },
+      {
+        "id": "sky-blue",
+        "name": "Sky Blue",
+        "thumb": "/images/paragliders/apco-f3bi-mkii/sky-blue-thumb.png",
+        "images": [
+          "/images/paragliders/apco-f3bi-mkii/sky-blue-main.png",
+          "/images/paragliders/apco-f3bi-mkii/sky-blue-2.jpg"
+        ]
+      }
+    ]
+  }
+}

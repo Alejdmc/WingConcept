@@ -57,6 +57,9 @@ export function normalizeConfigForApi(config = {}) {
     color: pick(config.color),
     colorId: pick(config.colorId),
     upgrades: (config.upgrades || []).map(pickUpgrade).filter(Boolean),
+    paraglider: pick(config.paraglider),
+    paragliderColor: config.paragliderColor ? String(config.paragliderColor) : null,
+    paragliderSize: config.paragliderSize ? String(config.paragliderSize) : null,
     bookingType: config.bookingType,
     firstName: config.firstName,
     lastName: config.lastName,
@@ -121,8 +124,14 @@ export function formatConfigSummary(config) {
   if (source.color || source.colorId) {
     lines.push({ label: 'Color', value: fmtOption(source.color || source.colorId) })
   }
+  if (source.customColor) {
+    lines.push({ label: 'Custom color', value: String(source.customColor) })
+  }
   if (source.chassisColor) lines.push({ label: 'Chassis color', value: fmtOption(source.chassisColor) })
   if (source.accentColor) lines.push({ label: 'Accent color', value: fmtOption(source.accentColor) })
+  if (source.paraglider) lines.push({ label: 'Paraglider', value: fmtOption(source.paraglider) })
+  if (source.paragliderColor) lines.push({ label: 'Wing color', value: fmtOption(source.paragliderColor) })
+  if (source.paragliderSize) lines.push({ label: 'Wing size', value: String(source.paragliderSize) })
 
   if (Array.isArray(source.upgrades) && source.upgrades.length) {
     lines.push({

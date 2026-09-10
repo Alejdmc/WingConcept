@@ -5,18 +5,27 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft, Check, Package } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingCart, ArrowLeft } from 'lucide-react'
 import { VANGUARD_HERO_IMAGE, VANGUARD_ENGINES } from '@/lib/vanguardContent'
 import { resolveAccessoryImage } from '@/lib/accessoryImages'
-import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 import { PRODUCT_IDS } from '@/lib/products'
 import { useCart } from '@/hooks/useCart'
 import { useConfigOptions, useApplyConfigDefaults } from '@/hooks/useCms'
 import WizardProgress from '@/components/configurator/WizardProgress'
 import QuoteButton from '@/components/configurator/QuoteButton'
 import OptionImageGallery from '@/components/configurator/OptionImageGallery'
+import ChassisColorStep from '@/components/configurator/ChassisColorStep'
+import OptionCard from '@/components/configurator/OptionCard'
+import ConfigSection from '@/components/configurator/ConfigSection'
+import SummaryRow from '@/components/configurator/SummaryRow'
 import { buildOptionGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import {
+  CHASSIS_COLOR_PRESETS,
+  CUSTOM_COLOR_ID,
+  chassisColorSurcharge,
+  resolveChassisColorLabel,
+} from '@/lib/chassisColors'
 
 const vanguardEngineDesc = (name) => VANGUARD_ENGINES.find((engine) => engine.name === name)?.description ?? ''
 
@@ -54,11 +63,7 @@ const DEFAULT_OPTIONS = {
     { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). When you need extra thrust up to 47 kW — the be-all-and-end monster of the trike world.', price: 534.75, image: '/images/propellers/bipala.jpg' },
     { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
   ],
-  colors: [
-    { name: 'Candy Red & White', hex: '#e74c3c', accent: '#ffffff' },
-    { name: 'Candy Blue & White', hex: '#3498db', accent: '#ffffff' },
-    { name: 'Candy Purple & White', hex: '#9b59b6', accent: '#ffffff' },
-  ],
+  colors: [],
   accessories: [
     { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment during sideways descent.', image: '/images/parts/sun-roof-netting.png' },
     { id: 'front-bar-protection', name: 'Padded Roll Bar Protector with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
@@ -79,7 +84,7 @@ const DEFAULT_OPTIONS = {
   ]
 }
 
-const STEPS = ['Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
+const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Accessories', 'Review']
 
 const VANGUARD_PRODUCTO_ID = PRODUCT_IDS.vanguard
 
@@ -94,7 +99,8 @@ export default function ConfiguratorPage() {
   const [selectedChassisType, setSelectedChassisType] = useState(DEFAULT_OPTIONS.chassisTypes[0].id)
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedUpgrades, setSelectedUpgrades] = useState([])
-  const [selectedChassisColor, setSelectedChassisColor] = useState(DEFAULT_OPTIONS.colors[0].name)
+  const [selectedColorId, setSelectedColorId] = useState(CHASSIS_COLOR_PRESETS[0].id)
+  const [customColorText, setCustomColorText] = useState('')
   const [previewOption, setPreviewOption] = useState({
     id: DEFAULT_OPTIONS.chassisTypes[0].id,
     image: VANGUARD_HERO_IMAGE,
@@ -122,12 +128,14 @@ export default function ConfiguratorPage() {
     const enginePrice = engine?.basePrice || 0
     const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + propellerPrice + upgradesPrice
-  }, [engine, propeller, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories])
+    return baseChassis + enginePrice + propellerPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
+  }, [engine, propeller, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
+
+  const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (selectedChassisColor) lines.push(`Chassis color: ${selectedChassisColor}`)
+    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
     if (chassisType?.name) lines.push(`Chassis type: ${chassisType.name}`)
     if (engine?.name) lines.push(`Engine: ${engine.name}`)
     if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
@@ -136,7 +144,17 @@ export default function ConfiguratorPage() {
     }
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [selectedChassisColor, chassisType, engine, propeller, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, chassisType, engine, propeller, selectedAccessoryItems, totalPrice])
+
+  const selectColorPreset = (color) => {
+    setSelectedColorId(color.id)
+    setPreviewOption({ id: `color-${color.id}`, image: VANGUARD_HERO_IMAGE })
+  }
+
+  const selectCustomColor = () => {
+    setSelectedColorId(CUSTOM_COLOR_ID)
+    setPreviewOption({ id: 'color-custom', image: VANGUARD_HERO_IMAGE })
+  }
 
   const previewGallery = useMemo(() => {
     if (!previewOption?.id) {
@@ -175,19 +193,25 @@ export default function ConfiguratorPage() {
   useEffect(() => {
     switch (step) {
       case 0:
+        setPreviewOption({
+          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
+          image: VANGUARD_HERO_IMAGE,
+        })
+        break
+      case 1:
         setPreviewOption({ id: selectedChassisType, image: VANGUARD_HERO_IMAGE })
         break
-      case 1: {
+      case 2: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
         setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
         break
       }
-      case 2: {
+      case 3: {
         const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
         setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
         break
       }
-      case 3: {
+      case 4: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -206,6 +230,7 @@ export default function ConfiguratorPage() {
     }
   }, [
     step,
+    selectedColorId,
     selectedChassisType,
     selectedEngine,
     selectedPropeller,
@@ -230,7 +255,9 @@ export default function ConfiguratorPage() {
         engine: selectedEngine,
         chassisType: selectedChassisType,
         propeller: selectedPropeller,
-        chassisColor: selectedChassisColor,
+        chassisColor: colorLabel,
+        colorId: selectedColorId,
+        customColor: selectedColorId === CUSTOM_COLOR_ID ? customColorText.trim() : undefined,
         upgrades: selectedUpgrades,
         totalPrice,
       })
@@ -269,36 +296,11 @@ export default function ConfiguratorPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-          {/* Left: Image & Colors (persistent across steps) */}
+          {/* Left: product preview gallery */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-
-            {/* Color first — then product preview (Nomadic pattern) */}
-            <div className="space-y-4">
-              <details open className="group border border-borderline rounded-xl p-4 hover:border-brand/50 transition">
-                <summary className="flex justify-between items-center cursor-pointer font-bold uppercase tracking-wide text-ink">
-                  Chassis Color
-                  <ChevronDown className="group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="mt-4 flex gap-3 flex-wrap">
-                  {CONFIG_OPTIONS.colors.map(c => (
-                    <motion.button
-                      key={c.name}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSelectedChassisColor(c.name)}
-                      className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center
-                        ${selectedChassisColor === c.name ? 'border-brand scale-110' : 'border-borderline hover:border-brand/50'}`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}>
-                      {selectedChassisColor === c.name && <Check className="w-5 h-5 text-white drop-shadow" />}
-                    </motion.button>
-                  ))}
-                </div>
-              </details>
-            </div>
-
             <OptionImageGallery images={previewGallery} fallbackSrc={null} />
           </motion.div>
 
@@ -317,6 +319,16 @@ export default function ConfiguratorPage() {
                 transition={{ duration: 0.25 }}
               >
                 {step === 0 && (
+                  <ChassisColorStep
+                    selectedColorId={selectedColorId}
+                    customColorText={customColorText}
+                    onSelectPreset={selectColorPreset}
+                    onSelectCustom={selectCustomColor}
+                    onCustomTextChange={setCustomColorText}
+                  />
+                )}
+
+                {step === 1 && (
                   <ConfigSection title="Chassis. Choose your flying style">
                     <div className="grid sm:grid-cols-1 gap-4">
                       {CONFIG_OPTIONS.chassisTypes.map(t => (
@@ -327,18 +339,13 @@ export default function ConfiguratorPage() {
                         >
                           <p className="font-bold uppercase text-ink">{t.name}</p>
                           <p className="text-sm text-ink2 mt-1">{t.description}</p>
-                          {selectedChassisType === t.id && (
-                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                              <OptionThumb src={t.image} alt={t.name} />
-                            </div>
-                          )}
                         </OptionCard>
                       ))}
                     </div>
                   </ConfigSection>
                 )}
 
-                {step === 1 && (
+                {step === 2 && (
                   <ConfigSection title="Engine. Which is right for you?">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.engines.map(e => (
@@ -351,23 +358,18 @@ export default function ConfiguratorPage() {
                                 ? 'Included'
                                 : `+$${e.basePrice.toLocaleString()}`}
                           </p>
-                          {selectedEngine === e.id && e.image && (
-                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                              <OptionThumb src={e.image} alt={e.name} />
-                              {e.infoUrl && (
-                                <a
-                                  href={e.infoUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(ev) => ev.stopPropagation()}
-                                  className="text-sm text-brand font-bold hover:underline mt-1">
-                                  More engine info →
-                                </a>
-                              )}
-                            </div>
-                          )}
                           {e.description && (
                             <p className="text-sm text-ink2 mt-2 leading-relaxed">{e.description}</p>
+                          )}
+                          {selectedEngine === e.id && e.infoUrl && (
+                            <a
+                              href={e.infoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(ev) => ev.stopPropagation()}
+                              className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More engine info →
+                            </a>
                           )}
                         </OptionCard>
                       ))}
@@ -375,7 +377,7 @@ export default function ConfiguratorPage() {
                   </ConfigSection>
                 )}
 
-                {step === 2 && (
+                {step === 3 && (
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => (
@@ -384,11 +386,6 @@ export default function ConfiguratorPage() {
                             <p className="font-bold uppercase text-ink">{p.name}</p>
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
-                          {selectedPropeller === p.id && p.image && (
-                            <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                              <OptionThumb src={p.image} alt={p.name} />
-                            </div>
-                          )}
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
                         </OptionCard>
                       ))}
@@ -396,7 +393,7 @@ export default function ConfiguratorPage() {
                   </ConfigSection>
                 )}
 
-                {step === 3 && (
+                {step === 4 && (
                   <ConfigSection title="Accessories. Enhance your flight">
                     <div className="space-y-3">
                       {accessories.map(a => {
@@ -407,11 +404,6 @@ export default function ConfiguratorPage() {
                               <p className="font-bold uppercase text-ink">{a.name}</p>
                               <p className="font-semibold text-ink2">+${a.price}</p>
                             </div>
-                            {isSelected && (
-                              <div className="mt-3 pt-3 border-t border-borderline/60 flex gap-3 items-start">
-                                <OptionThumb src={resolveAccessoryImage(a.id, a.image, VANGUARD_PRODUCTO_ID)} alt={a.name} />
-                              </div>
-                            )}
                             {a.description && (
                               <p className="text-sm text-ink2 mt-2 leading-relaxed">{a.description}</p>
                             )}
@@ -426,10 +418,10 @@ export default function ConfiguratorPage() {
                   </ConfigSection>
                 )}
 
-                {step === 4 && (
+                {step === 5 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
-                      <SummaryRow label="Color" value={selectedChassisColor} />
+                      <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
@@ -500,67 +492,6 @@ export default function ConfiguratorPage() {
           </motion.div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function ConfigSection({ title, children }) {
-  return (
-    <div>
-      <h2 className="text-2xl font-black uppercase text-ink mb-6 tracking-tight">{title}</h2>
-      {children}
-    </div>
-  )
-}
-
-function OptionCard({ selected, onClick, children }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-      className={`relative w-full p-4 border-2 rounded-xl text-left transition-all
-        ${selected ? 'border-green-600 bg-green-50' : 'border-borderline hover:border-brand/50'}`}>
-      {selected && (
-        <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-green-600">
-          <Check className="w-3 h-3 text-white" />
-        </span>
-      )}
-      {children}
-    </motion.button>
-  )
-}
-
-function SummaryRow({ label, value, price }) {
-  return (
-    <div className="flex justify-between items-start gap-3 py-1 border-b border-borderline/60">
-      <span className="text-ink2 min-w-0 pr-2 break-words">{value ? `${label} — ${value}` : label}</span>
-      {typeof price === 'number' && (
-        <span className="font-semibold text-ink">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</span>
-      )}
-    </div>
-  )
-}
-
-function OptionThumb({ src, alt }) {
-  const hasSrc = typeof src === 'string' && src.trim().length > 0
-
-  return (
-    <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden bg-bg2">
-      {hasSrc ? (
-        <SafeImage
-          src={src.trim()}
-          alt={alt}
-          fill
-          className="object-cover"
-          fallbackSrc={FALLBACK_IMAGES.engine}
-          unoptimized
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <Package className="w-8 h-8 text-ink2/40" />
-        </div>
-      )}
     </div>
   )
 }
