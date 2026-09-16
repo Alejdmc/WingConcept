@@ -101,7 +101,7 @@ export function resolveAccessoryGallery(id, options = {}) {
   } = options
 
   const explicit = pickExplicitGallery(cmsGallery, productImages)
-  const staticPaths = galleryPathsForOption(key, null, null).filter(Boolean)
+  const staticPaths = galleryPathsForOption(key, null, null, productoId).filter(Boolean)
 
   // Admin uploaded a full gallery (2–3 images)
   if (explicit?.length >= 2) {

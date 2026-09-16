@@ -34,7 +34,8 @@ import {
   paramotorColorSurcharge,
   resolveParamotorColorLabel,
 } from '@/lib/paramotorColors'
-import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { formatQuoteLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { HAND_THROTTLE_OPTIONS } from '@/lib/handThrottleOptions'
 import {
   DISRUPTOR_PARAMOTOR_BASE_PRICE,
   DISRUPTOR_PARAMOTOR_GALLERY,
@@ -56,45 +57,40 @@ const DEFAULT_OPTIONS = {
   chassisFinishes: [
     { id: 'paramotor-only', name: 'Paramotor Only', description: 'Base Disruptor paramotor chassis.', price: 0 },
     { id: 'add-trike-disruptor', name: 'Add Trike Disruptor', description: 'Adapt your paramotor to the Disruptor trike platform.', price: 1950 },
-    { id: 'disruptor-harness', name: 'Disruptor Harness', description: 'Ultra-light harness (~980 g) with aerospace aluminum seat.', price: 185.5 },
-    { id: 'power-seat-comfort', name: 'Power Seat Comfort by Dudek', description: 'High comfort without excess weight.', price: 733 },
-    { id: 'power-seat-light', name: 'Power Seat Light by Dudek', description: 'Very light PPG harness (~2.33 kg).', price: 845 },
+    { id: 'disruptor-harness', name: 'Disruptor Harness', description: 'Ultra-light harness (~980 g) with aerospace aluminum seat.', price: 185.5, image: '/images/disruptor/options/disruptor-harness-1.jpg' },
+    { id: 'power-seat-comfort', name: 'Power Seat Comfort by Dudek', description: 'High comfort without excess weight.', price: 733, image: '/images/disruptor/options/power-seat-comfort-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/powerseat-comfort-dp/' },
+    { id: 'power-seat-light', name: 'Power Seat Light by Dudek', description: 'Very light PPG harness (~2.33 kg).', price: 845, image: '/images/disruptor/options/power-seat-light-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/powerseat-light/' },
   ],
   engines: [
     { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0, description: 'Chassis only — add an engine later.' },
-    { id: 'vittorazi-atom-80', name: 'Vittorazi Atom 80', power: '80 HP', basePrice: 0, priceTbd: true, description: 'Reduced weight, uncompromising efficiency.', image: '/images/engines/vittorazi-300-my25.jpg' },
-    { id: 'vittorazi-moster-185', name: 'Vittorazi Moster 185 Plus', power: '185 cc', basePrice: 0, priceTbd: true, description: 'Versatility, sportiness, and performance.', image: '/images/engines/vittorazi-300-my25.jpg' },
-    { id: 'vittorazi-moster-185-efi', name: 'Vittorazi Moster 185 EFI', power: '', basePrice: 0, priceTbd: true, description: 'EFI technology with reduced fuel consumption.', image: '/images/engines/vittorazi-300-my25.jpg' },
-    { id: 'vittorazi-moster-185-factory-r', name: 'Vittorazi Moster 185 Factory-R', power: '', basePrice: 0, priceTbd: true, description: 'Racing performance and exclusive design.', image: '/images/engines/vittorazi-300-my25.jpg' },
-    { id: 'vittorazi-cosmos-300', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 0, priceTbd: true, description: 'Ideal for paratrikes and tandem flight.', image: '/images/engines/vittorazi-300-my25.jpg' },
-    { id: 'polini-130-evo', name: 'Polini Thor 130 EVO', power: '130 cc', basePrice: 2580, description: 'Advanced dual-carb engine.', image: '/images/engines/polini-260.jpg' },
-    { id: 'polini-202-racing', name: 'Polini Thor 202 Racing', power: '202 cc', basePrice: 2882, description: 'Built for slalom competition.', image: '/images/engines/polini-260.jpg' },
-    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '303 cc', basePrice: 4994, description: 'Outstanding performance and reliability.', image: '/images/engines/polini-303.jpg' },
-    { id: 'sky-150', name: 'SKY 150', power: '28 HP', basePrice: 0, priceTbd: true, description: 'Liquid-cooled 150 cc.', image: '/images/engines/polini-260.jpg' },
-    { id: 'sky-zeus-300', name: 'SKY Engine Zeus 300', power: '44 HP', basePrice: 0, priceTbd: true, description: '300 cc boxer — up to 148 kg thrust.', image: '/images/engines/polini-303.jpg' },
+    { id: 'vittorazi-atom-80', name: 'Vittorazi Atom 80', power: '80 HP', basePrice: 0, priceTbd: true, description: 'Reduced weight, uncompromising efficiency — preferred by flight schools.', image: '/images/engines/vittorazi-atom-80-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#atom80' },
+    { id: 'vittorazi-moster-185', name: 'Vittorazi Moster 185 Plus', power: '185 cc', basePrice: 0, priceTbd: true, description: 'Versatility, sportiness, and performance in an extraordinary engine.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#moster185' },
+    { id: 'vittorazi-moster-185-efi', name: 'Vittorazi Moster 185 EFI', power: '', basePrice: 0, priceTbd: true, description: 'EFI technology with reduced fuel consumption.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#moster185efi' },
+    { id: 'vittorazi-moster-185-factory-r', name: 'Vittorazi Moster 185 Factory-R', power: '', basePrice: 0, priceTbd: true, description: 'Racing performance and exclusive design.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#factory-r' },
+    { id: 'vittorazi-cosmos-300', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 0, priceTbd: true, description: 'Ideal for paratrikes and tandem flight.', image: '/images/engines/vittorazi-300-my25-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#cosmos300' },
+    { id: 'polini-130-evo', name: 'Polini Thor 130 EVO', power: '130 cc', basePrice: 2580, description: 'Advanced dual-carb engine.', image: '/images/engines/polini-130-evo-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-130-evo-2/' },
+    { id: 'polini-202-racing', name: 'Polini Thor 202 Racing', power: '202 cc', basePrice: 2882, description: 'Built for slalom competition.', image: '/images/engines/polini-202-racing-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-202-racing-2/' },
+    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '303 cc', basePrice: 4994, description: 'Outstanding performance and reliability.', image: '/images/disruptor/options/polini-303-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-303-evo-2/' },
+    { id: 'sky-150', name: 'SKY 150', power: '28 HP', basePrice: 0, priceTbd: true, description: 'Liquid-cooled 150 cc single-cylinder engine.', image: '/images/engines/sky-150-1.jpg', infoUrl: 'https://www.skyengines.com/new-sky-150-generale/?lang=en' },
+    { id: 'sky-zeus-300', name: 'SKY Engine Zeus 300', power: '44 HP', basePrice: 0, priceTbd: true, description: '300 cc boxer — up to 148 kg thrust.', image: '/images/engines/zeus-300-1.jpg', infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en' },
   ],
-  handThrottles: [
-    { id: 'no-throttle', name: 'No Hand Throttle', description: 'Use factory throttle.', price: 0 },
-    { id: 'vittorazi-v-throttle', name: 'V-Throttle by Vittorazi', description: 'Ergonomic ambidextrous joystick.', price: 180 },
-    { id: 'polini-hand-throttle', name: 'Polini Hand Throttle', description: 'Lightweight reinforced thermoplastic.', price: 186.7 },
-    { id: 'off-grid-aviator', name: 'Off-Grid Aviator Throttle', description: 'Pull-start setup, left or right hand.', price: 249 },
-  ],
+  handThrottles: HAND_THROTTLE_OPTIONS,
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Add a propeller later.', price: 0 },
-    { id: 'bipala', name: 'Two-Blade Propeller', description: 'Mid-range 25 kW H30F variant.', price: 350 },
-    { id: 'tripala', name: 'Three-Blade Propeller', description: 'Mid-range 25 kW H30F variant.', price: 450 },
+    { id: 'bipala', name: 'Two-Blade Propeller', description: 'Mid-range 25 kW H30F variant — perfect for foot launch and light wheel launch.', price: 350, infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
+    { id: 'tripala', name: 'Three-Blade Propeller', description: 'Mid-range 25 kW H30F variant with smoother thrust delivery.', price: 450, infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
   ],
   accessories: [
-    { id: 'globe-160-parachute', name: 'Reserve Parachute Globe 160', price: 110, description: 'Emergency parachute for PPG flyers.', image: '/images/parts/parachute-container.png' },
-    { id: 'front-container-cockpit', name: 'Front Container with Cockpit by Dudek', price: 179, description: 'Instrument panel and rescue container.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'paramotor-bag-pack', name: 'Paramotor Bag Pack', price: 145, description: 'Wing Concept case for disassembled paramotor.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'paramotor-lights-kit', name: 'Paramotor Lights Kit', price: 135, description: 'Visibility for explorers and night landings.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'disruptor-pilot-seat', name: 'Disruptor Pilot Seat', price: 245.5, description: 'Lightweight compact pilot seat.', image: '/images/parts/pilot-harness.png' },
-    { id: 'disruptor-passenger-seat', name: 'Disruptor Passenger Seat', price: 245.5, description: 'Weight-optimized passenger harness.', image: '/images/parts/passenger-harness.png' },
-    { id: 'explorer-bag', name: 'Explorer Bag', price: 125, description: 'Excursion gear for Disruptor paratrike.', image: '/images/parts/lateral-bag-explorer.png' },
-    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'View wing position during takeoff.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Extra cable braking power.', image: '/images/parts/front-fork.png' },
-    { id: 'protective-cover', name: 'Protective Cover', price: 105, description: 'Covers cockpit and engine for trailering.', image: '/images/parts/cockpit-liner.png' },
+    { id: 'globe-160-parachute', name: 'Reserve Parachute Globe 160', price: 110, description: 'Emergency parachute for PPG flyers — max sink speed under 5.5 m/s.', image: '/images/disruptor/options/globe-160-parachute-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/globe-light/' },
+    { id: 'front-container-cockpit', name: 'Front Container with Cockpit by Dudek', price: 179, description: 'Instrument panel and rescue container with adjustable inclination.', image: '/images/disruptor/options/front-container-cockpit-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/frontkontener-z-kokpitem/' },
+    { id: 'paramotor-bag-pack', name: 'Paramotor Bag Pack', price: 145, description: 'Wing Concept case for disassembled paramotor with engine and propeller.', image: '/images/disruptor/options/paramotor-bag-pack-1.jpg' },
+    { id: 'paramotor-lights-kit', name: 'Paramotor Lights Kit', price: 135, description: 'Visibility for explorers and night landings.', image: '/images/disruptor/options/paramotor-lights-kit-1.jpg' },
+    { id: 'disruptor-pilot-seat', name: 'Disruptor Pilot Seat', price: 245.5, description: 'Lightweight compact pilot seat.', image: '/images/disruptor/options/disruptor-pilot-seat-1.jpg' },
+    { id: 'disruptor-passenger-seat', name: 'Disruptor Passenger Seat', price: 245.5, description: 'Weight-optimized passenger harness.', image: '/images/disruptor/options/disruptor-passenger-seat-1.jpg' },
+    { id: 'explorer-bag', name: 'Explorer Bag', price: 125, description: 'Excursion gear for Disruptor paratrike.', image: '/images/disruptor/options/explorer-bag-1.jpg' },
+    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'View wing position during takeoff.', image: '/images/disruptor/options/rear-mirror-1.jpg' },
+    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Extra cable braking power.', image: '/images/disruptor/options/front-brake-1.jpg' },
+    { id: 'protective-cover', name: 'Protective Cover', price: 105, description: 'Covers cockpit and engine for trailering.', image: '/images/disruptor/options/protective-cover-1.jpg' },
   ],
 }
 
@@ -184,18 +180,26 @@ export default function ConfiguratorDisruptorParamotorPage() {
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (colorLabel) lines.push(`Frame color: ${colorLabel}`)
-    if (finish?.name) lines.push(`Chassis: ${finish.name}`)
-    if (engine?.name) lines.push(`Engine: ${engine.name}${engine.priceTbd ? ' (price TBD)' : ''}`)
-    if (handThrottle?.name) lines.push(`Hand throttle: ${handThrottle.name}`)
-    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    const colorLine = formatQuoteLine('Frame color', colorLabel, paramotorColorSurcharge(selectedColorId))
+    if (colorLine) lines.push(colorLine)
+    const finishLine = formatQuoteLine('Chassis', finish?.name, finish?.price)
+    if (finishLine) lines.push(finishLine)
+    const engineLine = formatQuoteLine('Engine', engine?.name, engine?.priceTbd ? null : engine?.basePrice, {
+      priceLabel: engine?.priceTbd ? 'Price on request' : undefined,
+    })
+    if (engineLine) lines.push(engineLine)
+    const handLine = formatQuoteLine('Hand throttle', handThrottle?.name, handThrottle?.price)
+    if (handLine) lines.push(handLine)
+    const propLine = formatQuoteLine('Propeller', propeller?.name, propeller?.price)
+    if (propLine) lines.push(propLine)
     appendParagliderQuoteLines(lines)
-    if (selectedAccessoryItems.length > 0) {
-      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
-    }
+    selectedAccessoryItems.forEach((a) => {
+      const accLine = formatQuoteLine('Accessory', a.name, a.price)
+      if (accLine) lines.push(accLine)
+    })
     if (!cartBlocked) lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, finish, engine, handThrottle, propeller, appendParagliderQuoteLines, selectedAccessoryItems, cartBlocked, totalPrice])
+  }, [colorLabel, finish, engine, handThrottle, propeller, appendParagliderQuoteLines, selectedAccessoryItems, cartBlocked, totalPrice, selectedColorId])
 
   const previewGallery = useMemo(() => {
     if (previewOption?.gallery?.length) return normalizeGallery(previewOption.gallery)
@@ -218,7 +222,8 @@ export default function ConfiguratorDisruptorParamotorPage() {
 
   const selectFinish = (id) => {
     setSelectedFinish(id)
-    setPreviewOption({ id, image: null })
+    const item = CONFIG_OPTIONS.chassisFinishes.find((f) => f.id === id)
+    setPreviewOption({ id, image: item?.image || null, gallery: item?.gallery })
   }
 
   const selectEngine = (id) => {
@@ -229,7 +234,8 @@ export default function ConfiguratorDisruptorParamotorPage() {
 
   const selectHandThrottle = (id) => {
     setSelectedHandThrottle(id)
-    setPreviewOption({ id, image: null })
+    const item = CONFIG_OPTIONS.handThrottles.find((h) => h.id === id)
+    setPreviewOption({ id, image: item?.image || null, gallery: item?.gallery })
   }
 
   const selectPropeller = (id) => {
@@ -258,17 +264,21 @@ export default function ConfiguratorDisruptorParamotorPage() {
             : null,
         })
         break
-      case 1:
-        setPreviewOption({ id: selectedFinish, image: null })
+      case 1: {
+        const fin = CONFIG_OPTIONS.chassisFinishes.find((f) => f.id === selectedFinish)
+        setPreviewOption({ id: selectedFinish, image: fin?.image || null, gallery: fin?.gallery })
         break
+      }
       case 2: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
         setPreviewOption({ id: selectedEngine, image: eng?.image || null, gallery: eng?.gallery })
         break
       }
-      case 3:
-        setPreviewOption({ id: selectedHandThrottle, image: null })
+      case 3: {
+        const throttle = CONFIG_OPTIONS.handThrottles.find((h) => h.id === selectedHandThrottle)
+        setPreviewOption({ id: selectedHandThrottle, image: throttle?.image || null, gallery: throttle?.gallery })
         break
+      }
       case 4: {
         const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
         setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
@@ -436,6 +446,11 @@ export default function ConfiguratorDisruptorParamotorPage() {
                             <p className="text-sm text-ink2">{formatOptionPrice(f.price || 0)}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{f.description}</p>
+                          {selectedFinish === f.id && f.infoUrl && (
+                            <a href={f.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -450,6 +465,11 @@ export default function ConfiguratorDisruptorParamotorPage() {
                           <p className="font-bold uppercase text-ink">{e.name}</p>
                           <p className="text-sm text-ink2 mt-1">{e.power ? `${e.power} — ` : ''}{formatEnginePrice(e)}</p>
                           {e.description && <p className="text-sm text-ink2 mt-1">{e.description}</p>}
+                          {selectedEngine === e.id && e.infoUrl && (
+                            <a href={e.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More engine info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -466,6 +486,11 @@ export default function ConfiguratorDisruptorParamotorPage() {
                             <p className="text-sm text-ink2">{formatOptionPrice(h.price || 0)}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{h.description}</p>
+                          {selectedHandThrottle === h.id && h.infoUrl && (
+                            <a href={h.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -482,6 +507,11 @@ export default function ConfiguratorDisruptorParamotorPage() {
                             <p className="text-sm text-ink2">{formatOptionPrice(p.price || 0)}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
+                          {selectedPropeller === p.id && p.infoUrl && (
+                            <a href={p.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
@@ -520,6 +550,11 @@ export default function ConfiguratorDisruptorParamotorPage() {
                             </p>
                           </div>
                           {a.description && <p className="text-sm text-ink2 mt-1">{a.description}</p>}
+                          {selectedUpgrades.includes(a.id) && a.infoUrl && (
+                            <a href={a.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>

@@ -10,31 +10,22 @@ REPO = Path(__file__).resolve().parents[2]
 PAGES = REPO / "archivos/imagenes ajustes wingconcept.pages"
 OUT = REPO / "frontend/public/images"
 
-PRIMARY_VIDEO = {
-    "accelerator-pedal": 26,
-    "cruise-control": 32,
-    "sun-roof-netting": 36,
-    "sunroof-canopy": 42,
-    "carabiners": 56,
-    "fuel-gauge-vanguard": 60,
-    "auxiliary-lights": 66,
-    "electrical-kit": 68,
-    "rear-mirror": 72,
-    "cockpit-liner": 112,
+# Explicit video IDs per accessory — verified against .pages media (Sep 2026).
+# When only one clip is correct, repeat it for all three gallery slots.
+PART_VIDEO_MAP: dict[str, list[int]] = {
+    "accelerator-pedal": [26, 28, 24],
+    "cruise-control": [32, 34, 30],
+    "sun-roof-netting": [36, 38, 42],
+    "sunroof-canopy": [44, 46, 50],
+    # 52/54 are full-trike shots; only 58 is the carabiners product photo.
+    "carabiners": [58, 58, 58],
+    "fuel-gauge-vanguard": [60, 62, 64],
+    "auxiliary-lights": [66, 68, 56],
+    # 70 is the wiring-harness photo; 78/80 were mirror shots, not electrical.
+    "electrical-kit": [70, 70, 70],
+    "rear-mirror": [72, 74, 76],
+    "cockpit-liner": [108, 110, 112],
 }
-
-VIDEO_GROUPS = [
-    [24, 26, 28],
-    [30, 32, 34],
-    [36, 38, 42],
-    [44, 46, 50],
-    [52, 54, 56],
-    [58, 60, 62],
-    [64, 66, 68],
-    [70, 72, 74],
-    [76, 78, 80],
-    [108, 110, 112],
-]
 
 ENGINE_GROUPS = {
     "rotax-912": [94, 96, 98],
@@ -44,21 +35,9 @@ ENGINE_GROUPS = {
     "polini-303": [120, 122, 124],
     "vittorazi-300-my25": [126, 128, 130],
     "zeus-300": [132, 134, 136],
-    "simonini-victor-1": [134, 136],
 }
 
-PART_SLUGS = set(PRIMARY_VIDEO.keys()) - {"cockpit-liner"} | {
-    "accelerator-pedal", "cruise-control", "sun-roof-netting", "sunroof-canopy",
-    "carabiners", "fuel-gauge-vanguard", "auxiliary-lights", "electrical-kit",
-    "rear-mirror", "cockpit-liner",
-}
-
-
-def group_for_id(vid: int) -> list[int]:
-    for group in VIDEO_GROUPS:
-        if vid in group:
-            return group
-    return [vid]
+PARACHUTE_TIFFS = [102, 104, 106]
 
 
 def convert(src: Path, dest: Path) -> bool:
@@ -85,6 +64,18 @@ def find_tiff(src_dir: Path, vid: int) -> Path | None:
     return path if path.exists() else None
 
 
+def import_part_videos(src_dir: Path, slug: str, ids: list[int]) -> None:
+    for index, vid in enumerate(ids[:3], start=1):
+        src = find_video(src_dir, vid)
+        if not src:
+            continue
+        convert(src, OUT / "parts" / f"{slug}-{index}.png")
+    first = OUT / "parts" / f"{slug}-1.png"
+    main = OUT / "parts" / f"{slug}.png"
+    if first.exists():
+        shutil.copy2(first, main)
+
+
 def main() -> None:
     import zipfile
     import tempfile
@@ -98,41 +89,27 @@ def main() -> None:
             zf.extractall(tmp_path)
         src_dir = tmp_path / "Data"
 
-        for slug, primary in PRIMARY_VIDEO.items():
-            ids = group_for_id(primary)
-            for index, vid in enumerate(ids[:3], start=1):
-                src = find_video(src_dir, vid)
-                if not src:
-                    continue
-                dest = OUT / "parts" / f"{slug}-{index}.png"
-                convert(src, dest)
-            first = OUT / "parts" / f"{slug}-1.png"
-            main = OUT / "parts" / f"{slug}.png"
-            if first.exists():
-                shutil.copy2(first, main)
+        for slug, ids in PART_VIDEO_MAP.items():
+            import_part_videos(src_dir, slug, ids)
 
         for slug, ids in ENGINE_GROUPS.items():
             for index, vid in enumerate(ids[:3], start=1):
                 src = find_tiff(src_dir, vid) or find_video(src_dir, vid)
                 if not src:
                     continue
-                dest = OUT / "engines" / f"{slug}-{index}.jpg"
-                convert(src, dest)
+                convert(src, OUT / "engines" / f"{slug}-{index}.jpg")
             first = OUT / "engines" / f"{slug}-1.jpg"
             main = OUT / "engines" / f"{slug}.jpg"
             if first.exists():
                 shutil.copy2(first, main)
 
-        # Propeller + parachutes
         if find_tiff(src_dir, 100):
             convert(find_tiff(src_dir, 100), OUT / "propellers/bipala.jpg")
-        for index, vid in enumerate([102, 106, 114], start=1):
+            convert(find_tiff(src_dir, 100), OUT / "propellers/bipala-1.jpg")
+        for index, vid in enumerate(PARACHUTE_TIFFS, start=1):
             src = find_tiff(src_dir, vid)
             if src:
                 convert(src, OUT / f"parts/parachute-container-{index}.png")
-        for index, vid in enumerate([104, 118, 122], start=1):
-            src = find_tiff(src_dir, vid)
-            if src:
                 convert(src, OUT / f"parts/reserve-chute-{index}.jpg")
 
         main = OUT / "parts/parachute-container-1.png"

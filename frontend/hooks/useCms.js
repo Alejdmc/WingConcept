@@ -194,25 +194,38 @@ function withOptionalGallery(base, o) {
 function mapEngine(o, fallbackEngines = []) {
   const fb = (fallbackEngines || []).find((item) => item.id === o.id)
   const cmsDescription = typeof o.description === 'string' ? o.description.trim() : ''
-  return withOptionalGallery({
+  const image = resolveOptionImage(
+    o.image,
+    fb?.image,
+    o.id ? `/images/engines/${String(o.id).toLowerCase()}.jpg` : null,
+  )
+  const mapped = withOptionalGallery({
     id: o.id,
     name: o.name,
     basePrice: o.basePrice ?? o.price ?? 0,
-    image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/engines/${String(o.id).toLowerCase()}.jpg` : null),
+    image,
     power: o.power || fb?.power,
     infoUrl: o.infoUrl || fb?.infoUrl,
     priceTbd: Boolean(o.price_tbd || o.priceTbd || fb?.priceTbd),
     description: cmsDescription || fb?.description || '',
   }, o)
+  if (mapped.gallery?.length) return mapped
+  const staticGallery = galleryPathsForOption(o.id, image, null)
+  if (staticGallery.length >= 2) {
+    return { ...mapped, gallery: staticGallery }
+  }
+  return mapped
 }
 function mapHandThrottle(o, fallbackHandThrottles = []) {
   const fb = (fallbackHandThrottles || []).find((item) => item.id === o.id)
-  return {
+  return withOptionalGallery({
     id: o.id,
     name: o.name,
     description: pickText(o.description, fb?.description),
     price: o.price ?? fb?.price ?? 0,
-  }
+    infoUrl: o.infoUrl || fb?.infoUrl,
+    image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/disruptor/options/${o.id}-1.jpg` : null),
+  }, o)
 }
 function mapChassis(o, fallbackChassis = []) {
   const fb = (fallbackChassis || []).find((item) => item.id === o.id)
@@ -225,13 +238,15 @@ function mapChassis(o, fallbackChassis = []) {
 }
 function mapFinish(o, fallbackFinishes = []) {
   const fb = (fallbackFinishes || []).find((item) => item.id === o.id)
-  return {
+  return withOptionalGallery({
     id: o.id,
     name: o.name,
     description: pickText(o.description, fb?.description),
     swatch: o.swatch || fb?.swatch,
     price: o.price ?? fb?.price ?? 0,
-  }
+    infoUrl: o.infoUrl || o.url || fb?.infoUrl,
+    image: resolveOptionImage(o.image, fb?.image, o.id ? `/images/disruptor/options/${o.id}-1.jpg` : null),
+  }, o)
 }
 function mapPropeller(o, fallbackPropellers = []) {
   const fb = (fallbackPropellers || []).find((item) => item.id === o.id)
@@ -266,11 +281,13 @@ function mapAccessory(o, productoId, fallbackAccessories = []) {
     name: o.name,
     price: o.price ?? fallback?.price ?? 0,
     description: pickText(o.description, fallback?.description),
+    infoUrl: o.infoUrl || o.url || fallback?.infoUrl,
     image: gallery[0] || resolveAccessoryImage(o.id, o.image, productoId, fallback?.image),
     gallery,
   }
 }
 
+import { galleryPathsForOption } from '@/lib/configuratorImages'
 import { formatConfigSummary, normalizeConfigForApi } from '@/lib/configSummary'
 
 export { formatConfigSummary, normalizeConfigForApi }

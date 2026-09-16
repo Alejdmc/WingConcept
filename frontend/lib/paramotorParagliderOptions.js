@@ -13,6 +13,15 @@ export { NO_PARAGLIDER_ID, paragliderDisplayName, getParagliderColorGallery, get
 
 const FALLBACK_IMAGE = '/images/front1.jpg'
 
+function wingGallery(basePath, count = 3) {
+  const paths = []
+  for (let n = 1; n <= count; n += 1) {
+    const suffix = n === 1 ? 'main.jpg' : `${n}.jpg`
+    paths.push(`${basePath}/${suffix}`)
+  }
+  return paths
+}
+
 const PARAMOTOR_ONLY_WINGS = {
   'dudek-universal-11': {
     brand: 'DUDEK',
@@ -22,6 +31,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Versatile reflex wing for paramotor pilots who want predictable handling and easy inflation across a wide weight range.',
     infoUrl: 'https://dudek.eu/en/produkt/universal-1-1/',
     sizes: ['Standard'],
+    images: wingGallery('/images/paragliders/paramotor/dudek-universal-11'),
   },
   'dudek-solo-2': {
     brand: 'DUDEK',
@@ -31,6 +41,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Lightweight solo paramotor wing designed for dynamic flight and responsive control without excess weight.',
     infoUrl: 'https://dudek.eu/en/produkt/solo-2/',
     sizes: ['Standard'],
+    images: ['/images/paragliders/paramotor/dudek-solo-2/main.jpg'],
   },
   'dudek-nucleon-4': {
     brand: 'DUDEK',
@@ -40,6 +51,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Reflex profile wing with strong performance for experienced paramotor pilots seeking speed and stability.',
     infoUrl: 'https://dudek.eu/en/produkt/nucleon-4/',
     sizes: ['Standard'],
+    images: wingGallery('/images/paragliders/paramotor/dudek-nucleon-4', 2),
   },
   'dudek-snake-4': {
     brand: 'DUDEK',
@@ -49,6 +61,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'High-performance reflex wing for pilots who demand maximum speed and agility in paramotor flight.',
     infoUrl: 'https://dudek.eu/en/produkt/snake-4/',
     sizes: ['Standard'],
+    images: wingGallery('/images/paragliders/paramotor/dudek-snake-4', 2),
   },
   'dudek-driftair-2': {
     brand: 'DUDEK',
@@ -58,6 +71,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Designed for precision and fun in paramotor slalom and dynamic flying with excellent inflation characteristics.',
     infoUrl: 'https://dudek.eu/en/produkt/driftair-2/',
     sizes: ['Standard'],
+    images: wingGallery('/images/paragliders/paramotor/dudek-driftair-2', 2),
   },
   'apco-nrg-iii': {
     brand: 'APCO Aviation',
@@ -67,6 +81,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Efficient paramotor wing with excellent fuel economy and smooth handling for cross-country exploration.',
     infoUrl: 'https://www.apcoaviation.com/nrg_3/',
     sizes: ['Standard'],
+    images: ['/images/paragliders/paramotor/apco-nrg-iii/main.jpg'],
   },
   'apco-hybrid-paramotor': {
     brand: 'APCO Aviation',
@@ -76,6 +91,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Hybrid design combining free-flight ease with paramotor-specific reinforcement for powered operations.',
     infoUrl: 'https://www.apcoaviation.com/hybrid_pm/',
     sizes: ['Standard'],
+    images: ['/images/paragliders/paramotor/apco-hybrid-paramotor/main.jpg'],
   },
   'apco-f3-mkii': {
     brand: 'APCO Aviation',
@@ -85,6 +101,7 @@ const PARAMOTOR_ONLY_WINGS = {
       'Dedicated paramotor wing with reflex technology for stable, confidence-inspiring powered flight.',
     infoUrl: 'https://www.apcoaviation.com/f3mk2/',
     sizes: ['Standard'],
+    images: ['/images/paragliders/paramotor/apco-f3-mkii/main.jpg'],
   },
 }
 
@@ -92,17 +109,22 @@ const SHARED_TRIKE_SLUGS = ['dudek-orca-6', 'dudek-cabrio', 'dudek-boson', 'apco
 
 function buildFallbackWing(id, meta) {
   const displayName = `${meta.brand} ${meta.name}`
-  const image = { src: FALLBACK_IMAGE, alt: displayName }
+  const galleryPaths = (meta.images || []).filter(Boolean)
+  const primarySrc = galleryPaths[0] || FALLBACK_IMAGE
+  const galleryImages = galleryPaths.length
+    ? galleryPaths.map((src, index) => ({ src, alt: `${displayName} view ${index + 1}` }))
+    : [{ src: FALLBACK_IMAGE, alt: displayName }]
+  const image = galleryImages[0]
   return {
     id,
     ...meta,
     techImages: [],
-    galleryImages: [image],
+    galleryImages,
     colors: [{
       id: 'standard',
       name: 'Standard scheme',
-      thumb: FALLBACK_IMAGE,
-      images: [image],
+      thumb: primarySrc,
+      images: galleryImages,
     }],
   }
 }

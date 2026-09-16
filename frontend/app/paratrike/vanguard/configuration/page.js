@@ -21,9 +21,10 @@ import OptionCard from '@/components/configurator/OptionCard'
 import ConfigSection from '@/components/configurator/ConfigSection'
 import SummaryRow from '@/components/configurator/SummaryRow'
 import { buildOptionGallery, normalizeGallery, VANGUARD_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
+import { chassisColorPreviewOption } from '@/lib/chassisColorImages'
 import { useParagliderConfigurator } from '@/hooks/useParagliderConfigurator'
 import { NO_PARAGLIDER_ID, paragliderDisplayName, resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
-import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { formatQuoteLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import {
   CHASSIS_COLOR_PRESETS,
   CUSTOM_COLOR_ID,
@@ -68,14 +69,14 @@ const DEFAULT_OPTIONS = {
   ],
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
-    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). When you need extra thrust up to 47 kW — the be-all-and-end monster of the trike world.', price: 534.75, image: '/images/propellers/bipala.jpg' },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
+    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). When you need extra thrust up to 47 kW — the be-all-and-end monster of the trike world.', price: 534.75, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
   ],
   colors: [],
   accessories: [
     { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment during sideways descent.', image: '/images/parts/sun-roof-netting.png' },
     { id: 'front-bar-protection', name: 'Padded Roll Bar Protector with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
-    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Additional cable brake providing extra braking power — conventional mountain-bike derived system.', image: '/images/parts/front-fork.png' },
+    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Additional cable brake providing extra braking power — conventional mountain-bike derived system.', image: '/images/parts/front-brake.png' },
     { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
     { id: 'parachute-container', name: 'Parachute Container', price: 55, description: 'Exclusive container for mounting on the right or left side of the harnesses.', image: '/images/parts/parachute-container.png' },
@@ -88,7 +89,7 @@ const DEFAULT_OPTIONS = {
     { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/electrical-kit.png' },
     { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/carabiners.png' },
     { id: 'propeller-guard', name: 'External Propeller Guard', price: 295, description: 'Prevents wing or lines from entering the propeller. Ideal for schools and beginners.', image: '/images/parts/pilot-dynamic-cage.png' },
-    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute with max load of 400 kg.', image: '/images/parts/parachute-container.png' },
+    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute with max load of 400 kg.', image: '/images/parts/reserve-chute-1.jpg' },
   ]
 }
 
@@ -158,26 +159,33 @@ export default function ConfiguratorPage() {
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
-    if (chassisType?.name) lines.push(`Chassis type: ${chassisType.name}`)
-    if (engine?.name) lines.push(`Engine: ${engine.name}`)
-    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    const colorLine = formatQuoteLine('Chassis color', colorLabel, chassisColorSurcharge(selectedColorId))
+    if (colorLine) lines.push(colorLine)
+    const chassisLine = formatQuoteLine('Chassis type', chassisType?.name, 0)
+    if (chassisLine) lines.push(chassisLine)
+    const engineLine = formatQuoteLine('Engine', engine?.name, engine?.priceTbd ? null : engine?.basePrice, {
+      priceLabel: engine?.priceTbd ? 'Price on request' : undefined,
+    })
+    if (engineLine) lines.push(engineLine)
+    const propLine = formatQuoteLine('Propeller', propeller?.name, propeller?.price)
+    if (propLine) lines.push(propLine)
     appendParagliderQuoteLines(lines)
-    if (selectedAccessoryItems.length > 0) {
-      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
-    }
+    selectedAccessoryItems.forEach((a) => {
+      const accLine = formatQuoteLine('Accessory', a.name, a.price)
+      if (accLine) lines.push(accLine)
+    })
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
-    setPreviewOption({ id: `color-${color.id}`, image: VANGUARD_HERO_IMAGE })
+    setPreviewOption(chassisColorPreviewOption('vanguard', color.id, VANGUARD_HERO_IMAGE))
   }
 
   const selectCustomColor = () => {
     setSelectedColorId(CUSTOM_COLOR_ID)
-    setPreviewOption({ id: 'color-custom', image: VANGUARD_HERO_IMAGE })
+    setPreviewOption(chassisColorPreviewOption('vanguard', CUSTOM_COLOR_ID, VANGUARD_HERO_IMAGE))
   }
 
   const previewGallery = useMemo(() => {
@@ -220,10 +228,7 @@ export default function ConfiguratorPage() {
   useEffect(() => {
     switch (step) {
       case 0:
-        setPreviewOption({
-          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
-          image: VANGUARD_HERO_IMAGE,
-        })
+        setPreviewOption(chassisColorPreviewOption('vanguard', selectedColorId, VANGUARD_HERO_IMAGE))
         break
       case 1:
         setPreviewOption({ id: selectedChassisType, image: VANGUARD_HERO_IMAGE })

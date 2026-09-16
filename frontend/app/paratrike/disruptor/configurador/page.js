@@ -19,6 +19,8 @@ import OptionCard from '@/components/configurator/OptionCard'
 import ConfigSection from '@/components/configurator/ConfigSection'
 import SummaryRow from '@/components/configurator/SummaryRow'
 import { buildOptionGallery, normalizeGallery } from '@/lib/configuratorImages'
+import { chassisColorPreviewOption } from '@/lib/chassisColorImages'
+import { formatQuoteLine } from '@/lib/quoteEmail'
 import { useParagliderConfigurator } from '@/hooks/useParagliderConfigurator'
 import { NO_PARAGLIDER_ID, paragliderDisplayName, resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
 import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
@@ -118,15 +120,18 @@ export default function ConfiguratorDisruptorTrikePage() {
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
-    if (finish?.name) lines.push(`Chassis: ${finish.name}`)
+    const colorLine = formatQuoteLine('Chassis color', colorLabel, chassisColorSurcharge(selectedColorId))
+    if (colorLine) lines.push(colorLine)
+    const finishLine = formatQuoteLine('Chassis', finish?.name, finish?.price)
+    if (finishLine) lines.push(finishLine)
     appendParagliderQuoteLines(lines)
-    if (selectedAccessoryItems.length > 0) {
-      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
-    }
+    selectedAccessoryItems.forEach((a) => {
+      const accLine = formatQuoteLine('Accessory', a.name, a.price)
+      if (accLine) lines.push(accLine)
+    })
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, finish, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, finish, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
 
   const previewGallery = useMemo(() => {
     if (previewOption?.gallery?.length) {
@@ -140,12 +145,12 @@ export default function ConfiguratorDisruptorTrikePage() {
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
-    setPreviewOption({ id: `color-${color.id}`, image: DISRUPTOR_TRIKE_HERO })
+    setPreviewOption(chassisColorPreviewOption('disruptor-trike', color.id, DISRUPTOR_TRIKE_HERO))
   }
 
   const selectCustomColor = () => {
     setSelectedColorId(CUSTOM_COLOR_ID)
-    setPreviewOption({ id: 'color-custom', image: DISRUPTOR_TRIKE_HERO })
+    setPreviewOption(chassisColorPreviewOption('disruptor-trike', CUSTOM_COLOR_ID, DISRUPTOR_TRIKE_HERO))
   }
 
   const selectFinish = (id) => {
@@ -166,10 +171,7 @@ export default function ConfiguratorDisruptorTrikePage() {
   useEffect(() => {
     switch (step) {
       case 0:
-        setPreviewOption({
-          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
-          image: DISRUPTOR_TRIKE_HERO,
-        })
+        setPreviewOption(chassisColorPreviewOption('disruptor-trike', selectedColorId, DISRUPTOR_TRIKE_HERO))
         break
       case 1:
         setPreviewOption({ id: selectedFinish, image: DISRUPTOR_TRIKE_HERO })

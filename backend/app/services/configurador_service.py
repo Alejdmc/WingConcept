@@ -58,6 +58,12 @@ NOMADIC_ACCESSORIES: Dict[str, float] = {
     "instrument-kit": 350,
 }
 NOMADIC_PROPELLERS: Dict[str, float] = {"no-propeller": 0, "bipala": 534.75, "tripala": 677.35}
+NOMADIC_HAND_THROTTLES: Dict[str, float] = {
+    "no-throttle": 0,
+    "vittorazi-v-throttle": 180,
+    "polini-hand-throttle": 186.7,
+    "off-grid-aviator": 249,
+}
 TRIKE_PARAGLIDERS: Dict[str, float] = {
     "dudek-orca-6": 4252.0,
     "dudek-cabrio": 4524.0,
@@ -98,6 +104,7 @@ LEGACY_CATALOGS: Dict[uuid.UUID, Dict[str, Any]] = {
         "finishes": NOMADIC_FINISHES,
         "accessories": NOMADIC_ACCESSORIES,
         "propellers": NOMADIC_PROPELLERS,
+        "hand_throttles": NOMADIC_HAND_THROTTLES,
         "paragliders": TRIKE_PARAGLIDERS,
         "default_engine": "no-engine",
     },

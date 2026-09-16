@@ -26,7 +26,7 @@ const WING_META = {
       'Orca 6 was designed with professional pilots in mind. The main objective was to make the wing as comfortable and user-friendly as possible, ensuring daily flights are enjoyable experiences. This paraglider is free flight and can be used on light trikes, recommended for the DISRUPTOR trike WITH ITS PARAMOTOR.',
     infoUrl: 'https://dudek.eu/en/produkt/orca-6/',
     techSpecs: [ORCA_6_SPECS],
-    sizes: ['24 m²', '26 m²', '28 m²', '30 m²', '41 m²', '44 m²'],
+    sizes: ['41 m²', '44 m²'],
   },
   'dudek-cabrio': {
     brand: 'DUDEK',
@@ -120,18 +120,40 @@ export function paragliderDisplayName(wing) {
   return `${wing.brand} ${wing.name}`
 }
 
+function mapTechImages(wing) {
+  return (wing?.techImages || []).map((src, index) => ({
+    src,
+    alt: `${wing.brand} ${wing.name} technical sheet ${index + 1}`,
+  }))
+}
+
+function mergeGalleryWithTech(wing, colorImages = []) {
+  const tech = mapTechImages(wing)
+  const seen = new Set(tech.map((item) => item.src))
+  const merged = [...tech]
+  for (const item of colorImages) {
+    const src = typeof item === 'string' ? item : item?.src
+    if (src && !seen.has(src)) {
+      seen.add(src)
+      merged.push(typeof item === 'string' ? { src: item, alt: `${wing.brand} ${wing.name}` } : item)
+    }
+  }
+  return merged.slice(0, 3)
+}
+
 export function getParagliderDefaultGallery(wing) {
   const firstColor = wing?.colors?.[0]
-  if (firstColor?.images?.length) return firstColor.images
-  if (wing?.galleryImages?.length) return wing.galleryImages
-  return []
+  const colorImages = firstColor?.images?.length
+    ? firstColor.images
+    : wing?.galleryImages || []
+  return mergeGalleryWithTech(wing, colorImages)
 }
 
 export function getParagliderColorGallery(wing, colorId) {
   if (!wing || !colorId) return getParagliderDefaultGallery(wing)
   const color = wing.colors.find((c) => c.id === colorId)
   if (!color?.images?.length) return getParagliderDefaultGallery(wing)
-  return color.images
+  return mergeGalleryWithTech(wing, color.images)
 }
 
 export function resolveParagliderColorLabel(wing, colorId) {

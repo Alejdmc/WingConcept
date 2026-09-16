@@ -36,13 +36,16 @@ export function useParagliderConfigurator({
 
   const appendParagliderQuoteLines = useCallback((lines) => {
     if (!paraglider) return lines
-    lines.push(`Paraglider: ${paragliderDisplayName(paraglider)}`)
+    const price = paragliderPrice ? `$${paragliderPrice.toLocaleString()}` : null
+    lines.push(price
+      ? `Paraglider: ${paragliderDisplayName(paraglider)} — ${price}`
+      : `Paraglider: ${paragliderDisplayName(paraglider)}`)
     if (selectedParagliderColor) {
       lines.push(`Wing color: ${resolveParagliderColorLabel(paraglider, selectedParagliderColor)}`)
     }
     if (selectedParagliderSize) lines.push(`Wing size: ${selectedParagliderSize}`)
     return lines
-  }, [paraglider, selectedParagliderColor, selectedParagliderSize])
+  }, [paraglider, paragliderPrice, selectedParagliderColor, selectedParagliderSize])
 
   const getParagliderPreviewGallery = useCallback(() => {
     if (!paraglider) return []

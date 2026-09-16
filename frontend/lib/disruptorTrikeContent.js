@@ -82,7 +82,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 245.5,
     description:
       'Lightweight, compact seat with everything needed for comfortable flight — keeping the trike as light as possible without sacrificing safety or comfort.',
-    image: '/images/parts/pilot-harness.png',
+    image: '/images/disruptor/options/disruptor-pilot-seat-1.jpg',
   },
   {
     id: 'disruptor-passenger-seat',
@@ -90,7 +90,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 245.5,
     description:
       'Weight-optimized passenger harness. With engines often 200 cc or less, this line keeps takeoff manageable when adding trike and accessories.',
-    image: '/images/parts/passenger-harness.png',
+    image: '/images/disruptor/options/disruptor-passenger-seat-1.jpg',
   },
   {
     id: 'explorer-bag',
@@ -98,7 +98,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 125,
     description:
       'Designed exclusively for the Disruptor paratrike — carry camping gear, sleeping mats, and excursion equipment.',
-    image: '/images/parts/lateral-bag-explorer.png',
+    image: '/images/disruptor/options/explorer-bag-1.jpg',
   },
   {
     id: 'rear-mirror',
@@ -106,7 +106,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 25,
     description:
       'Essential for viewing wing position in the first quarter of lift during takeoff, when the wing is behind the trike lying flat.',
-    image: '/images/parts/instrument-kit-vanguard.png',
+    image: '/images/disruptor/options/rear-mirror-1.jpg',
   },
   {
     id: 'front-brake',
@@ -114,7 +114,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 120,
     description:
       'Additional cable brake for extra stopping power — conventional mountain-bike-derived system.',
-    image: '/images/parts/front-fork.png',
+    image: '/images/disruptor/options/front-brake-1.jpg',
   },
   {
     id: 'protective-cover',
@@ -122,7 +122,7 @@ export const DISRUPTOR_TRIKE_ACCESSORIES = [
     price: 105,
     description:
       'Trailer-friendly cover for the pilot/passenger cabin and engine. Does not cover the propeller ring — reduces drag on the road.',
-    image: '/images/parts/cockpit-liner.png',
+    image: '/images/disruptor/options/protective-cover-1.jpg',
   },
 ]
 

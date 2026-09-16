@@ -9,7 +9,7 @@ export const DISRUPTOR_ENGINES = [
     basePrice: 0,
     priceTbd: true,
     description: 'Reduced weight, uncompromising efficiency.',
-    image: '/images/engines/vittorazi-300-my25.jpg',
+    image: '/images/engines/vittorazi-atom-80-1.jpg',
   },
   {
     id: 'vittorazi-moster-185',
@@ -53,7 +53,7 @@ export const DISRUPTOR_ENGINES = [
     power: '130 cc',
     basePrice: 2580,
     description: 'Advanced dual-carb engine.',
-    image: '/images/engines/polini-260.jpg',
+    image: '/images/engines/polini-130-evo-1.jpg',
   },
   {
     id: 'polini-202-racing',
@@ -61,7 +61,7 @@ export const DISRUPTOR_ENGINES = [
     power: '202 cc',
     basePrice: 2882,
     description: 'Built for slalom competition.',
-    image: '/images/engines/polini-260.jpg',
+    image: '/images/engines/polini-202-racing-1.jpg',
   },
   {
     id: 'polini-303',
@@ -78,7 +78,7 @@ export const DISRUPTOR_ENGINES = [
     basePrice: 0,
     priceTbd: true,
     description: 'Liquid-cooled 150 cc.',
-    image: '/images/engines/polini-260.jpg',
+    image: '/images/engines/sky-150-1.jpg',
   },
   {
     id: 'sky-zeus-300',

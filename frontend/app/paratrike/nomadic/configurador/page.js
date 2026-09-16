@@ -19,7 +19,9 @@ import OptionCard from '@/components/configurator/OptionCard'
 import ConfigSection from '@/components/configurator/ConfigSection'
 import SummaryRow from '@/components/configurator/SummaryRow'
 import { buildOptionGallery, normalizeGallery, NOMADIC_CONFIGURATOR_GALLERY } from '@/lib/configuratorImages'
-import { QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { chassisColorPreviewOption } from '@/lib/chassisColorImages'
+import { HAND_THROTTLE_OPTIONS } from '@/lib/handThrottleOptions'
+import { formatQuoteLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE, NOMADIC_ENGINES } from '@/lib/nomadicContent'
 import {
   CHASSIS_COLOR_PRESETS,
@@ -46,13 +48,14 @@ const DEFAULT_OPTIONS = {
     { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-303-evo/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 303 EVO'] },
     { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-260-2/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 260'] },
     { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://www.vittorazi.com/en/cosmos-300/', description: NOMADIC_ENGINE_DESCRIPTIONS['Vittorazi Cosmos 300'] },
-    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://skyengines.it/en/home/109-zeus-300-boxer/', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
+    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300-1.jpg', infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
     { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html', description: NOMADIC_ENGINE_DESCRIPTIONS['Simonini Victor One Super'] },
   ],
+  handThrottles: HAND_THROTTLE_OPTIONS,
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
-    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Special build for Rotax 503, 582, RMZ500 and high-thrust trikes.', price: 534.75, image: '/images/propellers/bipala.jpg' },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg' },
+    { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Special build for Rotax 503, 582, RMZ500 and high-thrust trikes.', price: 534.75, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
+    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
   ],
   colors: [],
   accessories: [
@@ -62,10 +65,10 @@ const DEFAULT_OPTIONS = {
     { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built to hold additional gear during cross-country exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
     { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
     { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 125, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
-    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute. APCO has manufactured over 40,000 life-saving devices since 1984.', image: '/images/parts/parachute-container.png' },
-    { id: 'rock-guard', name: 'Rock Guard', price: 85, description: '1/2-inch U-shaped stainless steel tube with mesh cover — protects propeller tips from small stones, sand, and branches at takeoff.', image: '/images/parts/pilot-dynamic-cage.png' },
+    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute. APCO has manufactured over 40,000 life-saving devices since 1984.', image: '/images/parts/reserve-chute-1.jpg' },
+    { id: 'rock-guard', name: 'Rock Guard', price: 85, description: '1/2-inch U-shaped stainless steel tube with mesh cover — protects propeller tips from small stones, sand, and branches at takeoff.', image: '/images/parts/rock-guard.png' },
     { id: 'front-bar-protection', name: 'Padded Roll Bar with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
-    { id: 'front-brake', name: 'Front Disc Brake', price: 120, description: 'Additional cable brake providing extra braking power for safer stops on the ground.', image: '/images/parts/front-fork.png' },
+    { id: 'front-brake', name: 'Front Disc Brake', price: 120, description: 'Additional cable brake providing extra braking power for safer stops on the ground.', image: '/images/parts/front-brake.png' },
     { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
     { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/auxiliary-lights.png' },
     { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.', image: '/images/parts/instrument-kit-nomadic.png' },
@@ -74,7 +77,8 @@ const DEFAULT_OPTIONS = {
   ]
 }
 
-const STEPS = ['Color', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
+const STEPS = ['Color', 'Engine', 'Hand Throttle', 'Propeller', 'Paraglider', 'Accessories', 'Review']
+const PARAGLIDER_STEP = 4
 
 const NOMADIC_PRODUCTO_ID = PRODUCT_IDS.nomadic
 
@@ -86,18 +90,21 @@ export default function ConfiguratorNomadicPage() {
   const { options, loading: optionsLoading, defaultSelections } = useConfigOptions(NOMADIC_PRODUCTO_ID, {
     engines: DEFAULT_OPTIONS.engines,
     chassisTypes: [],
+    handThrottles: DEFAULT_OPTIONS.handThrottles,
     propellers: DEFAULT_OPTIONS.propellers,
     colors: DEFAULT_OPTIONS.colors,
     accessories: DEFAULT_OPTIONS.accessories,
   })
   const CONFIG_OPTIONS = {
     engines: options.engines,
+    handThrottles: options.handThrottles?.length ? options.handThrottles : DEFAULT_OPTIONS.handThrottles,
     propellers: options.propellers,
     colors: options.colors,
     accessories: options.accessories,
   }
   const [step, setStep] = useState(0)
   const [selectedEngine, setSelectedEngine] = useState('no-engine')
+  const [selectedHandThrottle, setSelectedHandThrottle] = useState('no-throttle')
   const [selectedPropeller, setSelectedPropeller] = useState(DEFAULT_OPTIONS.propellers[0].id)
   const [selectedParagliderId, setSelectedParagliderId] = useState(NO_PARAGLIDER_ID)
   const [selectedParagliderColor, setSelectedParagliderColor] = useState('')
@@ -114,6 +121,7 @@ export default function ConfiguratorNomadicPage() {
 
   const applyDefaults = useCallback((d) => {
     if (d.engineId) setSelectedEngine(d.engineId)
+    if (d.handThrottleId) setSelectedHandThrottle(d.handThrottleId)
     if (d.propellerId) setSelectedPropeller(d.propellerId)
   }, [])
 
@@ -122,6 +130,7 @@ export default function ConfiguratorNomadicPage() {
   const accessories = CONFIG_OPTIONS.accessories
 
   const engine = CONFIG_OPTIONS.engines.find(e => e.id === selectedEngine)
+  const handThrottle = CONFIG_OPTIONS.handThrottles.find((h) => h.id === selectedHandThrottle)
   const propeller = CONFIG_OPTIONS.propellers.find(p => p.id === selectedPropeller)
   const paraglider = findTrikeParaglider(selectedParagliderId)
   const selectedAccessoryItems = accessories.filter(a => selectedUpgrades.includes(a.id))
@@ -129,32 +138,41 @@ export default function ConfiguratorNomadicPage() {
   const totalPrice = useMemo(() => {
     const baseChassis = NOMADIC_BASE_PRICE
     const enginePrice = engine?.basePrice || 0
+    const handPrice = handThrottle?.price || 0
     const propellerPrice = propeller?.price || 0
     const paragliderPrice = paraglider?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
-    return baseChassis + enginePrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
-  }, [engine, propeller, paraglider, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
+    return baseChassis + enginePrice + handPrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
+  }, [engine, handThrottle, propeller, paraglider, selectedUpgrades, CONFIG_OPTIONS.accessories, selectedColorId])
 
   const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
   const quoteDetails = useMemo(() => {
     const lines = []
-    if (colorLabel) lines.push(`Chassis color: ${colorLabel}`)
-    if (engine?.name) lines.push(`Engine: ${engine.name}`)
-    if (propeller?.name) lines.push(`Propeller: ${propeller.name}`)
+    const colorLine = formatQuoteLine('Chassis color', colorLabel, chassisColorSurcharge(selectedColorId))
+    if (colorLine) lines.push(colorLine)
+    const engineLine = formatQuoteLine('Engine', engine?.name, engine?.priceTbd ? null : engine?.basePrice, {
+      priceLabel: engine?.priceTbd ? 'Price on request' : undefined,
+    })
+    if (engineLine) lines.push(engineLine)
+    const handLine = formatQuoteLine('Hand throttle', handThrottle?.name, handThrottle?.price)
+    if (handLine) lines.push(handLine)
+    const propLine = formatQuoteLine('Propeller', propeller?.name, propeller?.price)
+    if (propLine) lines.push(propLine)
     if (paraglider) {
-      lines.push(`Paraglider: ${paragliderDisplayName(paraglider)}`)
-      if (selectedParagliderColor) {
-        lines.push(`Wing color: ${resolveParagliderColorLabel(paraglider, selectedParagliderColor)}`)
-      }
+      const wingLine = formatQuoteLine('Paraglider', paragliderDisplayName(paraglider), paraglider.price)
+      if (wingLine) lines.push(wingLine)
+      const wingColor = resolveParagliderColorLabel(paraglider, selectedParagliderColor)
+      if (wingColor) lines.push(`Wing color: ${wingColor}`)
       if (selectedParagliderSize) lines.push(`Wing size: ${selectedParagliderSize}`)
     }
-    if (selectedAccessoryItems.length > 0) {
-      lines.push(`Accessories: ${selectedAccessoryItems.map((a) => a.name).join(', ')}`)
-    }
+    selectedAccessoryItems.forEach((a) => {
+      const accLine = formatQuoteLine('Accessory', a.name, a.price)
+      if (accLine) lines.push(accLine)
+    })
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, engine, propeller, paraglider, selectedParagliderColor, selectedParagliderSize, selectedAccessoryItems, totalPrice])
+  }, [colorLabel, engine, handThrottle, propeller, paraglider, selectedParagliderColor, selectedParagliderSize, selectedAccessoryItems, totalPrice, selectedColorId])
 
   const previewGallery = useMemo(() => {
     if (previewOption?.gallery?.length) {
@@ -168,18 +186,24 @@ export default function ConfiguratorNomadicPage() {
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
-    setPreviewOption({ id: `color-${color.id}`, image: NOMADIC_HERO_IMAGE })
+    setPreviewOption(chassisColorPreviewOption('nomadic', color.id, NOMADIC_HERO_IMAGE))
   }
 
   const selectCustomColor = () => {
     setSelectedColorId(CUSTOM_COLOR_ID)
-    setPreviewOption({ id: 'color-custom', image: NOMADIC_HERO_IMAGE })
+    setPreviewOption(chassisColorPreviewOption('nomadic', CUSTOM_COLOR_ID, NOMADIC_HERO_IMAGE))
   }
 
   const selectEngine = (id) => {
     setSelectedEngine(id)
     const eng = CONFIG_OPTIONS.engines.find((e) => e.id === id)
     setPreviewOption({ id, image: eng?.image || null, gallery: eng?.gallery })
+  }
+
+  const selectHandThrottle = (id) => {
+    setSelectedHandThrottle(id)
+    const throttle = CONFIG_OPTIONS.handThrottles.find((h) => h.id === id)
+    setPreviewOption({ id, image: throttle?.image || null, gallery: throttle?.gallery })
   }
 
   const selectPropeller = (id) => {
@@ -201,10 +225,7 @@ export default function ConfiguratorNomadicPage() {
   useEffect(() => {
     switch (step) {
       case 0:
-        setPreviewOption({
-          id: selectedColorId === CUSTOM_COLOR_ID ? 'color-custom' : `color-${selectedColorId}`,
-          image: NOMADIC_HERO_IMAGE,
-        })
+        setPreviewOption(chassisColorPreviewOption('nomadic', selectedColorId, NOMADIC_HERO_IMAGE))
         break
       case 1: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
@@ -212,11 +233,16 @@ export default function ConfiguratorNomadicPage() {
         break
       }
       case 2: {
+        const throttle = CONFIG_OPTIONS.handThrottles.find((h) => h.id === selectedHandThrottle)
+        setPreviewOption({ id: selectedHandThrottle, image: throttle?.image || null, gallery: throttle?.gallery })
+        break
+      }
+      case 3: {
         const prop = CONFIG_OPTIONS.propellers.find((p) => p.id === selectedPropeller)
         setPreviewOption({ id: selectedPropeller, image: prop?.image || null, gallery: prop?.gallery })
         break
       }
-      case 3: {
+      case PARAGLIDER_STEP: {
         if (paraglider) {
           const gallery = selectedParagliderColor
             ? getParagliderColorGallery(paraglider, selectedParagliderColor)
@@ -227,7 +253,7 @@ export default function ConfiguratorNomadicPage() {
         }
         break
       }
-      case 4: {
+      case 5: {
         const lastId = selectedUpgrades[selectedUpgrades.length - 1]
         if (lastId) {
           const acc = CONFIG_OPTIONS.accessories.find((a) => a.id === lastId)
@@ -248,18 +274,20 @@ export default function ConfiguratorNomadicPage() {
     step,
     selectedColorId,
     selectedEngine,
+    selectedHandThrottle,
     selectedPropeller,
     selectedParagliderId,
     selectedParagliderColor,
     paraglider,
     selectedUpgrades,
     CONFIG_OPTIONS.engines,
+    CONFIG_OPTIONS.handThrottles,
     CONFIG_OPTIONS.propellers,
     CONFIG_OPTIONS.accessories,
   ])
 
   const goNext = () => {
-    if (step === 3 && paraglider) {
+    if (step === PARAGLIDER_STEP && paraglider) {
       if (!selectedParagliderColor || !selectedParagliderSize) {
         setError('Please select wing color and size before continuing.')
         return
@@ -284,6 +312,7 @@ export default function ConfiguratorNomadicPage() {
         producto_id: NOMADIC_PRODUCTO_ID,
         cantidad: 1,
         engine: selectedEngine,
+        handThrottle: selectedHandThrottle,
         propeller: selectedPropeller,
         paraglider: selectedParagliderId !== NO_PARAGLIDER_ID ? selectedParagliderId : undefined,
         paragliderColor: selectedParagliderColor || undefined,
@@ -334,7 +363,7 @@ export default function ConfiguratorNomadicPage() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6">
-            {step === 3 && paraglider ? (
+            {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}
                 previewGallery={previewGallery}
@@ -407,6 +436,27 @@ export default function ConfiguratorNomadicPage() {
                 )}
 
                 {step === 2 && (
+                  <ConfigSection title="Hand Throttle. Control in your grip">
+                    <div className="space-y-3">
+                      {CONFIG_OPTIONS.handThrottles.map((h) => (
+                        <OptionCard key={h.id} selected={selectedHandThrottle === h.id} onClick={() => selectHandThrottle(h.id)}>
+                          <div className="flex justify-between items-center pr-8">
+                            <p className="font-bold uppercase text-ink">{h.name}</p>
+                            <p className="text-sm text-ink2">{h.price === 0 ? 'Included' : `+$${h.price.toLocaleString()}`}</p>
+                          </div>
+                          <p className="text-sm text-ink2 mt-1">{h.description}</p>
+                          {selectedHandThrottle === h.id && h.infoUrl && (
+                            <a href={h.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
+                        </OptionCard>
+                      ))}
+                    </div>
+                  </ConfigSection>
+                )}
+
+                {step === 3 && (
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => (
@@ -416,13 +466,18 @@ export default function ConfiguratorNomadicPage() {
                             <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
                           </div>
                           <p className="text-sm text-ink2 mt-1">{p.description}</p>
+                          {selectedPropeller === p.id && p.infoUrl && (
+                            <a href={p.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                              More info →
+                            </a>
+                          )}
                         </OptionCard>
                       ))}
                     </div>
                   </ConfigSection>
                 )}
 
-                {step === 3 && (
+                {step === PARAGLIDER_STEP && (
                   <ParagliderStep
                     selectedParagliderId={selectedParagliderId}
                     selectedColorId={selectedParagliderColor}
@@ -436,7 +491,7 @@ export default function ConfiguratorNomadicPage() {
                   />
                 )}
 
-                {step === 4 && (
+                {step === 5 && (
                   <ConfigSection title="Accessories. Enhance Adventure">
                     <div className="space-y-3">
                       {accessories.map(a => {
@@ -463,11 +518,12 @@ export default function ConfiguratorNomadicPage() {
                   </ConfigSection>
                 )}
 
-                {step === 5 && (
+                {step === 6 && (
                   <ConfigSection title="Review & Purchase">
                     <div className="space-y-3 text-sm">
                       <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
+                      <SummaryRow label="Hand throttle" value={handThrottle?.name} price={handThrottle?.price} />
                       <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
                       {paraglider && (
                         <>

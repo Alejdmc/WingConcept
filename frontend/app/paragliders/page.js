@@ -282,6 +282,11 @@ function WingCard({ item, showConfiguratorLink }) {
               More info <ExternalLink className="w-3 h-3" />
             </a>
           )}
+          {item.techImage && (
+            <a href={item.techImage} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold uppercase text-brand hover:underline">
+              Size chart <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
           {showConfiguratorLink && item.configuratorHref && (
             <Link href={item.configuratorHref} className="inline-flex items-center gap-1 text-xs font-bold uppercase text-ink hover:text-brand">
               Add in configurador →

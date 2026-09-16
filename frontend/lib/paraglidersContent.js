@@ -41,25 +41,27 @@ export const PARAGLIDER_EXAMPLE = {
 
 /** PG Free wings — names from product documentation. */
 export const PG_FREE_WINGS = [
-  { name: 'HIKE & FLY', brand: 'Ozone', description: 'Ultralight wing for mountain launches and minimal pack volume.', priceLabel: 'Contact for price' },
-  { name: 'MARLIN 2', brand: 'Ozone', description: 'Dynamic intermediate wing for pilots seeking playful handling.', priceLabel: 'Contact for price' },
-  { name: 'NEMO 5', brand: 'Dudek', description: 'Accessible EN-B wing with forgiving launch and landing characteristics.', priceLabel: 'Contact for price' },
-  { name: 'OPTIC 2', brand: 'Ozone', description: 'High-performance intermediate for cross-country and soaring.', priceLabel: 'Contact for price' },
-  { name: 'RUN & FLY', brand: 'Ozone', description: 'Compact wing designed for run-and-fly adventures.', priceLabel: 'Contact for price' },
-  { name: 'V-KING', brand: 'Ozone', description: 'Slalom and acro-oriented wing for experienced pilots.', priceLabel: 'Contact for price' },
-  { name: 'WING 2K', brand: 'Ozone', description: 'Versatile free-flight wing for recreational pilots.', priceLabel: 'Contact for price' },
-  { name: 'DRIF AIR 2', brand: 'Dudek', description: 'Precision wing for slalom and dynamic flying.', priceLabel: 'Contact for price' },
-  { name: 'HADRON 3', brand: 'Dudek', description: 'High-performance reflex wing for experienced pilots.', priceLabel: 'Contact for price' },
-  { name: 'NUCLEON 4', brand: 'Dudek', description: 'Reflex profile with strong paramotor and free-flight crossover appeal.', priceLabel: 'Contact for price' },
-  { name: 'SNAKE', brand: 'Dudek', description: 'Speed-focused wing for pilots who push limits.', priceLabel: 'Contact for price' },
-  { name: 'SOLO 2', brand: 'Dudek', description: 'Light solo wing for dynamic paramotor and free-flight use.', priceLabel: 'Contact for price' },
-  { name: 'UNIVERSAL', brand: 'Dudek', description: 'Versatile wing across a wide weight and skill range.', priceLabel: 'Contact for price' },
-  { name: 'WARP 3', brand: 'Ozone', description: 'Competition-class wing for advanced pilots.', priceLabel: 'Contact for price' },
+  { name: 'HIKE & FLY', brand: 'Ozone', description: 'Ultralight wing for mountain launches and minimal pack volume.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/hike-fly/', image: '/images/paragliders/pg-free/ozone-hike-fly.jpg', sizes: ['XS', 'S', 'MS', 'ML', 'L'] },
+  { name: 'MARLIN 2', brand: 'Ozone', description: 'Dynamic intermediate wing for pilots seeking playful handling.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/marlin-2/', image: '/images/paragliders/pg-free/ozone-marlin-2.jpg', sizes: ['XS', 'S', 'MS', 'ML', 'L'] },
+  { name: 'NEMO 5', brand: 'Dudek', description: 'Accessible EN-B wing with forgiving launch and landing characteristics.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/nemo-5/', image: '/images/paragliders/pg-free/dudek-nemo-5/main.jpg', sizes: ['20 m²', '22 m²', '24 m²', '26 m²'] },
+  { name: 'OPTIC 2', brand: 'Ozone', description: 'High-performance intermediate for cross-country and soaring.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/optic-2/', image: '/images/paragliders/pg-free/ozone-optic-2.jpg', sizes: ['XS', 'S', 'MS', 'ML', 'L'] },
+  { name: 'RUN & FLY', brand: 'Ozone', description: 'Compact wing designed for run-and-fly adventures.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/run-fly/', image: '/images/paragliders/pg-free/ozone-run-fly.jpg', sizes: ['XS', 'S', 'MS'] },
+  { name: 'V-KING', brand: 'Ozone', description: 'Slalom and acro-oriented wing for experienced pilots.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/v-king/', image: '/images/paragliders/pg-free/ozone-v-king.jpg', sizes: ['16 m²', '18 m²', '20 m²'] },
+  { name: 'WING 2K', brand: 'Ozone', description: 'Versatile free-flight wing for recreational pilots.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/wing-2k/', image: '/images/paragliders/pg-free/ozone-wing-2k.jpg', sizes: ['XS', 'S', 'MS', 'ML'] },
+  { name: 'DRIF AIR 2', brand: 'Dudek', description: 'Precision wing for slalom and dynamic flying.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/driftair-2/', image: '/images/paragliders/pg-free/dudek-driftair-2/main.jpg', sizes: ['18 m²', '20 m²', '22 m²'] },
+  { name: 'HADRON 3', brand: 'Dudek', description: 'High-performance reflex wing for experienced pilots.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/hadron-3/', image: '/images/paragliders/pg-free/dudek-hadron-3/main.jpg', sizes: ['22 m²', '24 m²', '26 m²'] },
+  { name: 'NUCLEON 4', brand: 'Dudek', description: 'Reflex profile with strong paramotor and free-flight crossover appeal.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/nucleon-4/', image: '/images/paragliders/pg-free/dudek-nucleon-4/main.jpg', sizes: ['22 m²', '24 m²', '26 m²', '28 m²'] },
+  { name: 'SNAKE', brand: 'Dudek', description: 'Speed-focused wing for pilots who push limits.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/snake-4/', image: '/images/paragliders/pg-free/dudek-snake-4/main.jpg', sizes: ['18 m²', '20 m²', '22 m²'] },
+  { name: 'SOLO 2', brand: 'Dudek', description: 'Light solo wing for dynamic paramotor and free-flight use.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/solo-2/', image: '/images/paragliders/pg-free/dudek-solo-2/main.jpg', sizes: ['20 m²', '22 m²', '24 m²'] },
+  { name: 'UNIVERSAL', brand: 'Dudek', description: 'Versatile wing across a wide weight and skill range.', priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/en/produkt/universal-1-1/', image: '/images/paragliders/pg-free/dudek-universal/main.jpg', sizes: ['22 m²', '24 m²', '26 m²', '28 m²'] },
+  { name: 'WARP 3', brand: 'Ozone', description: 'Competition-class wing for advanced pilots.', priceLabel: 'Contact for price', infoUrl: 'https://ozoneparagliders.com/en/paragliders/warp-3/', image: '/images/paragliders/pg-free/ozone-warp-3.jpg', sizes: ['18 m²', '20 m²', '22 m²'] },
 ]
 
 function wingToCatalogItem(wing, category) {
   const image = wing.galleryImages?.[0]?.src
     || wing.colors?.[0]?.images?.[0]?.src
+    || wing.techImages?.[0]
+    || wing.image
     || '/images/front1.jpg'
   const catalogSlug = catalogSlugForWing(wing.id)
   return {
@@ -71,8 +73,11 @@ function wingToCatalogItem(wing, category) {
     category,
     description: wing.description,
     price: wing.price,
-    priceLabel: `$${wing.price.toLocaleString(undefined, { minimumFractionDigits: wing.price % 1 ? 2 : 0 })}`,
+    priceLabel: wing.priceLabel || (typeof wing.price === 'number'
+      ? `$${wing.price.toLocaleString(undefined, { minimumFractionDigits: wing.price % 1 ? 2 : 0 })}`
+      : 'Contact for price'),
     image,
+    techImage: wing.techImages?.[0] || null,
     colors: wing.colors || [],
     sizes: wing.sizes || ['Standard'],
     infoUrl: wing.infoUrl,
@@ -81,11 +86,15 @@ function wingToCatalogItem(wing, category) {
 }
 
 /** PPG wings — same 12 as Disruptor paramotor configurador. */
-export const PPG_WINGS = PARAMOTOR_PARAGLIDERS.map((w) => wingToCatalogItem(w, 'PPG'))
+export const PPG_WINGS = PARAMOTOR_PARAGLIDERS.map((w) => ({
+  ...wingToCatalogItem(w, 'PPG'),
+  techImage: w.techImages?.[0] || null,
+}))
 
 /** Trike wings — available on Vanguard, Nomadic, Disruptor trike configurators. */
 export const TRIKE_WING_CATALOG = TRIKE_PARAGLIDERS.map((w) => ({
   ...wingToCatalogItem(w, 'Trike'),
+  techImage: w.techImages?.[0] || null,
   configuratorHref: '/paratrike/vanguard/configuration',
 }))
 

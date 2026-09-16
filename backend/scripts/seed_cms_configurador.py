@@ -25,7 +25,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.data.disruptor_catalog import (
     DISRUPTOR_PARAMOTOR_OPCIONES,
     DISRUPTOR_TRIKE_OPCIONES,
+    PARAMOTOR_HAND_THROTTLES,
 )
+
+_HAND_THROTTLE_IMAGES = {
+    "vittorazi-v-throttle": "/images/disruptor/options/vittorazi-v-throttle-1.jpg",
+    "polini-hand-throttle": "/images/disruptor/options/polini-hand-throttle-1.jpg",
+    "off-grid-aviator": "/images/disruptor/options/off-grid-aviator-1.jpg",
+}
+
+NOMADIC_HAND_THROTTLE_ROWS = [
+    (grupo, slug, nombre, desc, precio, _HAND_THROTTLE_IMAGES.get(slug), extra)
+    for grupo, slug, nombre, desc, precio, _, extra in PARAMOTOR_HAND_THROTTLES
+]
 from app.database import AsyncSessionLocal
 from app.models.configurador_opcion import ConfiguradorOpcion
 from app.models.producto import Producto
@@ -257,7 +269,7 @@ VANGUARD_OPCIONES = [
     ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
     ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/carabiners.png", {}),
     ("accessory", "propeller-guard", "External Propeller Guard", "Prevents wing or lines from entering the propeller.", 295, "/images/parts/pilot-dynamic-cage.png", {}),
-    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/parachute-container.png", {}),
+    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/reserve-chute-1.jpg", {}),
     ("accessory", "accelerator-pedal", "Radiant RM 18E 82 Accelerator Pedal", "Improved pedal design for weight distribution and safety.", 0, "/images/parts/accelerator-pedal.png", {"price_tbd": True}),
 ]
 
@@ -283,7 +295,7 @@ NOMADIC_OPCIONES = [
     ("accessory", "lateral-bag-explorer", "Lateral Bag Explorer", "Side-mounted storage bag for cross-country exploration.", 85, "/images/parts/lateral-bag-explorer.png", {}),
     ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover for trailering.", 105, "/images/parts/cockpit-liner.png", {}),
     ("accessory", "bottom-explorer-bag", "Bottom Explorer Bag", "Bottom-mounted adventure bag for long expeditions.", 125, "/images/parts/bottom-explorer-bag.png", {}),
-    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/parachute-container.png", {}),
+    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/reserve-chute-1.jpg", {}),
     ("accessory", "rock-guard", "Rock Guard", "Protects propeller tips from stones and sand at takeoff.", 85, "/images/parts/pilot-dynamic-cage.png", {}),
     ("accessory", "front-bar-protection", "Padded Roll Bar with Handles", "Protects the passenger and provides comfortable handles.", 47, "/images/parts/front-bar-protection.png", {}),
     ("accessory", "front-brake", "Front Disc Brake", "Additional braking power for safer stops on the ground.", 120, "/images/parts/front-fork.png", {}),
@@ -292,7 +304,7 @@ NOMADIC_OPCIONES = [
     ("accessory", "instrument-kit", "Basic Instrument Kit (Nomadic)", "USB charger and 3 TTO digital sensors.", 350, "/images/parts/instrument-kit-nomadic.png", {}),
     ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
     ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/carabiners.png", {}),
-]
+] + NOMADIC_HAND_THROTTLE_ROWS
 
 
 async def _producto_exists(db: AsyncSession, producto_id: uuid.UUID) -> bool:
