@@ -23,6 +23,8 @@ import { chassisColorPreviewOption } from '@/lib/chassisColorImages'
 import { HAND_THROTTLE_OPTIONS } from '@/lib/handThrottleOptions'
 import { formatQuoteLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE, NOMADIC_ENGINES } from '@/lib/nomadicContent'
+import { NOMADIC_CONFIGURATOR_ACCESSORIES } from '@/lib/trikeConfiguratorAccessories'
+import { formatQuoteImageLine } from '@/lib/quoteEmail'
 import {
   CHASSIS_COLOR_PRESETS,
   CUSTOM_COLOR_ID,
@@ -45,36 +47,20 @@ const NOMADIC_ENGINE_DESCRIPTIONS = Object.fromEntries(
 const DEFAULT_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0, description: 'Chassis only — add an engine later.' },
-    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 3950, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-303-evo/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 303 EVO'] },
-    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 4200, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polini.com/en/polini-thor-260-2/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 260'] },
-    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 4560, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://www.vittorazi.com/en/cosmos-300/', description: NOMADIC_ENGINE_DESCRIPTIONS['Vittorazi Cosmos 300'] },
-    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 0, priceTbd: true, image: '/images/engines/zeus-300-1.jpg', infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
-    { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 0, priceTbd: true, image: '/images/engines/simonini-v1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html', description: NOMADIC_ENGINE_DESCRIPTIONS['Simonini Victor One Super'] },
+    { id: 'polini-260', name: 'Polini Thor 260', power: '24 HP', basePrice: 5455, image: '/images/engines/polini-260.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-260-2/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 260'] },
+    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '38 HP', basePrice: 5987, image: '/images/engines/polini-303.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-303-evo-2/', description: NOMADIC_ENGINE_DESCRIPTIONS['Polini Thor 303 EVO'] },
+    { id: 'vittorazi-300-my25', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 7225, image: '/images/engines/vittorazi-300-my25.jpg', infoUrl: 'https://vittorazi.com/en/motori/cosmos-300/', description: NOMADIC_ENGINE_DESCRIPTIONS['Vittorazi Cosmos 300'] },
+    { id: 'zeus-300', name: 'Sky Engine Zeus 300 Boxer', power: '44 HP', basePrice: 7800, image: '/images/engines/zeus-300.jpg', infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en', description: NOMADIC_ENGINE_DESCRIPTIONS['Sky Engine Zeus 300 Boxer'] },
+    { id: 'simonini-victor-1', name: 'Simonini Victor One Super', power: '54 HP', basePrice: 6809, image: '/images/engines/simonini-victor-1.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/109-victor-1.html', description: NOMADIC_ENGINE_DESCRIPTIONS['Simonini Victor One Super'] },
   ],
   handThrottles: HAND_THROTTLE_OPTIONS,
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
     { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Special build for Rotax 503, 582, RMZ500 and high-thrust trikes.', price: 534.75, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
+    { id: 'tripala', name: 'Helix Three-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Three-blade variant — reduced noise and ~2% more static thrust.', price: 677.35, image: '/images/propellers/tripala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
   ],
   colors: [],
-  accessories: [
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/cruise-control.png' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
-    { id: 'lateral-bag-explorer', name: 'Lateral Bag Explorer', price: 85, description: 'Side-mounted storage bag built to hold additional gear during cross-country exploration flights.', image: '/images/parts/lateral-bag-explorer.png' },
-    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'bottom-explorer-bag', name: 'Bottom Explorer Bag', price: 125, description: 'A premium, bottom-mounted adventure bag designed to haul extensive luggage, tools, and essentials for long expeditions.', image: '/images/parts/bottom-explorer-bag.png' },
-    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute. APCO has manufactured over 40,000 life-saving devices since 1984.', image: '/images/parts/reserve-chute-1.jpg' },
-    { id: 'rock-guard', name: 'Rock Guard', price: 85, description: '1/2-inch U-shaped stainless steel tube with mesh cover — protects propeller tips from small stones, sand, and branches at takeoff.', image: '/images/parts/rock-guard.png' },
-    { id: 'front-bar-protection', name: 'Padded Roll Bar with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
-    { id: 'front-brake', name: 'Front Disc Brake', price: 120, description: 'Additional cable brake providing extra braking power for safer stops on the ground.', image: '/images/parts/front-brake.png' },
-    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
-    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/auxiliary-lights.png' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Nomadic)', price: 350, description: 'Features a built-in USB charger and 3 TTO brand digital sensors tracking Cylinder Head Temperature (CHT), RPM, and radiator water temperature.', image: '/images/parts/instrument-kit-nomadic.png' },
-    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness. Highly recommended when adding an engine.', image: '/images/parts/electrical-kit.png' },
-    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/carabiners.png' },
-  ]
+  accessories: NOMADIC_CONFIGURATOR_ACCESSORIES,
 }
 
 const STEPS = ['Color', 'Engine', 'Hand Throttle', 'Propeller', 'Paraglider', 'Accessories', 'Review']
@@ -169,7 +155,14 @@ export default function ConfiguratorNomadicPage() {
     selectedAccessoryItems.forEach((a) => {
       const accLine = formatQuoteLine('Accessory', a.name, a.price)
       if (accLine) lines.push(accLine)
+      const imgLine = formatQuoteImageLine(a.name, a.image || resolveAccessoryImage(a.id, a.image, NOMADIC_PRODUCTO_ID))
+      if (imgLine) lines.push(imgLine)
     })
+    if (paraglider?.techImages?.[0]) {
+      lines.push(formatQuoteImageLine(`${paragliderDisplayName(paraglider)} tech sheet`, paraglider.techImages[0]))
+    }
+    if (engine?.image) lines.push(formatQuoteImageLine(engine.name, engine.image))
+    if (propeller?.image) lines.push(formatQuoteImageLine(propeller.name, propeller.image))
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
   }, [colorLabel, engine, handThrottle, propeller, paraglider, selectedParagliderColor, selectedParagliderSize, selectedAccessoryItems, totalPrice, selectedColorId])
@@ -362,7 +355,7 @@ export default function ConfiguratorNomadicPage() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6">
+            className={`space-y-6 ${step === 5 ? 'lg:sticky lg:top-28 lg:self-start' : ''}`}>
             {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}

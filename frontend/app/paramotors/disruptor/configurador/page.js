@@ -40,6 +40,10 @@ import {
   DISRUPTOR_PARAMOTOR_BASE_PRICE,
   DISRUPTOR_PARAMOTOR_GALLERY,
 } from '@/lib/disruptorParamotorContent'
+import {
+  resolveParamotorEngineGallery,
+  resolveParamotorEngineImage,
+} from '@/lib/paramotorEngineImages'
 
 const STEPS = ['Color', 'Chassis', 'Engine', 'Hand Throttle', 'Propeller', 'Paraglider', 'Accessories', 'Review']
 const PARAGLIDER_STEP = 5
@@ -63,16 +67,16 @@ const DEFAULT_OPTIONS = {
   ],
   engines: [
     { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0, description: 'Chassis only — add an engine later.' },
-    { id: 'vittorazi-atom-80', name: 'Vittorazi Atom 80', power: '80 HP', basePrice: 0, priceTbd: true, description: 'Reduced weight, uncompromising efficiency — preferred by flight schools.', image: '/images/engines/vittorazi-atom-80-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#atom80' },
-    { id: 'vittorazi-moster-185', name: 'Vittorazi Moster 185 Plus', power: '185 cc', basePrice: 0, priceTbd: true, description: 'Versatility, sportiness, and performance in an extraordinary engine.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#moster185' },
-    { id: 'vittorazi-moster-185-efi', name: 'Vittorazi Moster 185 EFI', power: '', basePrice: 0, priceTbd: true, description: 'EFI technology with reduced fuel consumption.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#moster185efi' },
-    { id: 'vittorazi-moster-185-factory-r', name: 'Vittorazi Moster 185 Factory-R', power: '', basePrice: 0, priceTbd: true, description: 'Racing performance and exclusive design.', image: '/images/disruptor/options/vittorazi-moster-185-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#factory-r' },
-    { id: 'vittorazi-cosmos-300', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 0, priceTbd: true, description: 'Ideal for paratrikes and tandem flight.', image: '/images/engines/vittorazi-300-my25-1.jpg', infoUrl: 'https://vittorazi.com/en/motori/#cosmos300' },
-    { id: 'polini-130-evo', name: 'Polini Thor 130 EVO', power: '130 cc', basePrice: 2580, description: 'Advanced dual-carb engine.', image: '/images/engines/polini-130-evo-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-130-evo-2/' },
-    { id: 'polini-202-racing', name: 'Polini Thor 202 Racing', power: '202 cc', basePrice: 2882, description: 'Built for slalom competition.', image: '/images/engines/polini-202-racing-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-202-racing-2/' },
-    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '303 cc', basePrice: 4994, description: 'Outstanding performance and reliability.', image: '/images/disruptor/options/polini-303-1.jpg', infoUrl: 'https://www.polinithor.com/en/polini-thor-303-evo-2/' },
-    { id: 'sky-150', name: 'SKY 150', power: '28 HP', basePrice: 0, priceTbd: true, description: 'Liquid-cooled 150 cc single-cylinder engine.', image: '/images/engines/sky-150-1.jpg', infoUrl: 'https://www.skyengines.com/new-sky-150-generale/?lang=en' },
-    { id: 'sky-zeus-300', name: 'SKY Engine Zeus 300', power: '44 HP', basePrice: 0, priceTbd: true, description: '300 cc boxer — up to 148 kg thrust.', image: '/images/engines/zeus-300-1.jpg', infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en' },
+    { id: 'vittorazi-atom-80', name: 'Vittorazi Atom 80', power: '80 HP', basePrice: 0, priceTbd: true, description: 'Reduced weight, uncompromising efficiency — preferred by flight schools.', image: resolveParamotorEngineImage('vittorazi-atom-80'), gallery: resolveParamotorEngineGallery('vittorazi-atom-80'), infoUrl: 'https://vittorazi.com/en/motori/#atom80' },
+    { id: 'vittorazi-moster-185', name: 'Vittorazi Moster 185 Plus', power: '185 cc', basePrice: 0, priceTbd: true, description: 'Versatility, sportiness, and performance in an extraordinary engine.', image: resolveParamotorEngineImage('vittorazi-moster-185'), gallery: resolveParamotorEngineGallery('vittorazi-moster-185'), infoUrl: 'https://vittorazi.com/en/motori/#moster185' },
+    { id: 'vittorazi-moster-185-efi', name: 'Vittorazi Moster 185 EFI', power: '', basePrice: 0, priceTbd: true, description: 'EFI technology with reduced fuel consumption.', image: resolveParamotorEngineImage('vittorazi-moster-185-efi'), gallery: resolveParamotorEngineGallery('vittorazi-moster-185-efi'), infoUrl: 'https://vittorazi.com/en/motori/#moster185efi' },
+    { id: 'vittorazi-moster-185-factory-r', name: 'Vittorazi Moster 185 Factory-R', power: '', basePrice: 0, priceTbd: true, description: 'Racing performance and exclusive design.', image: resolveParamotorEngineImage('vittorazi-moster-185-factory-r'), gallery: resolveParamotorEngineGallery('vittorazi-moster-185-factory-r'), infoUrl: 'https://vittorazi.com/en/motori/#factory-r' },
+    { id: 'vittorazi-cosmos-300', name: 'Vittorazi Cosmos 300', power: '36 HP', basePrice: 0, priceTbd: true, description: 'Ideal for paratrikes and tandem flight.', image: resolveParamotorEngineImage('vittorazi-cosmos-300'), gallery: resolveParamotorEngineGallery('vittorazi-cosmos-300'), infoUrl: 'https://vittorazi.com/en/motori/#cosmos300' },
+    { id: 'polini-130-evo', name: 'Polini Thor 130 EVO', power: '130 cc', basePrice: 2580, description: 'Advanced dual-carb engine.', image: resolveParamotorEngineImage('polini-130-evo'), gallery: resolveParamotorEngineGallery('polini-130-evo'), infoUrl: 'https://www.polinithor.com/en/polini-thor-130-evo-2/' },
+    { id: 'polini-202-racing', name: 'Polini Thor 202 Racing', power: '202 cc', basePrice: 2882, description: 'Built for slalom competition.', image: resolveParamotorEngineImage('polini-202-racing'), gallery: resolveParamotorEngineGallery('polini-202-racing'), infoUrl: 'https://www.polinithor.com/en/polini-thor-202-racing-2/' },
+    { id: 'polini-303', name: 'Polini Thor 303 EVO', power: '303 cc', basePrice: 4994, description: 'Outstanding performance and reliability.', image: resolveParamotorEngineImage('polini-303'), gallery: resolveParamotorEngineGallery('polini-303'), infoUrl: 'https://www.polinithor.com/en/polini-thor-303-evo-2/' },
+    { id: 'sky-150', name: 'SKY 150', power: '28 HP', basePrice: 0, priceTbd: true, description: 'Liquid-cooled 150 cc single-cylinder engine.', image: resolveParamotorEngineImage('sky-150'), gallery: resolveParamotorEngineGallery('sky-150'), infoUrl: 'https://www.skyengines.com/new-sky-150-generale/?lang=en' },
+    { id: 'sky-zeus-300', name: 'SKY Engine Zeus 300', power: '44 HP', basePrice: 0, priceTbd: true, description: '300 cc boxer — up to 148 kg thrust.', image: resolveParamotorEngineImage('sky-zeus-300'), gallery: resolveParamotorEngineGallery('sky-zeus-300'), infoUrl: 'https://www.skyengines.com/zeus300-boxer/?lang=en' },
   ],
   handThrottles: HAND_THROTTLE_OPTIONS,
   propellers: [

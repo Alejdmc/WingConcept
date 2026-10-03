@@ -20,6 +20,18 @@ export const DEALERS_FALLBACK = [
     instagram: 'https://www.instagram.com/pukanaadventures?igsh=NXQxcDZtajVmZTEy',
     orden: 20,
   },
+  {
+    id: 'daniel-ramires-colombia',
+    nombre: 'Daniel Ramírez',
+    equipo: 'Hacienda La Cabaña',
+    ubicacion: 'Colombia',
+    descripcion:
+      'Authorized Wing Concept dealer in Colombia. Contact for trike demos, sales, and pilot support.',
+    telefono: '3123829289',
+    email: 'Chelelo001@gmail.com',
+    instagram: 'https://www.instagram.com/stories/danramirezart/',
+    orden: 30,
+  },
 ]
 
 function dealerKey(dealer) {

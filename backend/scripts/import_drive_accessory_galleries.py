@@ -3,7 +3,7 @@
 Import accessory galleries (max 3 related images each) from a local Drive download.
 
 Usage:
-  gdown --folder 'https://drive.google.com/drive/folders/...' -O /tmp/wingconcept-accessories
+  gdown --folder 'https://drive.google.com/drive/folders/1zjMBMyLFt5xvnJGZpYNY3FXwP7OXYGTG' -O /tmp/wingconcept-accessories
   cd backend && python3 scripts/import_drive_accessory_galleries.py \\
     --source /tmp/wingconcept-accessories
 """

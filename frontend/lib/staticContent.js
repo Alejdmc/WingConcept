@@ -157,7 +157,7 @@ export const NEWS_FALLBACK = {
       id: 'news-vanguard',
       titulo: 'Vanguard V8.0 — Three Flight Modes in One Trike',
       descripcion: 'Commercial, Adventure, or Reportage — interchangeable mission pods and in-flight center-of-gravity adjustment on the Vanguard V8.0.',
-      imagen: '/images/vanguard/1.png',
+      imagen: '/images/vanguard/listing.jpg',
       fecha: 'August 2026',
       ubicacion: 'Paratrike',
       href: '/paratrike/vanguard',

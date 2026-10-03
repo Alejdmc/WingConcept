@@ -36,7 +36,7 @@ const WING_META = {
       'The Cabrio is our first design originally dedicated for paramotor tandems, especially heavier two-seater trikes (PPGG). A truly uncompromising paraglider, from the onset created to fulfill specific needs of the PL2 pilots.',
     infoUrl: 'https://dudek.eu/en/produkt/cabrio/',
     techSpecs: [],
-    sizes: ['38 m²', '41 m²', '44 m²'],
+    sizes: ['30 m²', '34 m²', '38 m²', '42 m²'],
   },
   'dudek-boson': {
     brand: 'DUDEK',
@@ -46,7 +46,7 @@ const WING_META = {
       'Boson is a paraglider designed for experienced pilots, flying actively and often, who are well familiar with reflex wings behaviour. Recommended minimum: 300 hours paramotor time and at least 50 hours of annual flight time.',
     infoUrl: 'https://dudek.eu/en/produkt/boson/',
     techSpecs: [],
-    sizes: ['28 m²', '30 m²', '32 m²', '34 m²', '36 m²'],
+    sizes: ['31 m²', '34 m²'],
   },
   'apco-play-42-ul': {
     brand: 'APCO Aviation',

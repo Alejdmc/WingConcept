@@ -262,16 +262,28 @@ export default function DisruptorParamotorPage() {
             <p className="text-ink2 text-lg mt-4">Multi-engine mount supports the following powerplants</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {disruptor.engines.map((engine, i) => (
               <motion.div
-                key={i}
+                key={engine.id || engine.name || i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-bg2 border border-borderline rounded-xl p-8 hover:shadow-lg hover:border-brand transition-all">
+                className="bg-bg2 border border-borderline rounded-xl overflow-hidden hover:shadow-lg hover:border-brand transition-all">
+                {engine.image && (
+                  <div className="relative aspect-[4/3] bg-white border-b border-borderline">
+                    <SafeImage
+                      src={engine.image}
+                      alt={engine.name}
+                      fill
+                      className="object-contain p-4"
+                      fallbackSrc={FALLBACK_IMAGES.logo}
+                    />
+                  </div>
+                )}
+                <div className="p-6">
                 {engine.power && (
-                  <p className="text-3xl font-black text-brand mb-2">{engine.power}</p>
+                  <p className="text-2xl font-black text-brand mb-2">{engine.power}</p>
                 )}
                 <p className="text-ink font-bold uppercase tracking-widest text-sm mb-2">{engine.name}</p>
                 {engine.price && (
@@ -280,6 +292,7 @@ export default function DisruptorParamotorPage() {
                 {engine.description && (
                   <p className="text-sm text-ink2 leading-relaxed">{engine.description}</p>
                 )}
+                </div>
               </motion.div>
             ))}
           </div>

@@ -32,7 +32,42 @@ export const VANGUARD_GALLERY = Array.from({ length: 10 }, (_, i) => ({
   alt: `Vanguard V8.0 ${i + 1}`,
 }))
 
-export const VANGUARD_HERO_IMAGE = '/images/vanguard/3.png'
+/** Max gallery slots per frame color — files live under colors/{red|blue|purple}/ from Drive import. */
+export const VANGUARD_COLOR_GALLERY_SLOTS = {
+  'candy-red-white': 3,
+  'candy-purple-white': 3,
+  'candy-blue-white': 3,
+}
+
+const VANGUARD_COLOR_SLUG = {
+  'candy-red-white': 'red',
+  'candy-blue-white': 'blue',
+  'candy-purple-white': 'purple',
+}
+
+export function vanguardColorGalleryPaths(colorId) {
+  const slug = VANGUARD_COLOR_SLUG[colorId]
+  const slots = VANGUARD_COLOR_GALLERY_SLOTS[colorId] ?? 0
+  if (!slug || !slots) return []
+  return Array.from({ length: slots }, (_, index) =>
+    `/images/vanguard/colors/${slug}/${slug}-${index + 1}.png`,
+  )
+}
+
+/** First frame in Vanguard configurador (default red candy, step 0). */
+export const VANGUARD_CONFIGURATOR_PRIMARY =
+  vanguardColorGalleryPaths('candy-red-white')[0] || '/images/vanguard/colors/red/red-1.png'
+
+/** Product page hero and configurador fallback — same as configurador first photo. */
+export const VANGUARD_HERO_IMAGE = VANGUARD_CONFIGURATOR_PRIMARY
+
+/** Cards / paratrikes listing — compressed from configurador primary for faster load. */
+export const VANGUARD_LISTING_IMAGE = '/images/vanguard/listing.jpg'
+
+/** Single product photo for trike listing and detail pages (no full gallery). */
+export const VANGUARD_PRODUCT_GALLERY = [
+  { src: VANGUARD_CONFIGURATOR_PRIMARY, alt: 'Vanguard V8.0' },
+]
 
 export const VANGUARD_GALLERY_URLS = VANGUARD_GALLERY.map((item) => item.src)
 

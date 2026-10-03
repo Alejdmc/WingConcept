@@ -13,6 +13,7 @@ import { resolveProductSlug } from '@/lib/productSlugs'
 import { NOMADIC_BASE_PRICE, NOMADIC_HERO_IMAGE } from '@/lib/nomadicContent'
 import { DISRUPTOR_TRIKE_BASE_PRICE, DISRUPTOR_TRIKE_HERO, DISRUPTOR_TRIKE_SUMMARY } from '@/lib/disruptorTrikeContent'
 import { resolveProductImage } from '@/lib/productImages'
+import { VANGUARD_LISTING_IMAGE } from '@/lib/vanguardContent'
 
 const FALLBACK_TRIKES = [
   {
@@ -20,7 +21,7 @@ const FALLBACK_TRIKES = [
     name: 'Vanguard V8.0',
     tagline: 'Performance Meets Precision',
     description: 'The ultimate high-performance trike for serious enthusiasts. Built with cutting-edge engineering and premium materials.',
-    image: '/images/vanguard/1.png',
+    image: VANGUARD_LISTING_IMAGE,
     basePrice: 5950.25,
     features: ['Premium aluminum construction', 'Advanced aerodynamic design', 'Multiple engine options', 'Precision-engineered suspension'],
     href: '/paratrike/vanguard',

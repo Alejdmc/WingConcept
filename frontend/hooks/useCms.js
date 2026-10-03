@@ -211,7 +211,7 @@ function mapEngine(o, fallbackEngines = []) {
   }, o)
   if (mapped.gallery?.length) return mapped
   const staticGallery = galleryPathsForOption(o.id, image, null)
-  if (staticGallery.length >= 2) {
+  if (staticGallery.length > 0) {
     return { ...mapped, gallery: staticGallery }
   }
   return mapped

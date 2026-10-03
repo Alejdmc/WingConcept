@@ -33,6 +33,14 @@ export function formatQuoteLine(label, value, price, options = {}) {
   return `${label}: ${value}`
 }
 
+/** Reference photo URL for quote requests (absolute when possible). */
+export function formatQuoteImageLine(label, imagePath) {
+  if (!label || !imagePath) return null
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wingconcept.com'
+  const url = imagePath.startsWith('http') ? imagePath : `${origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`
+  return `Photo (${label}): ${url}`
+}
+
 /**
  * @param {string|{ label: string, value: string, price?: number|null, priceLabel?: string }} line
  */

@@ -22,12 +22,12 @@ const navItems = [
   },
   { label: 'Tourist Flight', href: '/tourist-flight' },
   { label: 'Courses', href: '/induction-course' },
+  { label: 'Dealers', href: '/dealers' },
   {
     label: 'More',
     children: [
       { label: 'About Us', href: '/about' },
       { label: 'Contact', href: '/contact' },
-      { label: 'Dealers', href: '/dealers' },
       { label: 'Download Manuals', href: '/manuals' },
     ],
   },
@@ -71,20 +71,22 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg border-b border-borderline shadow-[0_1px_12px_rgba(0,0,0,0.06)]">
-      <div className="flex items-center justify-between h-16 sm:h-20 md:h-28 lg:h-36 px-4 sm:px-6 md:px-8">
-        <Link href="/" className="flex items-center min-w-0 shrink">
+      <div className="flex items-center justify-between h-[4.75rem] sm:h-[5.5rem] md:h-[5.75rem] lg:h-32 xl:h-[9.5rem] px-3 sm:px-5 md:px-6 lg:px-8 gap-2">
+        <Link
+          href="/"
+          className="flex items-center min-w-0 shrink-0 max-w-[48%] sm:max-w-[42%] lg:max-w-[15rem] xl:max-w-[18rem] 2xl:max-w-none">
           <Image
             src="/images/logo.png"
             alt="Wing Concept"
             width={700}
             height={200}
             priority
-            className="h-14 sm:h-16 md:h-24 lg:h-36 w-auto max-w-[min(52vw,280px)] sm:max-w-none"
+            className="h-[3.25rem] sm:h-[3.75rem] md:h-[4.75rem] lg:h-24 xl:h-32 w-auto max-w-full object-contain object-left"
           />
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center min-w-0 px-1">
           {navItems.map((item) =>
             item.children ? (
               <DropdownItem key={item.label} item={item} />
@@ -92,7 +94,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors">
+                className="px-2 lg:px-2.5 py-1.5 text-[11px] xl:text-xs font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors whitespace-nowrap">
                 {item.label}
               </Link>
             )
@@ -126,7 +128,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden w-10 h-10 flex items-center justify-center text-ink2 hover:text-brand transition-colors">
+            className="lg:hidden w-10 h-10 flex items-center justify-center text-ink2 hover:text-brand transition-colors">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -134,7 +136,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-borderline bg-bg px-4 py-3 flex flex-col gap-1">
+        <div className="lg:hidden border-t border-borderline bg-bg px-4 py-3 flex flex-col gap-1">
           {navItems.map((item) =>
             item.children ? (
               <details key={item.label} className="group">
@@ -178,7 +180,7 @@ function DropdownItem({ item }) {
       className="relative p-1"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}>
-      <button className="flex items-center gap-1 px-3.5 py-2 text-[12.5px] font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors">
+      <button className="flex items-center gap-1 px-2 lg:px-2.5 py-1.5 text-[11px] xl:text-xs font-semibold uppercase text-ink rounded hover:text-brand hover:bg-brand-soft transition-colors whitespace-nowrap">
         {item.label}
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>

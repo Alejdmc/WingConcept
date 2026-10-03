@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { MapPin, Instagram } from 'lucide-react'
+import { MapPin, Instagram, Phone, Mail } from 'lucide-react'
 import { apiUrl } from '@/lib/api'
 import { DEALERS_FALLBACK, mergeDealersFromApi, instagramHandle } from '@/lib/dealersContent'
 
@@ -103,6 +103,20 @@ export default function DealersPage() {
 
                     {dealer.descripcion && (
                       <p className="text-ink leading-relaxed flex-grow mt-2">{dealer.descripcion}</p>
+                    )}
+
+                    {dealer.telefono && (
+                      <a href={`tel:${dealer.telefono}`} className="inline-flex items-center gap-2 mt-4 text-ink2 text-sm hover:text-brand">
+                        <Phone className="w-4 h-4 shrink-0" />
+                        {dealer.telefono}
+                      </a>
+                    )}
+
+                    {dealer.email && (
+                      <a href={`mailto:${dealer.email}`} className="inline-flex items-center gap-2 mt-2 text-ink2 text-sm hover:text-brand">
+                        <Mail className="w-4 h-4 shrink-0" />
+                        {dealer.email}
+                      </a>
                     )}
 
                     {dealer.instagram && (

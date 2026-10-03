@@ -67,10 +67,12 @@ export const OPTION_GALLERY_BY_ID = {
   'electrical-kit': partTriplet('electrical-kit'),
   'cockpit-liner': partTriplet('cockpit-liner'),
   'parachute-container': [
-    '/images/parts/parachute-container-1.png',
-    '/images/parts/parachute-container-2.png',
-    '/images/parts/parachute-container-3.png',
+    '/images/parts/parachute-container-1.jpg',
+    '/images/parts/parachute-container-2.jpg',
+    '/images/parts/parachute-container-3.jpg',
   ],
+  'phone-holder': partTriplet('phone-holder'),
+  'line-protector': partTriplet('front-bar-protection'),
   'reserve-chute': [
     '/images/parts/reserve-chute-1.jpg',
     '/images/parts/reserve-chute-2.jpg',
@@ -93,7 +95,7 @@ export const OPTION_GALLERY_BY_ID = {
   customized: paramotorColorTriplet('customized'),
   'paramotor-only': disruptorOptionTriplet('paramotor-only'),
   'add-trike-disruptor': disruptorOptionTriplet('add-trike-disruptor'),
-  'vittorazi-moster-185': disruptorOptionTriplet('vittorazi-moster-185'),
+  'vittorazi-moster-185': engineTriplet('vittorazi-moster-185'),
   'polini-hand-throttle': disruptorOptionTriplet('polini-hand-throttle'),
   'vittorazi-v-throttle': disruptorOptionTriplet('vittorazi-v-throttle'),
   'off-grid-aviator': disruptorOptionTriplet('off-grid-aviator'),
@@ -111,11 +113,11 @@ export const OPTION_GALLERY_BY_ID = {
   'polini-130-evo': engineTriplet('polini-130-evo'),
   'polini-202-racing': engineTriplet('polini-202-racing'),
   'sky-150': engineTriplet('sky-150'),
-  'sky-zeus-300': engineTriplet('zeus-300'),
+  'sky-zeus-300': engineTriplet('sky-zeus-300'),
   'vittorazi-atom-80': engineTriplet('vittorazi-atom-80'),
-  'vittorazi-moster-185-efi': disruptorOptionTriplet('vittorazi-moster-185'),
-  'vittorazi-moster-185-factory-r': disruptorOptionTriplet('vittorazi-moster-185'),
-  'vittorazi-cosmos-300': engineTriplet('vittorazi-300-my25'),
+  'vittorazi-moster-185-efi': engineTriplet('vittorazi-moster-185'),
+  'vittorazi-moster-185-factory-r': engineTriplet('vittorazi-moster-185'),
+  'vittorazi-cosmos-300': engineTriplet('vittorazi-cosmos-300'),
   'rotax-912': engineTriplet('rotax-912'),
   'rotax-503-preowned': engineTriplet('rotax-503'),
   RMZ500: engineTriplet('rmz500'),
@@ -132,7 +134,11 @@ export const OPTION_GALLERY_BY_ID = {
   'bottom-explorer-bag': partTriplet('bottom-explorer-bag'),
   'lateral-bag-explorer': partTriplet('lateral-bag-explorer'),
   'lateral-bag': partTriplet('lateral-bag'),
-  'rock-guard': partTriplet('rock-guard'),
+  'rock-guard': [
+    '/images/parts/rock-guard-1.jpg',
+    '/images/parts/rock-guard-2.jpg',
+    '/images/parts/rock-guard-3.jpg',
+  ],
   'phone-holder': partTriplet('phone-holder'),
   'instrument-kit-nomadic': partTriplet('instrument-kit-nomadic'),
   'instrument-kit-vanguard': partTriplet('instrument-kit-vanguard'),
@@ -168,9 +174,11 @@ export function padGallery(items = []) {
   ))
 }
 
-/** Vista base configurador Vanguard — foto 3 fija. */
+/** Vista base configurador Vanguard — default red candy color (same as step 0 preview). */
 export const VANGUARD_CONFIGURATOR_GALLERY = padGallery([
-  { src: '/images/vanguard/3.png', alt: 'Vanguard V8.0' },
+  { src: '/images/vanguard/colors/red/red-1.png', alt: 'Vanguard V8.0' },
+  { src: '/images/vanguard/colors/red/red-2.png', alt: 'Vanguard V8.0' },
+  { src: '/images/vanguard/colors/red/red-3.png', alt: 'Vanguard V8.0' },
 ])
 
 /** Vista base configurador Nomadic — primera foto de galería. */

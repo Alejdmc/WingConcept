@@ -42,7 +42,9 @@
     ]
   },
   "dudek-cabrio": {
-    "techImages": [],
+    "techImages": [
+      "/images/paragliders/dudek-cabrio/tech-weight-ranges.png"
+    ],
     "galleryImages": [
       "/images/paragliders/dudek-cabrio/gallery-1.jpg",
       "/images/paragliders/dudek-cabrio/gallery-2.jpg",

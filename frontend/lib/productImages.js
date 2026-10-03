@@ -5,8 +5,9 @@ import {
   pickNomadicImage,
 } from './nomadicContent'
 import {
-  VANGUARD_GALLERY_ORDERED,
   VANGUARD_HERO_IMAGE,
+  VANGUARD_LISTING_IMAGE,
+  VANGUARD_PRODUCT_GALLERY,
   isLegacyVanguardImage,
 } from './vanguardContent'
 
@@ -17,7 +18,7 @@ export function resolveProductImage(product, fallback) {
   const slug = product?.slug
 
   if (slug === 'vanguard-v8') {
-    return VANGUARD_HERO_IMAGE
+    return VANGUARD_LISTING_IMAGE
   }
 
   if (slug === 'disruptor-trike') {
@@ -47,9 +48,9 @@ export function resolveProductImage(product, fallback) {
   return fallback || null
 }
 
-/** Always use on-disk trike photos 1–10; CMS may list broken or duplicate Supabase URLs. */
+/** Single configurador photo — CMS gallery URLs are ignored on the product page. */
 export function resolveVanguardGallery(_extra) {
-  return VANGUARD_GALLERY_ORDERED
+  return VANGUARD_PRODUCT_GALLERY
 }
 
 /** Always use on-disk trike photos 2–6; CMS may still list the old paramotor render. */

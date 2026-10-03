@@ -24,7 +24,8 @@ import { buildOptionGallery, normalizeGallery, VANGUARD_CONFIGURATOR_GALLERY } f
 import { chassisColorPreviewOption } from '@/lib/chassisColorImages'
 import { useParagliderConfigurator } from '@/hooks/useParagliderConfigurator'
 import { NO_PARAGLIDER_ID, paragliderDisplayName, resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
-import { formatQuoteLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { formatQuoteLine, formatQuoteImageLine, QUOTE_PRODUCT_NAMES } from '@/lib/quoteEmail'
+import { VANGUARD_CONFIGURATOR_ACCESSORIES } from '@/lib/trikeConfiguratorAccessories'
 import {
   CHASSIS_COLOR_PRESETS,
   CUSTOM_COLOR_ID,
@@ -43,9 +44,9 @@ const DEFAULT_OPTIONS = {
     { id: 'no-engine', name: 'No Engine', basePrice: 0, description: 'Chassis only — add an engine later.' },
     { id: 'rotax-503-preowned', name: 'Pre-Owned Rotax 503', basePrice: 0, priceTbd: true, image: '/images/engines/rotax-503.jpg', infoUrl: 'https://www.rotax.com/', description: 'Pre-owned Rotax 503 two-stroke option for budget-conscious builds.' },
     { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html', description: vanguardEngineDesc('Rotax 912') },
-    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg', description: vanguardEngineDesc('RMZ500') },
+    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg', infoUrl: 'https://www.skyengines.com/rmz500/?lang=en', description: vanguardEngineDesc('RMZ500') },
     { id: 'simonini-v2', name: 'Simonini Victor 2 Super (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/127-victor-2.html', description: vanguardEngineDesc('Simonini Victor 2 Super') },
-    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg', description: vanguardEngineDesc('Hirth 3503') },
+    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg', infoUrl: 'https://hirthengines.com/3503-liquid-cooled-70hp-two-stroke-engine/', description: `${vanguardEngineDesc('Hirth 3503')} Note: factory production in Russia may be limited due to ongoing geopolitical conditions — confirm availability with Wing Concept.` },
   ],
   chassisTypes: [
     {
@@ -70,27 +71,10 @@ const DEFAULT_OPTIONS = {
   propellers: [
     { id: 'no-propeller', name: 'No Propeller', description: 'Chassis only — add a propeller later or supply your own.', price: 0 },
     { id: 'bipala', name: 'Helix Two-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). When you need extra thrust up to 47 kW — the be-all-and-end monster of the trike world.', price: 534.75, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
-    { id: 'tripala', name: 'Three-Blade Propeller (Carbon Fiber)', description: 'Three carbon fiber blades. More thrust and smoother flight.', price: 677.35, image: '/images/propellers/bipala.jpg', infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
+    { id: 'tripala', name: 'Helix Three-Blade H40F (up to 47 kW)', description: 'Diameter 165 cm (64.9 in). Three-blade variant — reduced noise and ~2% more static thrust.', price: 677.35, image: '/images/propellers/tripala.jpg', infoUrl: 'https://helix-propeller.de/propellers/airplane-gyro-trike/fixed-pitch-propellers/' },
   ],
   colors: [],
-  accessories: [
-    { id: 'sun-roof-netting', name: 'Sun-Roof Netting', price: 43, description: 'Protects the pilot from the sun and prevents paraglider lines from tangling with the helmet or trike equipment during sideways descent.', image: '/images/parts/sun-roof-netting.png' },
-    { id: 'front-bar-protection', name: 'Padded Roll Bar Protector with Handles', price: 47, description: 'Protects the passenger and provides comfortable handles; front bars are padded for a robust look.', image: '/images/parts/front-bar-protection.png' },
-    { id: 'front-brake', name: 'Front Brake', price: 120, description: 'Additional cable brake providing extra braking power — conventional mountain-bike derived system.', image: '/images/parts/front-brake.png' },
-    { id: 'rear-mirror', name: 'Rear Mirror', price: 25, description: 'Essential for viewing wing position during the first quarter of lift on takeoff.', image: '/images/parts/rear-mirror.png' },
-    { id: 'cockpit-liner', name: 'Passenger & Pilot Cockpit Protective Liner', price: 105, description: 'Protective travel cover tailored for the pilot and passenger cockpit area. Designed specifically for trailering to shield sensitive components from dirt without creating aerodynamic drag on open trailers.', image: '/images/parts/cockpit-liner.png' },
-    { id: 'parachute-container', name: 'Parachute Container', price: 55, description: 'Exclusive container for mounting on the right or left side of the harnesses.', image: '/images/parts/parachute-container.png' },
-    { id: 'lateral-bag', name: 'Two Side Explorer Cases (L-R)', price: 95, description: 'Pair of aerodynamic side cases with extra straps for rods, tents, fuel, etc. without using internal space.', image: '/images/parts/lateral-bag-explorer.png' },
-    { id: 'cruise-control', name: 'Cruise Control', price: 25, description: 'For long-distance flights — maintains desired RPM for stable, smooth flight.', image: '/images/parts/cruise-control.png' },
-    { id: 'camel-back', name: 'Camel Back for Pilot Hydration', price: 25, description: 'An essential hydration bladder setup for long-endurance flights. Tucks neatly into the instrument holder pocket located on the back of the passenger seat.', image: '/images/parts/passenger-harness.png' },
-    { id: 'fuel-gauge-vanguard', name: 'Analog Fuel Gauge (Vanguard)', price: 119, description: 'Analog fuel gauge for the Vanguard L-shaped tank.', image: '/images/parts/fuel-gauge-vanguard.png' },
-    { id: 'auxiliary-lights', name: 'Auxiliary Lights Kit', price: 187.10, description: 'Two UP67 50W waterproof LED lights, position indicator lights, luxury switch, wiring and relay.', image: '/images/parts/auxiliary-lights.png' },
-    { id: 'instrument-kit', name: 'Basic Instrument Kit (Vanguard)', price: 340, description: 'TTO digital RPM, spark plug temperature, coolant temperature gauges, and 4-port USB charger.', image: '/images/parts/instrument-kit-vanguard.png' },
-    { id: 'electrical-kit', name: 'Complete Electrical Installation Kit', price: 218.20, description: 'Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness.', image: '/images/parts/electrical-kit.png' },
-    { id: 'carabiners', name: 'Two Carabiners', price: 90, description: 'High-capacity steel carabiners (2.4 kN each) for maximum safety.', image: '/images/parts/carabiners.png' },
-    { id: 'propeller-guard', name: 'External Propeller Guard', price: 295, description: 'Prevents wing or lines from entering the propeller. Ideal for schools and beginners.', image: '/images/parts/pilot-dynamic-cage.png' },
-    { id: 'reserve-chute', name: 'Reserve Parachute — APCO Mayday UL28', price: 1528, description: 'Certified heavy-duty emergency reserve parachute with max load of 400 kg.', image: '/images/parts/reserve-chute-1.jpg' },
-  ]
+  accessories: VANGUARD_CONFIGURATOR_ACCESSORIES,
 }
 
 const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
@@ -173,7 +157,14 @@ export default function ConfiguratorPage() {
     selectedAccessoryItems.forEach((a) => {
       const accLine = formatQuoteLine('Accessory', a.name, a.price)
       if (accLine) lines.push(accLine)
+      const imgLine = formatQuoteImageLine(a.name, a.image || resolveAccessoryImage(a.id, a.image, VANGUARD_PRODUCTO_ID))
+      if (imgLine) lines.push(imgLine)
     })
+    if (paraglider?.techImages?.[0]) {
+      lines.push(formatQuoteImageLine(`${paragliderDisplayName(paraglider)} tech sheet`, paraglider.techImages[0]))
+    }
+    if (engine?.image) lines.push(formatQuoteImageLine(engine.name, engine.image))
+    if (propeller?.image) lines.push(formatQuoteImageLine(propeller.name, propeller.image))
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
   }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
@@ -361,7 +352,7 @@ export default function ConfiguratorPage() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6">
+            className={`space-y-6 ${step === 5 ? 'lg:sticky lg:top-28 lg:self-start' : ''}`}>
             {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}

@@ -209,6 +209,7 @@ function WingCard({ item, showConfiguratorLink }) {
   const price = item.priceLabel || (hasPrice ? `$${item.price.toLocaleString()}` : 'Contact for price')
   const showColorPicker = colors.length > 1
   const showSizePicker = sizes.length > 1 || (sizes.length === 1 && sizes[0] !== 'Standard')
+  const isTechSheetCard = Boolean(item.techImage && item.image === item.techImage)
 
   const handleAdd = async () => {
     if (!item.productoId) return
@@ -239,7 +240,11 @@ function WingCard({ item, showConfiguratorLink }) {
           src={item.image || '/images/front1.jpg'}
           alt={`${item.brand || ''} ${item.name}`.trim()}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className={
+            isTechSheetCard
+              ? 'object-contain p-3'
+              : 'object-cover group-hover:scale-105 transition-transform duration-300'
+          }
         />
       </div>
       <div className="p-5 flex flex-col flex-1">

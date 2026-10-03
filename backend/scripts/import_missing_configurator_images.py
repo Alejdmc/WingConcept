@@ -125,10 +125,22 @@ DOWNLOADS: dict[str, list[tuple[str, str]]] = {
         ("rmz500-2.jpg", "https://upload.wikimedia.org/wikipedia/commons/6/6c/Rotax_503_display.JPG"),
         ("rmz500-3.jpg", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Flightstar_II_C-IGRH_Rotax_503_engine_03.JPG/1280px-Flightstar_II_C-IGRH_Rotax_503_engine_03.JPG"),
         ("rmz500.jpg", "https://upload.wikimedia.org/wikipedia/commons/6/68/Flightstar_II_C-IGRH_Rotax_503_engine_03.JPG"),
-        ("vittorazi-atom-80-1.jpg", "https://vittorazi.com/wp-content/uploads/2025/02/atom80.png"),
-        ("vittorazi-atom-80-2.jpg", "https://vittorazi.com/wp-content/uploads/2025/02/atom_new.png"),
-        ("vittorazi-atom-80-3.jpg", "https://vittorazi.com/wp-content/uploads/2025/02/atom80.png"),
-        ("vittorazi-atom-80.jpg", "https://vittorazi.com/wp-content/uploads/2025/02/atom80.png"),
+        # Vittorazi Atom 80 — product photos from vittorazi.com (not tiny logo PNGs)
+        ("vittorazi-atom-80-1.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/atom80_1600.jpg"),
+        ("vittorazi-atom-80-2.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/Atom_wireframe_render-1.jpg"),
+        ("vittorazi-atom-80-3.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/full-2.jpg"),
+        ("vittorazi-atom-80.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/atom80_1600.jpg"),
+        # Vittorazi Cosmos 300 MY25
+        ("vittorazi-300-my25-1.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/cosmos300_1600.jpg"),
+        ("vittorazi-300-my25-2.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/Close-up-Cosmo.jpg"),
+        ("vittorazi-300-my25-3.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/Cosmos_wireframe_render.jpg"),
+        ("vittorazi-300-my25.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/cosmos300_1600.jpg"),
+        # Vittorazi Moster 185 — official renders + MY25 lineup
+        ("vittorazi-moster-185-1.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/moster185_homepage_800.png"),
+        ("vittorazi-moster-185-2.jpg", "https://vittorazi.com/wp-content/uploads/2025/02/01_my25_engines.jpg"),
+        ("vittorazi-moster-185-3.jpg", "https://vittorazi.com/wp-content/uploads/2023/09/moster185_efi_homepage_1280.png"),
+        ("vittorazi-moster-185.jpg", "https://vittorazi.com/wp-content/uploads/2020/02/moster185_homepage_800.png"),
+        # Polini Thor
         ("polini-130-evo-1.jpg", "https://www.polinithor.com/wp-content/uploads/2021/10/THOR-130-EVO-copia.jpg"),
         ("polini-130-evo-2.jpg", "https://www.polinithor.com/wp-content/uploads/2023/03/AD86432.jpg"),
         ("polini-130-evo-3.jpg", "https://www.polinithor.com/wp-content/uploads/2021/10/THOR-130-EVO-copia.jpg"),
@@ -137,13 +149,27 @@ DOWNLOADS: dict[str, list[tuple[str, str]]] = {
         ("polini-202-racing-2.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/DSC2369.jpg"),
         ("polini-202-racing-3.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/THOR_202_RACING.jpg"),
         ("polini-202-racing.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/THOR_202_RACING.jpg"),
+        ("polini-260-1.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/THOR_260_2023.jpg"),
+        ("polini-260-2.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/DSC1496.jpg"),
+        ("polini-260-3.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/DSC1499.jpg"),
+        ("polini-260.jpg", "https://www.polinithor.com/wp-content/uploads/2017/06/THOR_260_2023.jpg"),
+        ("polini-303-1.jpg", "https://www.polinithor.com/wp-content/uploads/2021/01/THOR_303_maxi.jpg"),
+        ("polini-303-2.jpg", "https://www.polinithor.com/wp-content/uploads/2026/04/POL_0624.jpg"),
+        ("polini-303-3.jpg", "https://www.polinithor.com/wp-content/uploads/2026/04/POL_0655.jpg"),
+        ("polini-303.jpg", "https://www.polinithor.com/wp-content/uploads/2021/01/THOR_303_maxi.jpg"),
+        # SKY Engines
         ("sky-150-1.jpg", "https://www.skyengines.com/wp-content/uploads/2021/05/GEN1.jpeg"),
         ("sky-150-2.jpg", "https://www.skyengines.com/wp-content/uploads/2021/05/GEN2-768x1024.jpeg"),
         ("sky-150-3.jpg", "https://www.skyengines.com/wp-content/uploads/2021/05/GEN3.jpeg"),
         ("sky-150.jpg", "https://www.skyengines.com/wp-content/uploads/2021/05/GEN1.jpeg"),
+        ("zeus-300-1.jpg", "https://www.skyengines.com/wp-content/uploads/2022/08/Sky-Engine_coupe_icare_2026-1.jpg"),
+        ("zeus-300-2.jpg", "https://www.skyengines.com/wp-content/uploads/2022/08/Sky_PopUp.jpg"),
+        ("zeus-300-3.jpg", "https://www.skyengines.com/wp-content/uploads/2025/07/Schermata-2025-07-10-alle-12.50.23-1.png"),
+        ("zeus-300.jpg", "https://www.skyengines.com/wp-content/uploads/2022/08/Sky-Engine_coupe_icare_2026-1.jpg"),
         ("simonini-victor-1-1.jpg", "https://www.simonini-flying.com/194-large_default/victor-1.jpg"),
         ("simonini-victor-1-2.jpg", "https://www.simonini-flying.com/195-large_default/victor-1.jpg"),
         ("simonini-victor-1-3.jpg", "https://www.simonini-flying.com/569-large_default/victor-1.jpg"),
+        ("simonini-victor-1.jpg", "https://www.simonini-flying.com/194-large_default/victor-1.jpg"),
         ("simonini-v1.jpg", "https://www.simonini-flying.com/194-large_default/victor-1.jpg"),
     ],
     "paragliders/paramotor/apco-f3-mkii": [
@@ -160,12 +186,11 @@ def main() -> int:
             dest = OUT / folder / filename
             try:
                 download(url, dest)
-                if dest.suffix.lower() == ".png":
-                    jpg_dest = dest.with_suffix(".jpg")
-                    to_jpg(dest, jpg_dest)
-                    if jpg_dest != dest:
-                        dest.unlink(missing_ok=True)
-                        dest = jpg_dest
+                jpg_dest = dest.with_suffix(".jpg")
+                to_jpg(dest, jpg_dest)
+                if jpg_dest != dest:
+                    dest.unlink(missing_ok=True)
+                    dest = jpg_dest
                 print(f"OK  {folder}/{dest.name}")
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"{folder}/{filename}: {exc}")
@@ -190,6 +215,18 @@ def main() -> int:
         (OUT / "parts/front-brake-1.png", OUT / "parts/front-brake.png"),
         (OUT / "engines/simonini-victor-1-1.jpg", OUT / "engines/simonini-victor-1.jpg"),
     ]
+
+    # Paramotor engine id aliases (same photos, different configurador slugs)
+    engine_alias_slugs = [
+        ("vittorazi-300-my25", "vittorazi-cosmos-300"),
+        ("zeus-300", "sky-zeus-300"),
+    ]
+    for src_slug, dest_slug in engine_alias_slugs:
+        copy_triplet(OUT / "engines" / src_slug, OUT / "engines", dest_slug)
+        print(f"CP  engines/{dest_slug}-*.jpg")
+
+    # Sync polini-303 triplet to disruptor/options for legacy paths
+    copy_triplet(OUT / "engines" / "polini-303", OUT / "disruptor/options", "polini-303")
     for src, dest in local_ops:
         if src.exists():
             to_jpg(src, dest)

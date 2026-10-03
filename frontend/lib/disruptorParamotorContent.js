@@ -1,5 +1,7 @@
 /** Paramotor Disruptor — archivos/PARAMOTOR' web side.pdf (summaries in English) */
 
+import { resolveParamotorEngineImage } from './paramotorEngineImages'
+
 export const DISRUPTOR_PARAMOTOR_BASE_PRICE = 2800
 
 export const DISRUPTOR_PARAMOTOR_GALLERY = [1, 2, 3, 4].map((n) => ({
@@ -77,42 +79,70 @@ export const DISRUPTOR_PARAMOTOR_SPECS = {
   'Arms': 'Patented tilting — no steel shackles',
 }
 
-/** Engine lineup highlight (landing page). */
+/** Engine lineup highlight (landing page + configurador). */
 export const DISRUPTOR_PARAMOTOR_ENGINES = [
   {
-    name: 'Polini Thor 303 EVO',
-    power: '303 cc',
-    price: '$4,994',
-    description: 'Outstanding performance and reliability — the top-tier Polini option for serious pilots.',
-  },
-  {
-    name: 'Polini Thor 202 Racing',
-    power: '202 cc',
-    price: '$2,882',
-    description: 'Built for slalom competition and sport flying with responsive throttle response.',
-  },
-  {
-    name: 'Polini Thor 130 EVO',
-    power: '130 cc',
-    price: '$2,580',
-    description: 'Advanced dual-carb engine balancing weight savings with dependable power.',
-  },
-  {
-    name: 'Vittorazi Cosmos 300',
-    power: '36 HP',
+    id: 'vittorazi-atom-80',
+    name: 'Vittorazi Atom 80',
+    power: '80 HP',
     price: 'TBD',
-    description: 'Ideal for paratrikes and tandem flight — smooth torque and proven field support.',
+    image: resolveParamotorEngineImage('vittorazi-atom-80'),
+    description: 'Reduced weight and uncompromising efficiency — preferred by flight schools.',
   },
   {
-    name: 'Vittorazi Moster 185',
+    id: 'vittorazi-moster-185',
+    name: 'Vittorazi Moster 185 Plus',
     power: '185 cc',
     price: 'TBD',
+    image: resolveParamotorEngineImage('vittorazi-moster-185'),
     description: 'Versatile mid-displacement engine for sport, travel, and trike adaptation.',
   },
   {
+    id: 'vittorazi-cosmos-300',
+    name: 'Vittorazi Cosmos 300',
+    power: '36 HP',
+    price: 'TBD',
+    image: resolveParamotorEngineImage('vittorazi-cosmos-300'),
+    description: 'Ideal for paratrikes and tandem flight — smooth torque and proven field support.',
+  },
+  {
+    id: 'polini-130-evo',
+    name: 'Polini Thor 130 EVO',
+    power: '130 cc',
+    price: '$2,580',
+    image: resolveParamotorEngineImage('polini-130-evo'),
+    description: 'Advanced dual-carb engine balancing weight savings with dependable power.',
+  },
+  {
+    id: 'polini-202-racing',
+    name: 'Polini Thor 202 Racing',
+    power: '202 cc',
+    price: '$2,882',
+    image: resolveParamotorEngineImage('polini-202-racing'),
+    description: 'Built for slalom competition and sport flying with responsive throttle response.',
+  },
+  {
+    id: 'polini-303',
+    name: 'Polini Thor 303 EVO',
+    power: '303 cc',
+    price: '$4,994',
+    image: resolveParamotorEngineImage('polini-303'),
+    description: 'Outstanding performance and reliability — the top-tier Polini option for serious pilots.',
+  },
+  {
+    id: 'sky-150',
+    name: 'SKY 150',
+    power: '28 HP',
+    price: 'TBD',
+    image: resolveParamotorEngineImage('sky-150'),
+    description: 'Liquid-cooled 150 cc single-cylinder engine for lightweight paramotor builds.',
+  },
+  {
+    id: 'sky-zeus-300',
     name: 'SKY Zeus 300',
     power: '44 HP',
     price: 'TBD',
+    image: resolveParamotorEngineImage('sky-zeus-300'),
     description: '300 cc boxer engine delivering up to 148 kg of thrust for demanding missions.',
   },
 ]

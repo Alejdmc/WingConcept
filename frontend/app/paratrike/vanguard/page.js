@@ -4,18 +4,15 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Check, Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link2, Settings } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
-import Gallery from '@/components/sections/Gallery'
 import { api } from '@/lib/api'
 import {
   VANGUARD_BASE_PRICE,
   VANGUARD_CHASSIS_SUMMARY,
   VANGUARD_INCLUDED,
   VANGUARD_ENGINES,
-  VANGUARD_GALLERY_ORDERED,
   VANGUARD_HERO_IMAGE,
 } from '@/lib/vanguardContent'
 import { mergeEngineList, mergeFeatureList } from '@/lib/contentUtils'
-import { resolveVanguardGallery } from '@/lib/productImages'
 
 const ICON_MAP = { Zap, Shield, Gauge, Package, Truck, Fuel, Backpack, Wind, Feather, Users, Link: Link2, Settings }
 
@@ -26,7 +23,6 @@ const vanguardFallback = {
   description:
     'Developed in collaboration with pilots and engineers using state-of-the-art software, the Vanguard V8.0 is the benchmark in high-performance trikes. Unique trike with three interchangeable flight modes — Commercial, Adventure, and Reportage — plus adjustable center of gravity in flight.',
   image: VANGUARD_HERO_IMAGE,
-  gallery: VANGUARD_GALLERY_ORDERED,
   year: 2020,
   brand: 'Wing Concept',
   philosophy: 'Passion, Science, and Freedom',
@@ -118,12 +114,10 @@ export default function ParatrikePage() {
         })),
         engines: mergeEngineList(extra.engines_list, prev.engines),
         specs: extra.specs && Object.keys(extra.specs).length ? extra.specs : prev.specs,
-        gallery: resolveVanguardGallery(extra),
       }))
     }).catch(() => {})
   }, [])
 
-  const galleryItems = vanguard.gallery || VANGUARD_GALLERY_ORDERED
   const includedItems = vanguard.included || VANGUARD_INCLUDED
 
   return (
@@ -246,9 +240,6 @@ export default function ParatrikePage() {
           </div>
         </div>
       </section>
-
-      {/* Gallery */}
-      <Gallery images={galleryItems} preset="vanguard" eyebrow="Vanguard V8.0" title="Photo Gallery" bgClass="bg-white" />
 
       {/* Engine Compatibility */}
       <section className="py-24 px-6 bg-bg2">
