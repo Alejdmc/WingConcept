@@ -26,9 +26,9 @@ PARAMOTOR_FLYING_STYLES = [
     ("finish", "disruptor-harness", "Disruptor Harness",
      "Ultra-light harness (~980 g) with aerospace aluminum seat.", 185.5, None, {}),
     ("finish", "power-seat-comfort", "Power Seat Comfort by Dudek",
-     "High comfort without excess weight.", 733, None, {"url": "https://dudek.eu/en/produkt/powerseat-comfort-dp/"}),
+     "High comfort without excess weight.", 733, None, {"url": "https://dudek.eu/produkt/powerseat-comfort-dp/"}),
     ("finish", "power-seat-light", "Power Seat Light by Dudek",
-     "Very light PPG harness (~2.33 kg).", 845, None, {"url": "https://dudek.eu/en/produkt/powerseat-light/"}),
+     "Very light PPG harness (~2.33 kg).", 845, None, {"url": "https://dudek.eu/produkt/powerseat-light/"}),
 ]
 
 # ── Paramotor — engines ───────────────────────────────────────────────────────

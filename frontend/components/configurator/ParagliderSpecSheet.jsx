@@ -3,9 +3,8 @@
 import { useState } from 'react'
 import { ChevronDown, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import SafeImage from '@/components/ui/SafeImage'
 
-/** Collapsible technical sheet — layout per paraglider UI guide. */
+/** Collapsible technical sheet — renders the manufacturer's spec table (not a screenshot/image). */
 export default function ParagliderSpecSheet({ wing }) {
   const [open, setOpen] = useState(false)
 
@@ -35,16 +34,6 @@ export default function ParagliderSpecSheet({ wing }) {
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-1 border-t border-borderline space-y-4">
-              {wing.techImages?.length > 0 && (
-                <div className="space-y-3">
-                  {wing.techImages.map((src) => (
-                    <div key={src} className="relative w-full aspect-[16/9] bg-bg2 rounded-lg overflow-hidden">
-                      <SafeImage src={src} alt={`${wing.name} technical diagram`} fill className="object-contain p-2" blankOnError />
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {specs.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left border-collapse">

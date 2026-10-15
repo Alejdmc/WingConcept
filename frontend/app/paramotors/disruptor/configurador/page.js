@@ -62,8 +62,8 @@ const DEFAULT_OPTIONS = {
     { id: 'paramotor-only', name: 'Paramotor Only', description: 'Base Disruptor paramotor chassis.', price: 0 },
     { id: 'add-trike-disruptor', name: 'Add Trike Disruptor', description: 'Adapt your paramotor to the Disruptor trike platform.', price: 1950 },
     { id: 'disruptor-harness', name: 'Disruptor Harness', description: 'Ultra-light harness (~980 g) with aerospace aluminum seat.', price: 185.5, image: '/images/disruptor/options/disruptor-harness-1.jpg' },
-    { id: 'power-seat-comfort', name: 'Power Seat Comfort by Dudek', description: 'High comfort without excess weight.', price: 733, image: '/images/disruptor/options/power-seat-comfort-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/powerseat-comfort-dp/' },
-    { id: 'power-seat-light', name: 'Power Seat Light by Dudek', description: 'Very light PPG harness (~2.33 kg).', price: 845, image: '/images/disruptor/options/power-seat-light-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/powerseat-light/' },
+    { id: 'power-seat-comfort', name: 'Power Seat Comfort by Dudek', description: 'High comfort without excess weight.', price: 733, image: '/images/disruptor/options/power-seat-comfort-1.jpg', infoUrl: 'https://dudek.eu/produkt/powerseat-comfort-dp/' },
+    { id: 'power-seat-light', name: 'Power Seat Light by Dudek', description: 'Very light PPG harness (~2.33 kg).', price: 845, image: '/images/disruptor/options/power-seat-light-1.jpg', infoUrl: 'https://dudek.eu/produkt/powerseat-light/' },
   ],
   engines: [
     { id: 'no-engine', name: 'No Engine', power: '', basePrice: 0, description: 'Chassis only — add an engine later.' },
@@ -85,8 +85,8 @@ const DEFAULT_OPTIONS = {
     { id: 'tripala', name: 'Three-Blade Propeller', description: 'Mid-range 25 kW H30F variant with smoother thrust delivery.', price: 450, infoUrl: 'https://helix-propeller.de/propellers/paramotor/' },
   ],
   accessories: [
-    { id: 'globe-160-parachute', name: 'Reserve Parachute Globe 160', price: 110, description: 'Emergency parachute for PPG flyers — max sink speed under 5.5 m/s.', image: '/images/disruptor/options/globe-160-parachute-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/globe-light/' },
-    { id: 'front-container-cockpit', name: 'Front Container with Cockpit by Dudek', price: 179, description: 'Instrument panel and rescue container with adjustable inclination.', image: '/images/disruptor/options/front-container-cockpit-1.jpg', infoUrl: 'https://dudek.eu/en/produkt/frontkontener-z-kokpitem/' },
+    { id: 'globe-160-parachute', name: 'Reserve Parachute Globe 160', price: 110, description: 'Emergency parachute for PPG flyers — max sink speed under 5.5 m/s.', image: '/images/disruptor/options/globe-160-parachute-1.jpg', infoUrl: 'https://dudek.eu/produkt/globe-light/' },
+    { id: 'front-container-cockpit', name: 'Front Container with Cockpit by Dudek', price: 179, description: 'Instrument panel and rescue container with adjustable inclination.', image: '/images/disruptor/options/front-container-cockpit-1.jpg', infoUrl: 'https://dudek.eu/produkt/frontkontener-z-kokpitem/' },
     { id: 'paramotor-bag-pack', name: 'Paramotor Bag Pack', price: 145, description: 'Wing Concept case for disassembled paramotor with engine and propeller.', image: '/images/disruptor/options/paramotor-bag-pack-1.jpg' },
     { id: 'paramotor-lights-kit', name: 'Paramotor Lights Kit', price: 135, description: 'Visibility for explorers and night landings.', image: '/images/disruptor/options/paramotor-lights-kit-1.jpg' },
     { id: 'disruptor-pilot-seat', name: 'Disruptor Pilot Seat', price: 245.5, description: 'Lightweight compact pilot seat.', image: '/images/disruptor/options/disruptor-pilot-seat-1.jpg' },

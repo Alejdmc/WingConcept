@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowLeft, Check, ExternalLink, ShoppingCart } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
+import ParagliderSpecSheet from '@/components/configurator/ParagliderSpecSheet'
 import { useCart } from '@/hooks/useCart'
 import { loadParaglidersPageCatalog } from '@/lib/loadParaglidersCatalog'
 import { resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
@@ -209,7 +210,6 @@ function WingCard({ item, showConfiguratorLink }) {
   const price = item.priceLabel || (hasPrice ? `$${item.price.toLocaleString()}` : 'Contact for price')
   const showColorPicker = colors.length > 1
   const showSizePicker = sizes.length > 1 || (sizes.length === 1 && sizes[0] !== 'Standard')
-  const isTechSheetCard = Boolean(item.techImage && item.image === item.techImage)
 
   const handleAdd = async () => {
     if (!item.productoId) return
@@ -240,11 +240,7 @@ function WingCard({ item, showConfiguratorLink }) {
           src={item.image || '/images/front1.jpg'}
           alt={`${item.brand || ''} ${item.name}`.trim()}
           fill
-          className={
-            isTechSheetCard
-              ? 'object-contain p-3'
-              : 'object-cover group-hover:scale-105 transition-transform duration-300'
-          }
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>
       <div className="p-5 flex flex-col flex-1">
@@ -287,17 +283,18 @@ function WingCard({ item, showConfiguratorLink }) {
               More info <ExternalLink className="w-3 h-3" />
             </a>
           )}
-          {item.techImage && (
-            <a href={item.techImage} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold uppercase text-brand hover:underline">
-              Size chart <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
           {showConfiguratorLink && item.configuratorHref && (
             <Link href={item.configuratorHref} className="inline-flex items-center gap-1 text-xs font-bold uppercase text-ink hover:text-brand">
               Add in configurador →
             </Link>
           )}
         </div>
+
+        {item.techSpecs?.length > 0 && (
+          <div className="mt-4">
+            <ParagliderSpecSheet wing={item} />
+          </div>
+        )}
 
         {canAddToCart ? (
           <button
