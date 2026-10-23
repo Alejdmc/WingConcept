@@ -21,6 +21,10 @@ services:
       --proxy-headers
       --forwarded-allow-ips=*
     volumes: !reset []  # Sin montar código fuente en producción
+    # nginx llega al backend por la red de docker (backend:8000): no se publica al
+    # exterior. Con `ports: []` no alcanza, porque compose SUMA las listas de ports
+    # del archivo base; `!reset` sí las quita.
+    ports: !reset []
     environment:
       - ENVIRONMENT=production
       - DEBUG=False
@@ -60,7 +64,7 @@ services:
       --loglevel warning
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
-    ports: []  # No exponer Redis al exterior en producción
+    ports: !reset []  # No exponer Redis al exterior en producción (`[]` solo no quita los del base)
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     healthcheck:
