@@ -62,7 +62,7 @@ export const OPTION_GALLERY_BY_ID = {
   'cruise-control': partTriplet('cruise-control'),
   'sun-roof-netting': partTriplet('sun-roof-netting'),
   'sunroof-canopy': partTriplet('sunroof-canopy'),
-  'rear-mirror': partTriplet('rear-mirror'),
+  'rear-mirror': TRIKE_ACCESSORY_GALLERIES.vanguard['rear-mirror'],
   'carabiners': partTriplet('carabiners'),
   'fuel-gauge-vanguard': partTriplet('fuel-gauge-vanguard'),
   'auxiliary-lights': partTriplet('auxiliary-lights'),
@@ -128,7 +128,7 @@ export const OPTION_GALLERY_BY_ID = {
   'simonini-victor-1': engineTriplet('simonini-victor-1'),
   'front-bar-protection': partTriplet('front-bar-protection'),
   'front-brake': partTriplet('front-brake'),
-  'disruptor-front-brake': disruptorOptionTriplet('front-brake'),
+  'disruptor-front-brake': TRIKE_ACCESSORY_GALLERIES.vanguard['front-brake'],
   'bottom-explorer-bag': partTriplet('bottom-explorer-bag'),
   'lateral-bag-explorer': partTriplet('lateral-bag-explorer'),
   'lateral-bag': partTriplet('lateral-bag'),
@@ -152,6 +152,8 @@ function normalizeGalleryItem(item, index) {
       ? { src: item.trim(), alt: `View ${index + 1}`, empty: false }
       : LOGO_SLOT
   }
+  // Ya normalizado (p. ej. normalizeGallery antes de OptionImageGallery): conservar el hueco
+  if (item?.placeholder) return LOGO_SLOT
   if (item?.src) {
     return { src: item.src, alt: item.alt || `View ${index + 1}`, empty: false }
   }

@@ -135,17 +135,17 @@ export const VANGUARD_ENGINES = [
   {
     name: 'Rotax 912',
     power: '80 HP',
-    description: 'Four-stroke liquid-cooled aviation engine — the benchmark for reliability and long service life.',
+    description: 'The Rotax 912 UL|A|F is an 80-horsepower (59.6 kW), four-cylinder, four-stroke aircraft piston engine featuring a hybrid liquid/air-cooling system, integrated reduction gearbox, and dual electronic ignition. The designation covers uncertified and specific airworthiness-certified variants used widely in light sport and experimental aviation.',
   },
   {
     name: 'Simonini Victor 2 Super',
     power: '112 HP',
-    description: 'High-output two-stroke engine for performance-focused pilots who need maximum thrust.',
+    description: 'A powerful, very reliable and lightweight two-stroke engine weighing 52 kg with an excellent TBO of 1200 hours. Its great power means it is not necessary to run the engine at high RPMs. Its static thrust reaches 160 kg, which makes it very impressive.',
   },
   {
     name: 'RMZ500',
     power: '',
-    description: 'Rotax 503-compatible powerplant option for proven two-stroke performance on the Vanguard platform.',
+    description: 'The RMZ500 (Rotax 503 clone) is a 497 cc, two-stroke, twin-cylinder, air-cooled aircraft engine built in Russia. It serves as a direct, compatible clone of the classic, out-of-production Rotax 503, producing roughly 50 to 52 horsepower at 6,000 rpm and weighing about 34 kg (75 lbs). Note: the factory in Russia may not produce it again due to the war — please confirm availability with Wing Concept.',
   },
   {
     name: 'Vanguard EFI w/ reduction',
@@ -155,6 +155,6 @@ export const VANGUARD_ENGINES = [
   {
     name: 'Hirth 3503',
     power: '70 HP',
-    description: 'Compact 70 HP two-stroke engine with an excellent power-to-weight ratio for trike operations.',
+    description: 'The 35 Series liquid-cooled two-stroke engines offer the maximum power-to-weight ratios available in the 70-horsepower market — an ideal choice for light and ultralight aviation, hovercraft, gyro and helicopters, and all applications where weight could be an issue. Time between overhauls of 1000 hours at 75% power.',
   },
 ]

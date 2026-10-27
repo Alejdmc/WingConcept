@@ -24,6 +24,8 @@ class Dealer(Base):
     ubicacion: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    telefono: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
     orden: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
 

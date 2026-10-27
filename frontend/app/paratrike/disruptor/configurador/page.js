@@ -53,6 +53,9 @@ function formatOptionPrice(price) {
   return `+$${price.toLocaleString(undefined, { minimumFractionDigits: price % 1 === 0 ? 0 : 2 })}`
 }
 
+/** Paquete estándar: fotos reales del Disruptor trike. */
+const DISRUPTOR_TRIKE_PACKAGE_GALLERY = [1, 2, 3, 4].map((n) => `/images/disruptor/trike-${n}.jpg`)
+
 export default function ConfiguratorDisruptorTrikePage() {
   const router = useRouter()
   const { addConfiguredProduct } = useCart()
@@ -155,7 +158,7 @@ export default function ConfiguratorDisruptorTrikePage() {
 
   const selectFinish = (id) => {
     setSelectedFinish(id)
-    setPreviewOption({ id, image: DISRUPTOR_TRIKE_HERO })
+    setPreviewOption({ id, image: DISRUPTOR_TRIKE_HERO, gallery: DISRUPTOR_TRIKE_PACKAGE_GALLERY })
   }
 
   const toggleUpgrade = (id) => {
@@ -174,7 +177,7 @@ export default function ConfiguratorDisruptorTrikePage() {
         setPreviewOption(chassisColorPreviewOption('disruptor-trike', selectedColorId, DISRUPTOR_TRIKE_HERO))
         break
       case 1:
-        setPreviewOption({ id: selectedFinish, image: DISRUPTOR_TRIKE_HERO })
+        setPreviewOption({ id: selectedFinish, image: DISRUPTOR_TRIKE_HERO, gallery: DISRUPTOR_TRIKE_PACKAGE_GALLERY })
         break
       case 2: {
         if (paraglider) {

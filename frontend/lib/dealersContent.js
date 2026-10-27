@@ -27,9 +27,9 @@ export const DEALERS_FALLBACK = [
     ubicacion: 'Colombia',
     descripcion:
       'Authorized Wing Concept dealer in Colombia. Contact for trike demos, sales, and pilot support.',
-    telefono: '3123829289',
+    telefono: '+57 3123829289',
     email: 'Chelelo001@gmail.com',
-    instagram: 'https://www.instagram.com/stories/danramirezart/',
+    instagram: 'https://www.instagram.com/danramirezart/',
     orden: 30,
   },
 ]
@@ -53,6 +53,8 @@ export function mergeDealersFromApi(apiList) {
       instagram: dealer.instagram || fb.instagram || null,
       equipo: dealer.equipo ?? fb.equipo ?? null,
       ubicacion: dealer.ubicacion || fb.ubicacion || null,
+      telefono: dealer.telefono || fb.telefono || null,
+      email: dealer.email || fb.email || null,
       descripcion: dealer.descripcion || fb.descripcion || null,
     }
   })

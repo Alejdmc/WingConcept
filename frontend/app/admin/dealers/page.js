@@ -10,6 +10,8 @@ function emptyForm() {
     ubicacion: '',
     descripcion: '',
     instagram: '',
+    telefono: '',
+    email: '',
     orden: 0,
     activo: true,
   }
@@ -22,6 +24,8 @@ function toFormData(item) {
     ubicacion: item.ubicacion || '',
     descripcion: item.descripcion || '',
     instagram: item.instagram || '',
+    telefono: item.telefono || '',
+    email: item.email || '',
     orden: item.orden || 0,
     activo: item.activo ?? true,
   }
@@ -45,6 +49,8 @@ function DealerForm({ initial, onSave, onCancel }) {
       ubicacion: form.ubicacion || null,
       descripcion: form.descripcion || null,
       instagram: form.instagram || null,
+      telefono: form.telefono || null,
+      email: form.email || null,
       orden: Number(form.orden) || 0,
       activo: form.activo,
     }
@@ -84,6 +90,17 @@ function DealerForm({ initial, onSave, onCancel }) {
       <div>
         <label className="block text-sm font-semibold mb-1">Instagram URL (optional)</label>
         <input name="instagram" value={form.instagram} onChange={handleChange} placeholder="https://www.instagram.com/..." className="w-full p-2 border rounded" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-semibold mb-1">Phone (optional)</label>
+          <input name="telefono" value={form.telefono} onChange={handleChange} placeholder="+57 312 382 9289" className="w-full p-2 border rounded" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-1">Email (optional)</label>
+          <input name="email" type="email" value={form.email} onChange={handleChange} className="w-full p-2 border rounded" />
+        </div>
       </div>
 
       <label className="flex items-center gap-2 text-sm">

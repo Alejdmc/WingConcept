@@ -41,6 +41,11 @@ const GALLERIES_BY_PRODUCT = {
 
 export function resolveChassisColorGallery(productKey, colorId, fallbackHero) {
   if (!colorId || colorId === CUSTOM_COLOR_ID) {
+    // Color a medida: una foto de cada color estándar como referencia
+    const references = Object.values(GALLERIES_BY_PRODUCT[productKey] || {}).map((paths) => paths[0]).filter(Boolean)
+    if (references.length) {
+      return references.map((src, index) => ({ src, alt: `Color reference ${index + 1}` }))
+    }
     return fallbackHero ? [{ src: fallbackHero, alt: 'Custom color' }] : []
   }
   const paths = GALLERIES_BY_PRODUCT[productKey]?.[colorId]

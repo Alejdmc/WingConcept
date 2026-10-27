@@ -43,10 +43,10 @@ const DEFAULT_OPTIONS = {
   engines: [
     { id: 'no-engine', name: 'No Engine', basePrice: 0, description: 'Chassis only — add an engine later.' },
     { id: 'rotax-503-preowned', name: 'Pre-Owned Rotax 503', basePrice: 0, priceTbd: true, image: '/images/engines/rotax-503.jpg', infoUrl: 'https://www.rotax.com/', description: 'Pre-owned Rotax 503 two-stroke option for budget-conscious builds.' },
-    { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.rotax.com/aircraft-engines/rotax-912-series/912-uls-s.html', description: vanguardEngineDesc('Rotax 912') },
-    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg', infoUrl: 'https://www.skyengines.com/rmz500/?lang=en', description: vanguardEngineDesc('RMZ500') },
+    { id: 'rotax-912', name: 'Rotax 912 ULS (80HP)', basePrice: 25000, image: '/images/engines/rotax-912.jpg', infoUrl: 'https://www.flyrotax.com/products/912-uls-s', description: vanguardEngineDesc('Rotax 912') },
+    { id: 'RMZ500', name: 'RMZ500 (Rotax 503 compatible)', basePrice: 15000, image: '/images/engines/rmz500.jpg', infoUrl: 'https://planeandpilotmag.com/whats-affordable-in-2022-a-new-503-wheeled-carriages-and-two-place-ppgs/', description: vanguardEngineDesc('RMZ500') },
     { id: 'simonini-v2', name: 'Simonini Victor 2 Super (112HP)', basePrice: 12000, image: '/images/engines/simonini-v2.jpg', infoUrl: 'https://www.simonini-flying.com/en/home/127-victor-2.html', description: vanguardEngineDesc('Simonini Victor 2 Super') },
-    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg', infoUrl: 'https://hirthengines.com/3503-liquid-cooled-70hp-two-stroke-engine/', description: `${vanguardEngineDesc('Hirth 3503')} Note: factory production in Russia may be limited due to ongoing geopolitical conditions — confirm availability with Wing Concept.` },
+    { id: 'hirth-3503', name: 'Hirth 3503 (70HP)', basePrice: 11000, image: '/images/engines/hirth-3503.jpg', infoUrl: 'https://hirthengines.com/3503-liquid-cooled-70hp-two-stroke-engine/', description: vanguardEngineDesc('Hirth 3503') },
   ],
   chassisTypes: [
     {
@@ -189,9 +189,10 @@ export default function ConfiguratorPage() {
     return buildOptionGallery(previewOption.id, previewOption.image, PRODUCT_IMAGES)
   }, [previewOption, step])
 
+  // Aún no hay renders por tipo de chasis: se muestra la galería del color elegido (3+ fotos)
   const selectChassisType = (id) => {
     setSelectedChassisType(id)
-    setPreviewOption({ id, image: VANGUARD_HERO_IMAGE })
+    setPreviewOption(chassisColorPreviewOption('vanguard', selectedColorId, VANGUARD_HERO_IMAGE))
   }
 
   const selectEngine = (id) => {
@@ -222,7 +223,7 @@ export default function ConfiguratorPage() {
         setPreviewOption(chassisColorPreviewOption('vanguard', selectedColorId, VANGUARD_HERO_IMAGE))
         break
       case 1:
-        setPreviewOption({ id: selectedChassisType, image: VANGUARD_HERO_IMAGE })
+        setPreviewOption(chassisColorPreviewOption('vanguard', selectedColorId, VANGUARD_HERO_IMAGE))
         break
       case 2: {
         const eng = CONFIG_OPTIONS.engines.find((e) => e.id === selectedEngine)
