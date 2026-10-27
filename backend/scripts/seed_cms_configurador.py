@@ -241,10 +241,10 @@ SITE_BLOCKS = [
 VANGUARD_OPCIONES = [
     ("engine", "no-engine", "No Engine", "Chassis only — add an engine later.", 0, None, {}),
     ("engine", "rotax-503-preowned", "Pre-Owned Rotax 503", "Pre-owned Rotax 503 two-stroke option for budget-conscious builds.", 0, "/images/engines/rotax-503.jpg", {"infoUrl": "https://www.rotax.com/", "price_tbd": True}),
-    ("engine", "rotax-912", "Rotax 912 ULS (80HP)", "Four-stroke liquid-cooled aviation engine — the benchmark for reliability and long service life.", 25000, "/images/engines/rotax-912.jpg", {"infoUrl": "https://www.flyrotax.com/products/912-uls-s", "power": "80 HP"}),
-    ("engine", "RMZ500", "RMZ500 (Rotax 503 compatible)", "Rotax 503-compatible powerplant option for proven two-stroke performance on the Vanguard platform.", 15000, "/images/engines/rmz500.jpg", {}),
-    ("engine", "simonini-v2", "Simonini Victor 2 Super (112HP)", "High-output two-stroke engine for performance-focused pilots who need maximum thrust.", 12000, "/images/engines/simonini-v2.jpg", {"infoUrl": "https://www.simonini-flying.com/en/home/127-victor-2.html", "power": "112 HP"}),
-    ("engine", "hirth-3503", "Hirth 3503 (70HP)", "Compact 70 HP two-stroke engine with an excellent power-to-weight ratio for trike operations.", 11000, "/images/engines/hirth-3503.jpg", {"power": "70 HP"}),
+    ("engine", "rotax-912", "Rotax 912 ULS (80HP)", "The Rotax 912 UL|A|F is an 80-horsepower (59.6 kW), four-cylinder, four-stroke aircraft piston engine featuring a hybrid liquid/air-cooling system, integrated reduction gearbox, and dual electronic ignition. The designation covers uncertified and specific airworthiness-certified variants used widely in light sport and experimental aviation.", 25000, "/images/engines/rotax-912.jpg", {"infoUrl": "https://www.flyrotax.com/products/912-uls-s", "power": "80 HP"}),
+    ("engine", "RMZ500", "RMZ500 (Rotax 503 compatible)", "The RMZ500 (Rotax 503 clone) is a 497 cc, two-stroke, twin-cylinder, air-cooled aircraft engine built in Russia. It serves as a direct, compatible clone of the classic, out-of-production Rotax 503, producing roughly 50 to 52 horsepower at 6,000 rpm and weighing about 34 kg (75 lbs). Note: the factory in Russia may not produce it again due to the war — please confirm availability with Wing Concept.", 15000, "/images/engines/rmz500.jpg", {"infoUrl": "https://planeandpilotmag.com/whats-affordable-in-2022-a-new-503-wheeled-carriages-and-two-place-ppgs/"}),
+    ("engine", "simonini-v2", "Simonini Victor 2 Super (112HP)", "A powerful, very reliable and lightweight two-stroke engine weighing 52 kg with an excellent TBO of 1200 hours. Its great power means it is not necessary to run the engine at high RPMs. Its static thrust reaches 160 kg, which makes it very impressive.", 12000, "/images/engines/simonini-v2.jpg", {"infoUrl": "https://www.simonini-flying.com/en/home/127-victor-2.html", "power": "112 HP"}),
+    ("engine", "hirth-3503", "Hirth 3503 (70HP)", "The 35 Series liquid-cooled two-stroke engines offer the maximum power-to-weight ratios available in the 70-horsepower market — an ideal choice for light and ultralight aviation, hovercraft, gyro and helicopters, and all applications where weight could be an issue. Time between overhauls of 1000 hours at 75% power.", 11000, "/images/engines/hirth-3503.jpg", {"power": "70 HP", "infoUrl": "https://hirthengines.com/3503-liquid-cooled-70hp-two-stroke-engine/"}),
     ("chassis_type", "commercial", "Commercial", "Designed for tandem flying. The passenger has easy access from the front. The harness positions the passenger deep inside the trike for safety.", 0, "/images/chassis/commercial.jpg", {}),
     ("chassis_type", "adventure", "Adventure", "For pilots who want to fly fast with a dynamic style — more penetration, less drag. Ideal for adventurers with optional camera mount.", 0, "/images/chassis/adventure.jpg", {}),
     ("chassis_type", "reportage", "Reportage", "Stable platform for aerial photography and filming. Optional weapon mount with full left or right-hand access.", 0, "/images/chassis/reportage.jpg", {}),
@@ -254,23 +254,25 @@ VANGUARD_OPCIONES = [
     ("color", "candy-red-white", "Candy Red & White", None, 0, None, {"hex": "#e74c3c", "accent": "#ffffff", "displayName": "Candy Red & White"}),
     ("color", "candy-blue-white", "Candy Blue & White", None, 0, None, {"hex": "#3498db", "accent": "#ffffff", "displayName": "Candy Blue & White"}),
     ("color", "candy-purple-white", "Candy Purple & White", None, 0, None, {"hex": "#9b59b6", "accent": "#ffffff", "displayName": "Candy Purple & White"}),
-    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "Protects the pilot from the sun and prevents paraglider lines from tangling with equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
-    ("accessory", "front-bar-protection", "Padded Roll Bar Protector with Handles", "Protects the passenger and provides comfortable handles.", 47, "/images/parts/front-bar-protection.png", {}),
-    ("accessory", "front-brake", "Front Brake", "Additional cable brake providing extra braking power.", 120, "/images/parts/front-fork.png", {}),
-    ("accessory", "rear-mirror", "Rear Mirror", "Essential for viewing wing position during takeoff.", 25, "/images/parts/rear-mirror.png", {}),
-    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover for trailering.", 105, "/images/parts/cockpit-liner.png", {}),
-    ("accessory", "parachute-container", "Parachute Container", "Exclusive container for mounting on harnesses.", 55, "/images/parts/parachute-container.png", {}),
-    ("accessory", "lateral-bag", "Two Side Explorer Cases (L-R)", "Pair of aerodynamic side cases with extra straps.", 95, "/images/parts/lateral-bag-explorer.png", {}),
-    ("accessory", "cruise-control", "Cruise Control", "Maintains desired RPM for stable, smooth flight.", 25, "/images/parts/cruise-control.png", {}),
-    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "Hydration bladder setup for long-endurance flights.", 25, "/images/parts/passenger-harness.png", {}),
-    ("accessory", "fuel-gauge-vanguard", "Analog Fuel Gauge (Vanguard)", "Analog fuel gauge for the Vanguard L-shaped tank.", 119, "/images/parts/fuel-gauge-vanguard.png", {}),
-    ("accessory", "auxiliary-lights", "Auxiliary Lights Kit", "LED lights, position indicators, switch and wiring.", 187.10, "/images/parts/auxiliary-lights.png", {}),
-    ("accessory", "instrument-kit", "Basic Instrument Kit (Vanguard)", "TTO digital gauges and 4-port USB charger.", 340, "/images/parts/instrument-kit-vanguard.png", {}),
-    ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
-    ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/carabiners.png", {}),
-    ("accessory", "propeller-guard", "External Propeller Guard", "Prevents wing or lines from entering the propeller.", 295, "/images/parts/pilot-dynamic-cage.png", {}),
-    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/reserve-chute-1.jpg", {}),
-    ("accessory", "accelerator-pedal", "Radiant RM 18E 82 Accelerator Pedal", "Improved pedal design for weight distribution and safety.", 0, "/images/parts/accelerator-pedal.png", {"price_tbd": True}),
+    # Accesorios: orden/nombres del cliente (Drive "ACCESORIOS PARA TRIKES" = frontend/lib/trikeConfiguratorAccessories.js).
+    # Precios: los que ya tenía el seed (no se cambian sin pedido explícito).
+    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified for heavy trike flying and light enough for real adventures. APCO has manufactured over 40,000 life-saving devices since 1984. Mayday 28 UL handles loads up to 400 kg (340 kg EN tested).", 1528, "/images/parts/reserve-chute-1.jpg", {}),
+    ("accessory", "parachute-container", "Parachute Container", "Highly resistant to sunlight and abrasion. Mounts on the right or left side of the pilot harness for easy deployment.", 55, "/images/parts/parachute-container.png", {}),
+    ("accessory", "sun-roof-netting", "Vanguard Sunshade Net or Sunscreen", "Protects the pilot from the sun during sideways descent and prevents lines from tangling with the helmet or trike equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
+    ("accessory", "front-bar-protection", "Padded Roll Bar Protector with Handles", "Protects the passenger and provides comfortable handles; front bars are padded for a robust look.", 47, "/images/parts/front-bar-protection.png", {}),
+    ("accessory", "front-brake", "Front Brake", "Additional cable brake providing extra braking power — conventional mountain-bike derived system.", 120, "/images/parts/front-fork.png", {}),
+    ("accessory", "rear-mirror", "Rear Mirror", "Essential for viewing wing position during the first quarter of lift on takeoff.", 25, "/images/parts/rear-mirror.png", {}),
+    ("accessory", "cockpit-liner", "Vanguard Protector Cover", "Covers essential parts for trailering without creating drag. Does not cover the propeller ring.", 105, "/images/parts/cockpit-liner.png", {}),
+    ("accessory", "lateral-bag", "Vanguard Two (2) Side Explorer Cases (L-R)", "Aerodynamic side cases with extra straps for rods, tents, fuel, etc. without using internal space.", 95, "/images/parts/lateral-bag-explorer.png", {}),
+    ("accessory", "cruise-control", "Cruise Control", "Maintains desired RPM for stable, smooth long-distance flight.", 25, "/images/parts/cruise-control.png", {}),
+    ("accessory", "fuel-gauge-vanguard", "Vanguard Fuel Gauge", "Analog gauge for the L-shaped 17-gal tank — when empty, approximately 10 liters remain on reserve.", 119, "/images/parts/fuel-gauge-vanguard.png", {}),
+    ("accessory", "auxiliary-lights", "Auxiliary Lights Kit", "Two UP67 waterproof LED lights, position indicators, luxury switch, wiring and relay. Highly recommended with the electrical installation kit.", 187.10, "/images/parts/auxiliary-lights.png", {}),
+    ("accessory", "instrument-kit", "Basic Instruments Kit", "TTO digital RPM, spark plug temperature, coolant temperature gauges, and 4-port USB charger.", 340, "/images/parts/instrument-kit-vanguard.png", {}),
+    ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, and full wiring harness for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
+    ("accessory", "carabiners", "Two (2) Carabiners", "High-capacity steel carabiners (2.4 kN each) for maximum safety.", 90, "/images/parts/carabiners.png", {}),
+    ("accessory", "propeller-guard", "External Propeller Guard", "Prevents wing or lines from entering the propeller. Ideal for schools and beginners.", 295, "/images/parts/pilot-dynamic-cage.png", {}),
+    ("accessory", "phone-holder", "New Phone Holder", "Compression grip holds any mobile phone firmly — perfect for passenger harness use.", 35, None, {}),
+    ("accessory", "line-protector", "New Wheel Line Protector", "While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.", 35, None, {}),
 ]
 
 NOMADIC_OPCIONES = [
@@ -289,21 +291,25 @@ NOMADIC_OPCIONES = [
     ("color", "candy-red-white", "Candy Red & White", None, 0, None, {"hex": "#e74c3c", "accent": "#ffffff", "displayName": "Candy Red & White"}),
     ("color", "candy-blue-white", "Candy Blue & White", None, 0, None, {"hex": "#3498db", "accent": "#ffffff", "displayName": "Candy Blue & White"}),
     ("color", "candy-purple-white", "Candy Purple & White", None, 0, None, {"hex": "#9b59b6", "accent": "#ffffff", "displayName": "Candy Purple & White"}),
-    ("accessory", "sun-roof-netting", "Sun-Roof Netting", "Protects the pilot from the sun and prevents paraglider lines from tangling with equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
-    ("accessory", "cruise-control", "Cruise Control", "Maintains desired RPM for stable, smooth flight.", 25, "/images/parts/cruise-control.png", {}),
-    ("accessory", "camel-back", "Camel Back for Pilot Hydration", "Hydration bladder setup for long-endurance flights.", 25, "/images/parts/passenger-harness.png", {}),
-    ("accessory", "lateral-bag-explorer", "Lateral Bag Explorer", "Side-mounted storage bag for cross-country exploration.", 85, "/images/parts/lateral-bag-explorer.png", {}),
-    ("accessory", "cockpit-liner", "Passenger & Pilot Cockpit Protective Liner", "Protective travel cover for trailering.", 105, "/images/parts/cockpit-liner.png", {}),
-    ("accessory", "bottom-explorer-bag", "Bottom Explorer Bag", "Bottom-mounted adventure bag for long expeditions.", 125, "/images/parts/bottom-explorer-bag.png", {}),
-    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified heavy-duty emergency reserve parachute.", 1528, "/images/parts/reserve-chute-1.jpg", {}),
-    ("accessory", "rock-guard", "Rock Guard", "Protects propeller tips from stones and sand at takeoff.", 85, "/images/parts/pilot-dynamic-cage.png", {}),
-    ("accessory", "front-bar-protection", "Padded Roll Bar with Handles", "Protects the passenger and provides comfortable handles.", 47, "/images/parts/front-bar-protection.png", {}),
-    ("accessory", "front-brake", "Front Disc Brake", "Additional braking power for safer stops on the ground.", 120, "/images/parts/front-fork.png", {}),
-    ("accessory", "rear-mirror", "Rear Mirror", "Essential for viewing wing position during takeoff.", 25, "/images/parts/rear-mirror.png", {}),
-    ("accessory", "auxiliary-lights", "Auxiliary Lights Kit", "LED lights, position indicators, switch and wiring.", 187.10, "/images/parts/auxiliary-lights.png", {}),
-    ("accessory", "instrument-kit", "Basic Instrument Kit (Nomadic)", "USB charger and 3 TTO digital sensors.", 350, "/images/parts/instrument-kit-nomadic.png", {}),
-    ("accessory", "electrical-kit", "Complete Electrical Installation Kit", "Full wiring harness for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
-    ("accessory", "carabiners", "Two Carabiners", "High-capacity steel carabiners (2.4 kN each).", 90, "/images/parts/carabiners.png", {}),
+    # Accesorios: orden/nombres del cliente (Drive "ACCESORIOS PARA TRIKES" = frontend/lib/trikeConfiguratorAccessories.js).
+    # Precios: los que ya tenía el seed (no se cambian sin pedido explícito).
+    ("accessory", "reserve-chute", "Reserve Parachute — APCO Mayday UL28", "Certified for heavy trike flying and light enough for real adventures. APCO has manufactured over 40,000 life-saving devices since 1984. Mayday 28 UL handles loads up to 400 kg (340 kg EN tested).", 1528, "/images/parts/reserve-chute-1.jpg", {}),
+    ("accessory", "parachute-container", "Parachute Container", "Highly resistant to sunlight and abrasion. Mounts on the right or left side of the pilot harness for easy deployment.", 65, None, {}),
+    ("accessory", "rock-guard", "Nomadic Rock Guard", "1/2-inch U-shaped stainless steel tube with laser-cut side plates and mesh — protects propeller tips from stones, sand, and branches during takeoff, taxiing, and landing.", 85, "/images/parts/pilot-dynamic-cage.png", {}),
+    ("accessory", "sun-roof-netting", "Sunshade Net or Sunscreen", "Protects the pilot from the sun during sideways descent and prevents lines from tangling with the helmet or trike equipment.", 43, "/images/parts/sun-roof-netting.png", {}),
+    ("accessory", "front-bar-protection", "Padded Roll Bar Protector with Handles", "Protects the passenger and provides comfortable handles; front bars are padded for a robust look.", 47, "/images/parts/front-bar-protection.png", {}),
+    ("accessory", "front-brake", "Front Brake", "Additional cable brake providing extra braking power — conventional mountain-bike derived system.", 120, "/images/parts/front-fork.png", {}),
+    ("accessory", "rear-mirror", "Rear Mirror", "Essential for viewing wing position during the first quarter of lift on takeoff.", 25, "/images/parts/rear-mirror.png", {}),
+    ("accessory", "cockpit-liner", "Nomadic Protective Cover", "Covers essential parts like the passenger/pilot cabin and engine for trailering without creating drag. Does not cover the propeller ring.", 105, "/images/parts/cockpit-liner.png", {}),
+    ("accessory", "bottom-explorer-bag", "Nomadic Explorer Bag", "Designed for the Disruptor paratrike — carry camping gear, sleeping mats, and excursion accessories for adventure flying.", 125, "/images/parts/bottom-explorer-bag.png", {}),
+    ("accessory", "lateral-bag-explorer", "Nomadic Two (2) Side Explorer Cases (L-R)", "Aerodynamic side cases with extra straps for rods, tents, fuel, etc. without using internal space.", 85, "/images/parts/lateral-bag-explorer.png", {}),
+    ("accessory", "auxiliary-lights", "Auxiliary Lights Kit", "Two UP67 waterproof LED lights (white, yellow, strobe), red/green position indicators, luxury switch, wiring and relay — installed inside the structure. Highly recommended with the electrical installation kit.", 187.10, "/images/parts/auxiliary-lights.png", {}),
+    ("accessory", "instrument-kit", "Nomadic Basic Instruments Kit", "TTO digital RPM, spark plug temperature, coolant temperature gauges, and 4-port USB charger. Highly recommended with the engine electrical kit.", 350, "/images/parts/instrument-kit-nomadic.png", {}),
+    ("accessory", "electrical-kit", "Complete Electrical Installation Kit (Vittorazi Zeus & Simonini Victor 1 Super)", "Regulator/rectifier, relays, starter solenoid, magneto test buttons, master switch, wiring harness and connectors for the selected engine.", 218.20, "/images/parts/electrical-kit.png", {}),
+    ("accessory", "carabiners", "Two (2) Carabiners", "High-capacity steel carabiners (2.4 kN each — over two tons) for maximum safety.", 90, "/images/parts/carabiners.png", {}),
+    ("accessory", "propeller-guard", "Nomadic External Propeller Guard", "Prevents wing or lines from entering the propeller. Ideal for schools and pilots learning wing control.", 295, None, {}),
+    ("accessory", "phone-holder", "New Phone Holder", "Compression grip holds any mobile phone firmly — perfect for passenger harness use with tether loop for security.", 35, None, {}),
+    ("accessory", "line-protector", "New Wheel Line Protector", "While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.", 35, None, {}),
 ] + NOMADIC_HAND_THROTTLE_ROWS
 
 
@@ -312,11 +318,33 @@ async def _producto_exists(db: AsyncSession, producto_id: uuid.UUID) -> bool:
     return result.scalar_one_or_none() is not None
 
 
-async def _upsert_opciones(db: AsyncSession, producto_id: uuid.UUID, rows: list, start_orden: int = 0) -> None:
-    """Inserta o actualiza opciones Disruptor por (producto_id, grupo, slug)."""
+async def _upsert_opciones(
+    db: AsyncSession,
+    producto_id: uuid.UUID,
+    rows: list,
+    start_orden: int = 0,
+    prune_groups: tuple = (),
+) -> None:
+    """Inserta o actualiza opciones por (producto_id, grupo, slug).
+
+    prune_groups: grupos cuya lista es la definitiva — las filas del grupo que no
+    estén en `rows` se desactivan (p. ej. accesorios viejos o duplicados).
+    """
     if not await _producto_exists(db, producto_id):
         print(f"  ⚠ Producto {producto_id} no encontrado — omitiendo opciones del configurador")
         return
+    for grupo in prune_groups:
+        keep = [slug for g, slug, *_ in rows if g == grupo]
+        result = await db.execute(
+            select(ConfiguradorOpcion).where(
+                ConfiguradorOpcion.producto_id == producto_id,
+                ConfiguradorOpcion.grupo == grupo,
+                ConfiguradorOpcion.slug.not_in(keep),
+                ConfiguradorOpcion.activo.is_(True),
+            )
+        )
+        for op in result.scalars().all():
+            op.activo = False
     for i, (grupo, slug, nombre, desc, precio, imagen, extra) in enumerate(rows):
         result = await db.execute(
             select(ConfiguradorOpcion).where(
@@ -413,8 +441,8 @@ async def seed_cms_data(db: AsyncSession) -> None:
                     producto.imagenes = contenido["gallery"]
             producto.contenido_extra = merged
 
-    await _upsert_opciones(db, VANGUARD_ID, VANGUARD_OPCIONES)
-    await _upsert_opciones(db, NOMADIC_ID, NOMADIC_OPCIONES)
+    await _upsert_opciones(db, VANGUARD_ID, VANGUARD_OPCIONES, prune_groups=("accessory",))
+    await _upsert_opciones(db, NOMADIC_ID, NOMADIC_OPCIONES, prune_groups=("accessory",))
     await _upsert_opciones(db, DISRUPTOR_PARAMOTOR_ID, DISRUPTOR_PARAMOTOR_OPCIONES)
     await _upsert_opciones(db, DISRUPTOR_TRIKE_ID, DISRUPTOR_TRIKE_OPCIONES)
     await db.commit()
