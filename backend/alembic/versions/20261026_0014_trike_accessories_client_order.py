@@ -5,8 +5,8 @@ Revises: 20260826_0013
 Create Date: 2026-10-26
 
 Accesorios de Vanguard y Nomadic en el orden del cliente (carpetas de Drive
-"ACCESORIOS PARA TRIKES", doc "Arregloswing" sep 2026): orden, nombre, precio y
-descripción. Las filas que no están en la lista (duplicados como "Mirror",
+"ACCESORIOS PARA TRIKES", doc "Arregloswing" sep 2026): orden, nombre y
+descripción. Los precios existentes NO se tocan (solo filas nuevas usan el precio de la lista). Las filas que no están en la lista (duplicados como "Mirror",
 "Engine wiring kit", pedales sin precio…) se desactivan, no se borran.
 La lista debe coincidir con frontend/lib/trikeConfiguratorAccessories.js.
 """
@@ -76,7 +76,7 @@ def _sync(conn, producto_id: str, items) -> None:
         params = {"p": producto_id, "slug": slug, "nombre": nombre, "precio": precio, "descripcion": descripcion, "orden": orden}
         updated = conn.execute(sa.text("""
             UPDATE configurador_opciones
-            SET nombre = :nombre, precio = :precio, descripcion = :descripcion,
+            SET nombre = :nombre, descripcion = :descripcion,
                 orden = :orden, activo = true, updated_at = NOW()
             WHERE producto_id = CAST(:p AS uuid) AND grupo = 'accessory' AND slug = :slug
         """), params)

@@ -77,16 +77,6 @@ const DEFAULT_OPTIONS = {
   accessories: VANGUARD_CONFIGURATOR_ACCESSORIES,
 }
 
-/** Doc Vanguard §4: con Simonini Victor 2 Super o Rotax 912 la hélice sube $250 (2 palas) / $300 (3 palas). */
-const HIGH_POWER_ENGINE_IDS = ['simonini-v2', 'rotax-912']
-const HIGH_POWER_PROPELLER_SURCHARGE = { bipala: 250, tripala: 300 }
-
-function propellerPriceFor(prop, engineId) {
-  if (!prop) return 0
-  const surcharge = HIGH_POWER_ENGINE_IDS.includes(engineId) ? (HIGH_POWER_PROPELLER_SURCHARGE[prop.id] || 0) : 0
-  return (prop.price || 0) + surcharge
-}
-
 const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
 const PARAGLIDER_STEP = 4
 
@@ -144,10 +134,10 @@ export default function ConfiguratorPage() {
   const totalPrice = useMemo(() => {
     const baseChassis = basePrice ?? 5950.25
     const enginePrice = engine?.basePrice || 0
-    const propellerPrice = propellerPriceFor(propeller, selectedEngine)
+    const propellerPrice = propeller?.price || 0
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
     return baseChassis + enginePrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
-  }, [engine, propeller, selectedEngine, paragliderPrice, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
+  }, [engine, propeller, paragliderPrice, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
 
   const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
@@ -161,7 +151,7 @@ export default function ConfiguratorPage() {
       priceLabel: engine?.priceTbd ? 'Price on request' : undefined,
     })
     if (engineLine) lines.push(engineLine)
-    const propLine = formatQuoteLine('Propeller', propeller?.name, propellerPriceFor(propeller, selectedEngine))
+    const propLine = formatQuoteLine('Propeller', propeller?.name, propeller?.price)
     if (propLine) lines.push(propLine)
     appendParagliderQuoteLines(lines)
     selectedAccessoryItems.forEach((a) => {
@@ -177,7 +167,7 @@ export default function ConfiguratorPage() {
     if (propeller?.image) lines.push(formatQuoteImageLine(propeller.name, propeller.image))
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, chassisType, engine, propeller, selectedEngine, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
+  }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
@@ -455,7 +445,7 @@ export default function ConfiguratorPage() {
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
                       {CONFIG_OPTIONS.propellers.map(p => {
-                        const price = propellerPriceFor(p, selectedEngine)
+                        const price = p.price || 0
                         return (
                           <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
                             <div className="flex justify-between items-center pr-8">
@@ -463,9 +453,6 @@ export default function ConfiguratorPage() {
                               <p className="text-sm text-ink2">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</p>
                             </div>
                             <p className="text-sm text-ink2 mt-1">{p.description}</p>
-                            {price > (p.price || 0) && (
-                              <p className="text-xs text-ink2 mt-1">Includes +${(price - p.price).toLocaleString()} for the {engine?.name} engine.</p>
-                            )}
                             {selectedPropeller === p.id && p.infoUrl && (
                               <a
                                 href={p.infoUrl}
@@ -535,7 +522,7 @@ export default function ConfiguratorPage() {
                       <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
-                      <SummaryRow label="Propeller" value={propeller?.name} price={propellerPriceFor(propeller, selectedEngine)} />
+                      <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
                       {paraglider && (
                         <>
                           <SummaryRow label="Paraglider" value={paragliderDisplayName(paraglider)} price={paraglider.price} />
