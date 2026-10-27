@@ -4,14 +4,14 @@
 # ============================================================
 
 # --- Framework principal ---
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.31
 
 # --- Validación y configuración ---
-pydantic==2.5.0
-pydantic-settings==2.1.0
-email-validator==2.1.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+email-validator>=2.2.0
 phonenumbers==8.13.26
 
 # --- Base de datos (PostgreSQL via Supabase) ---
@@ -23,17 +23,17 @@ alembic==1.12.1
 
 # --- Cache / Sesiones / Rate Limiting (Redis) ---
 redis==5.0.1
-hiredis==2.2.3
+hiredis>=2.3.2,<4
 
 # --- Autenticación JWT ---
-# Se usa junto con SECRET_KEY de .env
-python-jose[cryptography]==3.3.0
+# Se usa junto con SECRET_KEY de .env (python-jose se reemplazó por PyJWT: sin parche para sus CVE)
+PyJWT>=2.15.0
 # bcrypt directo (ver app/core/security.py) — evitar passlib obsoleto
 bcrypt>=4.0.1,<5.0.0
 
 # --- HTTP Client (para llamadas a APIs externas) ---
 httpx==0.25.2
-requests==2.31.0
+requests>=2.33.0
 
 # --- Pasarela de pagos: Stripe (USD) ---
 # Documentación: https://stripe.com/docs/api
@@ -43,27 +43,27 @@ stripe==9.0.0
 # --- Email transaccional: Resend ---
 # Documentación: https://resend.com/docs
 # Requiere: RESEND_API_KEY, FROM_EMAIL
-resend==0.7.0
+resend==2.50.0  # 0.7.0 fijaba requests==2.31.0 (con fallos conocidos)
 
 # --- Utilidades ---
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 pytz==2023.3
 python-slugify==8.0.1
-Pillow==10.1.0
+Pillow>=13.0.0
 
 # --- Logging estructurado ---
 structlog==23.2.0
 
 # --- Observabilidad (opcional — activar con SENTRY_DSN en .env) ---
-sentry-sdk[fastapi]==1.39.2
+sentry-sdk[fastapi]==1.45.1
 
 # --- Testing ---
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
+pytest>=9.0.3
+pytest-asyncio>=1.0.0
+pytest-cov>=6.0.0
 
 # --- Calidad de código ---
-black==23.12.0
+black>=26.10.1
 flake8==6.1.0
 mypy==1.7.1
 
@@ -75,3 +75,7 @@ mypy==1.7.1
 
 
 
+
+# Mínimos de seguridad para dependencias transitivas
+urllib3>=2.8.0
+certifi>=2026.10.19
