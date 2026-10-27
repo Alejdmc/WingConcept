@@ -1,20 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowLeft, Check, ExternalLink, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Check, ExternalLink, ShoppingCart, SlidersHorizontal } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import ParagliderSpecSheet from '@/components/configurator/ParagliderSpecSheet'
 import { useCart } from '@/hooks/useCart'
 import { loadParaglidersPageCatalog } from '@/lib/loadParaglidersCatalog'
-import { resolveParagliderColorLabel } from '@/lib/trikeParagliderOptions'
+import WingStudio, { toStudioWing, wingCardImage } from '@/components/paragliders/WingStudio'
 import {
   PARAGLIDER_TABS,
   PARAGLIDER_EXAMPLE,
   PG_FREE_WINGS,
   PARAGLIDER_ACCESSORIES,
 } from '@/lib/paraglidersContent'
+
+const PG_FREE_ITEMS = PG_FREE_WINGS.map((w) => ({ ...w, category: 'PG Free' }))
 
 export default function ParaglidersPage() {
   const [activeTab, setActiveTab] = useState('ppg')
@@ -113,7 +115,7 @@ export default function ParaglidersPage() {
               <p className="text-ink2 text-lg mb-10 max-w-3xl">{tab.description}</p>
 
               {activeTab === 'pg-free' && (
-                <WingGrid items={PG_FREE_WINGS.map((w) => ({ ...w, category: 'PG Free' }))} />
+                <WingGrid items={PG_FREE_ITEMS} />
               )}
 
               {activeTab === 'ppg' && (
@@ -200,19 +202,25 @@ function WingCard({ item, showConfiguratorLink }) {
   const { addToCart } = useCart()
   const [status, setStatus] = useState('idle')
   const [addError, setAddError] = useState('')
-  const colors = item.colors?.length ? item.colors : []
-  const sizes = item.sizes?.length ? item.sizes : ['Standard']
-  const [colorId, setColorId] = useState(colors[0]?.id || 'standard')
-  const [size, setSize] = useState(sizes[0] || 'Standard')
+  const wing = useMemo(() => toStudioWing(item), [item])
+  const [colorId, setColorId] = useState(wing.colors[0]?.id || '')
+  const [size, setSize] = useState(wing.sizes.length === 1 ? wing.sizes[0] : '')
+  const [studioOpen, setStudioOpen] = useState(false)
 
   const hasPrice = typeof item.price === 'number' && item.price > 0
   const canAddToCart = Boolean(item.productoId) && hasPrice
   const price = item.priceLabel || (hasPrice ? `$${item.price.toLocaleString()}` : 'Contact for price')
-  const showColorPicker = colors.length > 1
-  const showSizePicker = sizes.length > 1 || (sizes.length === 1 && sizes[0] !== 'Standard')
+  const cardImage = wingCardImage(wing, colorId) || '/images/front1.jpg'
+  const needsSize = wing.sizes.length > 1 && !size
 
   const handleAdd = async () => {
     if (!item.productoId) return
+    if (needsSize) {
+      setAddError('Please choose a size.')
+      setStatus('error')
+      setStudioOpen(true)
+      return
+    }
     setStatus('loading')
     setAddError('')
     try {
@@ -233,51 +241,122 @@ function WingCard({ item, showConfiguratorLink }) {
     }
   }
 
+  const cartButton = canAddToCart ? (
+    <button
+      type="button"
+      onClick={handleAdd}
+      disabled={status === 'loading'}
+      className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all w-full">
+      {status === 'added' ? (
+        <>
+          <Check className="w-4 h-4" /> Added
+        </>
+      ) : status === 'error' ? (
+        <>Try again</>
+      ) : (
+        <>
+          <ShoppingCart className="w-4 h-4" />
+          {status === 'loading' ? 'Adding...' : 'Add to Cart'}
+        </>
+      )}
+    </button>
+  ) : hasPrice ? (
+    <button
+      type="button"
+      disabled
+      className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-bg2 text-ink2 font-black uppercase tracking-wide text-xs w-full cursor-not-allowed">
+      <ShoppingCart className="w-4 h-4 opacity-50" />
+      Unavailable
+    </button>
+  ) : (
+    <Link
+      href="/contact"
+      className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand text-brand font-black uppercase tracking-wide text-xs hover:bg-brand-soft transition-all w-full">
+      Contact Us
+    </Link>
+  )
+
+  const errorLine = status === 'error' && canAddToCart && (
+    <p className="text-red-600 text-xs font-semibold mt-2">{addError || 'Could not add to cart.'}</p>
+  )
+
   return (
     <div className="bg-bg2 border border-borderline rounded-xl overflow-hidden hover:border-brand transition group flex flex-col">
-      <div className="relative aspect-[4/3] bg-white">
+      <button
+        type="button"
+        onClick={() => setStudioOpen(true)}
+        className="relative aspect-[4/3] bg-white cursor-zoom-in"
+        aria-label={`Customize ${wing.brand} ${wing.name}`}>
         <SafeImage
-          src={item.image || '/images/front1.jpg'}
+          src={cardImage}
           alt={`${item.brand || ''} ${item.name}`.trim()}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
         />
-      </div>
+      </button>
       <div className="p-5 flex flex-col flex-1">
         <p className="text-[10px] font-bold uppercase tracking-wide text-brand mb-1">{item.category || item.brand}</p>
         <h3 className="font-black uppercase text-ink">{item.brand ? `${item.brand} ${item.name}` : item.name}</h3>
         {item.description && <p className="text-ink2 text-sm mt-2 leading-relaxed line-clamp-3">{item.description}</p>}
         <p className="text-lg font-black text-brand mt-3">{price}</p>
 
-        {canAddToCart && showColorPicker && (
-          <label className="mt-3 block">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-ink2">Color</span>
-            <select
-              value={colorId}
-              onChange={(e) => setColorId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-borderline bg-white px-3 py-2 text-sm text-ink">
-              {colors.map((c) => (
-                <option key={c.id} value={c.id}>{c.name || resolveParagliderColorLabel(item, c.id) || c.id}</option>
-              ))}
-            </select>
-          </label>
+        {wing.colors.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-ink2 mb-1.5">
+              Color: <span className="text-ink">{wing.colors.find((c) => c.id === colorId)?.name}</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {wing.colors.map((c) => {
+                const thumb = c.thumb || c.images?.[0]?.src
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setColorId(c.id)}
+                    aria-label={c.name}
+                    aria-pressed={colorId === c.id}
+                    className={`relative h-10 w-12 overflow-hidden rounded-md border-2 bg-white transition-all ${
+                      colorId === c.id ? 'border-brand' : 'border-borderline hover:border-brand/50'
+                    }`}>
+                    {thumb ? (
+                      <SafeImage src={thumb} alt={c.name} fill sizes="48px" className="object-contain" blankOnError />
+                    ) : (
+                      <span className="absolute inset-0" style={{ backgroundColor: c.swatch }} />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         )}
 
-        {canAddToCart && showSizePicker && (
-          <label className="mt-3 block">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-ink2">Size</span>
-            <select
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-borderline bg-white px-3 py-2 text-sm text-ink">
-              {sizes.map((s) => (
-                <option key={s} value={s}>{s}</option>
+        {(wing.sizes.length > 1 || wing.sizes[0] !== 'Standard') && (
+          <div className="mt-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-ink2 mb-1.5">Size</p>
+            <div className="flex flex-wrap gap-1.5">
+              {wing.sizes.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSize(s)}
+                  aria-pressed={size === s}
+                  className={`px-2.5 py-1 rounded-md border text-xs font-bold transition-all ${
+                    size === s ? 'border-green-600 bg-green-50 text-ink' : 'border-borderline bg-white text-ink2 hover:border-brand/50'
+                  }`}>
+                  {s}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-x-3 gap-y-2 mt-4">
+          <button
+            type="button"
+            onClick={() => setStudioOpen(true)}
+            className="inline-flex items-center gap-1 text-xs font-bold uppercase text-ink hover:text-brand">
+            <SlidersHorizontal className="w-3 h-3" /> Customize
+          </button>
           {item.infoUrl && (
             <a href={item.infoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold uppercase text-brand hover:underline">
               More info <ExternalLink className="w-3 h-3" />
@@ -296,45 +375,29 @@ function WingCard({ item, showConfiguratorLink }) {
           </div>
         )}
 
-        {canAddToCart ? (
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={status === 'loading'}
-            className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand text-white font-black uppercase tracking-wide text-xs hover:bg-brand/90 disabled:opacity-50 transition-all w-full">
-            {status === 'added' ? (
-              <>
-                <Check className="w-4 h-4" /> Added
-              </>
-            ) : status === 'error' ? (
-              <>Try again</>
-            ) : (
-              <>
-                <ShoppingCart className="w-4 h-4" />
-                {status === 'loading' ? 'Adding...' : 'Add to Cart'}
-              </>
-            )}
-          </button>
-        ) : hasPrice ? (
-          <button
-            type="button"
-            disabled
-            className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-bg2 text-ink2 font-black uppercase tracking-wide text-xs w-full cursor-not-allowed">
-            <ShoppingCart className="w-4 h-4 opacity-50" />
-            Unavailable
-          </button>
-        ) : (
-          <Link
-            href="/contact"
-            className="mt-4 inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-brand text-brand font-black uppercase tracking-wide text-xs hover:bg-brand-soft transition-all w-full">
-            Contact Us
-          </Link>
-        )}
-
-        {status === 'error' && canAddToCart && (
-          <p className="text-red-600 text-xs font-semibold mt-2">{addError || 'Could not add to cart.'}</p>
-        )}
+        <div className="mt-auto pt-4">{cartButton}</div>
+        {errorLine}
       </div>
+
+      <WingStudio
+        open={studioOpen}
+        onClose={() => setStudioOpen(false)}
+        wing={wing}
+        colorId={colorId}
+        size={size}
+        onSelectColor={setColorId}
+        onSelectSize={(s) => {
+          setSize(s)
+          if (status === 'error') setStatus('idle')
+        }}
+        price={price}
+        actions={(
+          <div>
+            {cartButton}
+            {errorLine}
+          </div>
+        )}
+      />
     </div>
   )
 }

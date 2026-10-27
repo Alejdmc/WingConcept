@@ -6,8 +6,9 @@
 
 import { FALLBACK_IMAGES } from './imageDefaults'
 import { PRODUCT_IDS } from './products'
+import TRIKE_ACCESSORY_GALLERIES from './trikeAccessoryGalleries.json'
 
-export const MAX_OPTION_IMAGES = 3
+export const MAX_OPTION_IMAGES = 4
 
 const LOGO_SLOT = {
   src: FALLBACK_IMAGES.logo,
@@ -46,12 +47,13 @@ function paramotorColorTriplet(colorId) {
   return [1, 2, 3].map((n) => `/images/disruptor/colors/${colorId}-${n}.jpg`)
 }
 
-function propellerTriplet() {
-  return [
-    PROPELLER_BIPALA_IMAGE,
-    '/images/propellers/bipala-1.jpg',
-    '/images/disruptor/options/bipala-3.jpg',
-  ]
+export const PROPELLER_TRIPALA_IMAGE = '/images/propellers/tripala.jpg'
+
+/** Referencia Helix: hélice armada (2 o 3 palas), foto real y pala individual. */
+function propellerTriplet(blades) {
+  return blades === 3
+    ? [PROPELLER_TRIPALA_IMAGE, '/images/propellers/tripala-1.jpg', '/images/propellers/helix-blade.jpg']
+    : [PROPELLER_BIPALA_IMAGE, '/images/propellers/bipala-1.jpg', '/images/propellers/helix-blade.jpg']
 }
 
 /** Galerías completas (hasta 3) por slug de opción. */
@@ -83,12 +85,8 @@ export const OPTION_GALLERY_BY_ID = {
     '/images/parts/parachute-container-2.png',
     '/images/parts/parachute-container-3.png',
   ],
-  bipala: propellerTriplet(),
-  tripala: [
-    '/images/propellers/tripala.jpg',
-    '/images/propellers/tripala-1.jpg',
-    '/images/propellers/tripala-2.jpg',
-  ],
+  bipala: propellerTriplet(2),
+  tripala: propellerTriplet(3),
   'white-red-candy': paramotorColorTriplet('white-red-candy'),
   'white-purple-candy': paramotorColorTriplet('white-purple-candy'),
   'white-blue-candy': paramotorColorTriplet('white-blue-candy'),
@@ -187,9 +185,8 @@ export const NOMADIC_CONFIGURATOR_GALLERY = padGallery([
 ])
 
 export function resolvePropellerImage(optionId, primaryImage) {
-  if (optionId === 'tripala' || optionId === 'bipala') {
-    return primaryImage || PROPELLER_BIPALA_IMAGE
-  }
+  if (optionId === 'tripala') return primaryImage || PROPELLER_TRIPALA_IMAGE
+  if (optionId === 'bipala') return primaryImage || PROPELLER_BIPALA_IMAGE
   return primaryImage || null
 }
 
@@ -197,6 +194,11 @@ export function galleryPathsForOption(optionId, primaryImage, cmsGallery = null,
   if (Array.isArray(cmsGallery) && cmsGallery.length) {
     return cmsGallery.filter(Boolean).slice(0, MAX_OPTION_IMAGES)
   }
+
+  // Fotos por trike desde Drive (ACCESORIOS PARA TRIKES/ACCESORIOS VANGUARD|NOMADIC)
+  const trikeKey = productoId === PRODUCT_IDS.vanguard ? 'vanguard' : productoId === PRODUCT_IDS.nomadic ? 'nomadic' : null
+  const trikeGallery = trikeKey && TRIKE_ACCESSORY_GALLERIES[trikeKey]?.[optionId]
+  if (trikeGallery?.length) return trikeGallery
 
   const resolvedId = optionId === 'front-brake' && productoId === PRODUCT_IDS.disruptorParamotor
     ? 'disruptor-front-brake'

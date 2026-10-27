@@ -30,6 +30,18 @@
     top: var(--nav-h);
   }
 
+  /* Configurador: la galería acompaña el scroll (debajo del nav + barra "Back") */
+  .sticky-config-preview {
+    @apply lg:sticky lg:self-start lg:overflow-y-auto;
+    top: calc(var(--nav-h) + 6rem);
+  }
+
+  @media (min-width: 1024px) {
+    .sticky-config-preview {
+      max-height: calc(100vh - var(--nav-h) - 7rem);
+    }
+  }
+
   .sticky-summary {
     @apply lg:sticky;
     top: calc(var(--nav-h) + 1rem);
@@ -45,11 +57,12 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* clip (not hidden): hidden turns body into a scroll container and breaks position: sticky */
 html {
   scroll-behavior: smooth !important;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }

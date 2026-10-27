@@ -12,7 +12,7 @@ export const PARAGLIDER_TABS = [
   {
     id: 'pg-free',
     label: 'PG Free',
-    description: 'Free-flight paragliders for foot launch without engine — EN-certified wings for hike & fly, soaring, and cross-country.',
+    description: 'Dudek free-flight paragliders for foot launch without engine — EN-certified wings for hike & fly, soaring, and cross-country.',
   },
   {
     id: 'ppg',
@@ -39,32 +39,35 @@ export const PARAGLIDER_EXAMPLE = {
   priceLabel: 'Contact for price',
 }
 
-/** PG Free wings — names, brands and spec tables verified against each manufacturer's product page. */
+const PG_FREE_DIR = '/images/paragliders/pg-free'
+
+function pgImages(dir, files, label) {
+  return files.map((file, index) => ({ src: `${PG_FREE_DIR}/${dir}/${file}`, alt: `Dudek ${label} view ${index + 1}` }))
+}
+
+function pgColor(dir, id, name, label, views) {
+  const images = pgImages(dir, views.map((v) => `${id}-${v}.jpg`), `${label} ${name}`)
+  return { id, name, thumb: images[0].src, images }
+}
+
+const MARLIN_VIEWS = ['s', 'u', 'l']
+const WARP_VIEWS = ['side', 'top', 'bottom']
+
+/**
+ * PG Free wings — todas Dudek (el cliente confirmó que ninguna es de otra marca).
+ * Specs verificadas en dudek.eu/produkt/<modelo>/; fotos y colores tomados de esas mismas páginas.
+ */
 export const PG_FREE_WINGS = [
-  {
-    name: 'ULTRALITE 5', brand: 'Ozone',
-    description: 'Ultralight hike & fly / run & fly wing — the lightest certified dual-surface wing per m² of flat area.',
-    priceLabel: 'Contact for price', infoUrl: 'https://flyozone.com/paragliders/products/gliders/ultralite-5',
-    image: '/images/paragliders/pg-free/ozone-ultralite-5.jpg', sizes: ['13 m²', '15 m²', '17 m²', '19 m²', '21 m²', '23 m²', '25 m²'],
-    techSpecs: [{
-      columns: ['Ultralite 5 – size', '13', '15', '17', '19', '21', '23', '25'],
-      rows: [
-        { label: 'Number of cells', values: ['34'], spanAll: true },
-        { label: 'Flat area [m²]', values: ['12.9', '14.9', '16.9', '18.9', '20.8', '22.8', '25.1'] },
-        { label: 'Projected area [m²]', values: ['11.4', '13.1', '14.7', '16.5', '18.1', '19.9', '21.9'] },
-        { label: 'Flat span [m]', values: ['7.7', '8.2', '8.8', '9.3', '9.7', '10.2', '10.7'] },
-        { label: 'Aspect ratio (flat / projected)', values: ['4.56 / 3.4'], spanAll: true },
-        { label: 'Glider weight [kg]', values: ['1.44', '1.59', '1.76', '1.93', '2.07', '2.23', '2.41'] },
-        { label: 'In-flight weight range [kg]', values: ['55-90', '55-90', '55-90', '55-95', '55-100', '65-110', '75-120'] },
-        { label: 'Certification', values: ['–', '–', 'C', 'B', 'A', 'A', 'A'] },
-      ],
-    }],
-  },
   {
     name: 'MARLIN 2', brand: 'Dudek',
     description: 'Dedicated ground-handling training wing — stays calm in strong wind so students can train launches safely. Not certified for flight.',
     priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/produkt/marlin-2/',
-    image: '/images/paragliders/pg-free/dudek-marlin-2.jpg', sizes: ['12 m²'],
+    sizes: ['12 m²'],
+    colors: [
+      pgColor('dudek-marlin-2', 'tango', 'Tango', 'Marlin 2', MARLIN_VIEWS),
+      pgColor('dudek-marlin-2', 'samba', 'Samba', 'Marlin 2', MARLIN_VIEWS),
+      pgColor('dudek-marlin-2', 'salsa', 'Salsa', 'Marlin 2', MARLIN_VIEWS),
+    ],
     techSpecs: [{
       columns: ['Marlin 2', '12'],
       rows: [
@@ -103,7 +106,7 @@ export const PG_FREE_WINGS = [
     name: 'OPTIC 2', brand: 'Dudek',
     description: 'Three-row EN/LTF B cross-country and recreational wing with 5.5 aspect ratio and outstanding lateral stability.',
     priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/produkt/optic-2/',
-    image: '/images/paragliders/pg-free/dudek-optic-2-freeflight.jpg', sizes: ['22 m²', '24 m²', '26 m²', '28 m²', '30 m²'],
+    galleryImages: pgImages('dudek-optic-2', ['1.jpg', '2.jpg', '3.jpg'], 'Optic 2'), sizes: ['22 m²', '24 m²', '26 m²', '28 m²', '30 m²'],
     techSpecs: [{
       columns: ['Optic 2 – size', '22', '24', '26', '28', '30'],
       rows: [
@@ -123,7 +126,7 @@ export const PG_FREE_WINGS = [
     name: 'RUN&FLY 2', brand: 'Dudek',
     description: 'Record-light hike & fly wing — under 1 kg, fits in a 4-liter bag. Safe take-offs with auto-stabilization.',
     priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/produkt/runfly-2/',
-    image: '/images/paragliders/pg-free/dudek-runfly-2.jpg', sizes: ['14 m²', '16 m²', '18 m²', '20 m²'],
+    galleryImages: pgImages('dudek-runfly-2', ['1.jpg', '2.jpg', '3.jpg'], 'Run&Fly 2'), sizes: ['14 m²', '16 m²', '18 m²', '20 m²'],
     techSpecs: [{
       columns: ['Run&Fly 2 – size', '14', '16', '18', '20'],
       rows: [
@@ -142,7 +145,7 @@ export const PG_FREE_WINGS = [
     name: 'V-KING', brand: 'Dudek',
     description: 'Compact single-skin EN-B wing built for free flying and paramotoring — ideal travel wing, packs down small.',
     priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/produkt/v-king/',
-    image: '/images/paragliders/pg-free/dudek-v-king.jpg', sizes: ['16 m²', '18 m²', '20 m²', '23 m²'],
+    galleryImages: pgImages('dudek-v-king', ['1.jpg', '2.jpg', '3.jpg'], 'V-King'), sizes: ['16 m²', '18 m²', '20 m²', '23 m²'],
     techSpecs: [{
       columns: ['V-King – size', '16', '18', '20', '23'],
       rows: [
@@ -154,24 +157,6 @@ export const PG_FREE_WINGS = [
         { label: 'Total take-off weight PG [kg]', values: ['50-74', '60-85', '80-100', '100-130'] },
         { label: 'Total take-off weight PPG [kg]', values: ['50-105', '60-120', '80-135', '100-155'] },
         { label: 'Canopy weight [kg]', values: ['1.96', '2.12', '2.32', '2.54'] },
-      ],
-    }],
-  },
-  {
-    name: 'BUZZ', brand: 'Ozone',
-    description: 'Versatile EN/DHV 1-2 free-flight wing for recreational pilots progressing beyond their first years in the sport.',
-    priceLabel: 'Contact for price', infoUrl: 'https://flyozone.com/paragliders/products/gliders/buzz',
-    image: '/images/paragliders/pg-free/ozone-buzz.jpg', sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    techSpecs: [{
-      columns: ['Buzz – size', 'XS', 'S', 'M', 'L', 'XL'],
-      rows: [
-        { label: 'Number of cells', values: ['42'], spanAll: true },
-        { label: 'Area flat [m²]', values: ['22.3', '24.5', '26.55', '29.1', '31.95'] },
-        { label: 'Area projected [m²]', values: ['19.55', '20.93', '22.7', '24.86', '27.25'] },
-        { label: 'Aspect ratio (flat / projected)', values: ['5.1 / 3.64'], spanAll: true },
-        { label: 'Glider weight [kg]', values: ['5.2', '5.5', '5.8', '6.2', '6.5'] },
-        { label: 'In-flight weight range [kg]', values: ['55-70', '65-85', '80-100', '95-115', '110-135'] },
-        { label: 'DHV / EN', values: ['1-2'], spanAll: true },
       ],
     }],
   },
@@ -281,7 +266,12 @@ export const PG_FREE_WINGS = [
     name: 'WARP 3', brand: 'Dudek',
     description: 'High-performance cross-country competition wing — significantly expanded speed range and improved roll stability.',
     priceLabel: 'Contact for price', infoUrl: 'https://dudek.eu/produkt/warp-3/',
-    image: '/images/paragliders/pg-free/dudek-warp-3.jpg', sizes: ['16 m²', '17 m²', '18 m²', '20 m²', '22 m²'],
+    sizes: ['16 m²', '17 m²', '18 m²', '20 m²', '22 m²'],
+    colors: [
+      pgColor('dudek-warp-3', 'petrol', 'Petrol', 'Warp 3', WARP_VIEWS),
+      pgColor('dudek-warp-3', 'black', 'Black', 'Warp 3', WARP_VIEWS),
+      pgColor('dudek-warp-3', 'lime', 'Lime', 'Warp 3', WARP_VIEWS),
+    ],
     techSpecs: [{
       columns: ['Warp 3 – size', '16', '17', '18', '20', '22'],
       rows: [
@@ -316,6 +306,7 @@ function wingToCatalogItem(wing, category) {
       : 'Contact for price'),
     image,
     techSpecs: wing.techSpecs || [],
+    galleryImages: wing.galleryImages || [],
     colors: wing.colors || [],
     sizes: wing.sizes || ['Standard'],
     infoUrl: wing.infoUrl,

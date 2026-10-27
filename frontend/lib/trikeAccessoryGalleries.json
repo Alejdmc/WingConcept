@@ -1,0 +1,152 @@
+{
+  "vanguard": {
+    "reserve-chute": [
+      "/images/parts/trikes/vanguard/reserve-chute-1.jpg",
+      "/images/parts/trikes/vanguard/reserve-chute-2.jpg",
+      "/images/parts/trikes/vanguard/reserve-chute-3.jpg"
+    ],
+    "parachute-container": [
+      "/images/parts/trikes/vanguard/parachute-container-1.jpg",
+      "/images/parts/trikes/vanguard/parachute-container-2.jpg",
+      "/images/parts/trikes/vanguard/parachute-container-3.jpg",
+      "/images/parts/trikes/vanguard/parachute-container-4.jpg"
+    ],
+    "sun-roof-netting": [
+      "/images/parts/trikes/vanguard/sun-roof-netting-1.jpg"
+    ],
+    "front-bar-protection": [
+      "/images/parts/trikes/vanguard/front-bar-protection-1.jpg",
+      "/images/parts/trikes/vanguard/front-bar-protection-2.jpg"
+    ],
+    "front-brake": [
+      "/images/parts/trikes/vanguard/front-brake-1.jpg",
+      "/images/parts/trikes/vanguard/front-brake-2.jpg",
+      "/images/parts/trikes/vanguard/front-brake-3.jpg"
+    ],
+    "rear-mirror": [
+      "/images/parts/trikes/vanguard/rear-mirror-1.jpg",
+      "/images/parts/trikes/vanguard/rear-mirror-2.jpg",
+      "/images/parts/trikes/vanguard/rear-mirror-3.jpg",
+      "/images/parts/trikes/vanguard/rear-mirror-4.jpg"
+    ],
+    "lateral-bag": [
+      "/images/parts/trikes/vanguard/lateral-bag-1.jpg",
+      "/images/parts/trikes/vanguard/lateral-bag-2.jpg",
+      "/images/parts/trikes/vanguard/lateral-bag-3.jpg",
+      "/images/parts/trikes/vanguard/lateral-bag-4.jpg"
+    ],
+    "cruise-control": [
+      "/images/parts/trikes/vanguard/cruise-control-1.jpg",
+      "/images/parts/trikes/vanguard/cruise-control-2.jpg"
+    ],
+    "fuel-gauge-vanguard": [
+      "/images/parts/trikes/vanguard/fuel-gauge-vanguard-1.jpg",
+      "/images/parts/trikes/vanguard/fuel-gauge-vanguard-2.jpg",
+      "/images/parts/trikes/vanguard/fuel-gauge-vanguard-3.jpg",
+      "/images/parts/trikes/vanguard/fuel-gauge-vanguard-4.jpg"
+    ],
+    "auxiliary-lights": [
+      "/images/parts/trikes/vanguard/auxiliary-lights-1.jpg",
+      "/images/parts/trikes/vanguard/auxiliary-lights-2.jpg",
+      "/images/parts/trikes/vanguard/auxiliary-lights-3.jpg"
+    ],
+    "instrument-kit": [
+      "/images/parts/trikes/vanguard/instrument-kit-1.jpg"
+    ],
+    "electrical-kit": [
+      "/images/parts/trikes/vanguard/electrical-kit-1.jpg",
+      "/images/parts/trikes/vanguard/electrical-kit-2.jpg",
+      "/images/parts/trikes/vanguard/electrical-kit-3.jpg",
+      "/images/parts/trikes/vanguard/electrical-kit-4.jpg"
+    ],
+    "carabiners": [
+      "/images/parts/trikes/vanguard/carabiners-1.jpg",
+      "/images/parts/trikes/vanguard/carabiners-2.jpg"
+    ],
+    "phone-holder": [
+      "/images/parts/trikes/vanguard/phone-holder-1.jpg",
+      "/images/parts/trikes/vanguard/phone-holder-2.jpg",
+      "/images/parts/trikes/vanguard/phone-holder-3.jpg",
+      "/images/parts/trikes/vanguard/phone-holder-4.jpg"
+    ],
+    "line-protector": [
+      "/images/parts/trikes/vanguard/line-protector-1.jpg",
+      "/images/parts/trikes/vanguard/line-protector-2.jpg",
+      "/images/parts/trikes/vanguard/line-protector-3.jpg"
+    ]
+  },
+  "nomadic": {
+    "reserve-chute": [
+      "/images/parts/trikes/nomadic/reserve-chute-1.jpg",
+      "/images/parts/trikes/nomadic/reserve-chute-2.jpg",
+      "/images/parts/trikes/nomadic/reserve-chute-3.jpg"
+    ],
+    "parachute-container": [
+      "/images/parts/trikes/nomadic/parachute-container-1.jpg",
+      "/images/parts/trikes/nomadic/parachute-container-2.jpg",
+      "/images/parts/trikes/nomadic/parachute-container-3.jpg",
+      "/images/parts/trikes/nomadic/parachute-container-4.jpg"
+    ],
+    "rock-guard": [
+      "/images/parts/trikes/nomadic/rock-guard-1.jpg",
+      "/images/parts/trikes/nomadic/rock-guard-2.jpg",
+      "/images/parts/trikes/nomadic/rock-guard-3.jpg",
+      "/images/parts/trikes/nomadic/rock-guard-4.jpg"
+    ],
+    "sun-roof-netting": [
+      "/images/parts/trikes/nomadic/sun-roof-netting-1.jpg",
+      "/images/parts/trikes/nomadic/sun-roof-netting-2.jpg",
+      "/images/parts/trikes/nomadic/sun-roof-netting-3.jpg",
+      "/images/parts/trikes/nomadic/sun-roof-netting-4.jpg"
+    ],
+    "front-bar-protection": [
+      "/images/parts/trikes/nomadic/front-bar-protection-1.jpg",
+      "/images/parts/trikes/nomadic/front-bar-protection-2.jpg"
+    ],
+    "front-brake": [
+      "/images/parts/trikes/nomadic/front-brake-1.jpg",
+      "/images/parts/trikes/nomadic/front-brake-2.jpg",
+      "/images/parts/trikes/nomadic/front-brake-3.jpg"
+    ],
+    "rear-mirror": [
+      "/images/parts/trikes/nomadic/rear-mirror-1.jpg",
+      "/images/parts/trikes/nomadic/rear-mirror-2.jpg",
+      "/images/parts/trikes/nomadic/rear-mirror-3.jpg",
+      "/images/parts/trikes/nomadic/rear-mirror-4.jpg"
+    ],
+    "cockpit-liner": [
+      "/images/parts/trikes/nomadic/cockpit-liner-1.jpg",
+      "/images/parts/trikes/nomadic/cockpit-liner-2.jpg"
+    ],
+    "auxiliary-lights": [
+      "/images/parts/trikes/nomadic/auxiliary-lights-1.jpg",
+      "/images/parts/trikes/nomadic/auxiliary-lights-2.jpg",
+      "/images/parts/trikes/nomadic/auxiliary-lights-3.jpg",
+      "/images/parts/trikes/nomadic/auxiliary-lights-4.jpg"
+    ],
+    "instrument-kit": [
+      "/images/parts/trikes/nomadic/instrument-kit-1.jpg"
+    ],
+    "electrical-kit": [
+      "/images/parts/trikes/nomadic/electrical-kit-1.jpg",
+      "/images/parts/trikes/nomadic/electrical-kit-2.jpg",
+      "/images/parts/trikes/nomadic/electrical-kit-3.jpg",
+      "/images/parts/trikes/nomadic/electrical-kit-4.jpg"
+    ],
+    "carabiners": [
+      "/images/parts/trikes/nomadic/carabiners-1.jpg",
+      "/images/parts/trikes/nomadic/carabiners-2.jpg"
+    ],
+    "phone-holder": [
+      "/images/parts/trikes/nomadic/phone-holder-1.jpg",
+      "/images/parts/trikes/nomadic/phone-holder-2.jpg",
+      "/images/parts/trikes/nomadic/phone-holder-3.jpg",
+      "/images/parts/trikes/nomadic/phone-holder-4.jpg"
+    ],
+    "line-protector": [
+      "/images/parts/trikes/nomadic/line-protector-1.jpg",
+      "/images/parts/trikes/nomadic/line-protector-2.jpg",
+      "/images/parts/trikes/nomadic/line-protector-3.jpg"
+    ]
+  }
+}

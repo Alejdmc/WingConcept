@@ -1,7 +1,19 @@
 /**
- * Accessory lists for trike configurators — order matches archivosnuevos/*.docx
+ * Accessory lists for trike configurators — order matches the client's Drive folders
+ * (ACCESORIOS PARA TRIKES/ACCESORIOS VANGUARD|NOMADIC, numbered 1–17) and archivosnuevos/*.docx
  * Images live under /images/parts/ (gallery via configuratorImages.js).
  */
+
+import TRIKE_ACCESSORY_GALLERIES from './trikeAccessoryGalleries.json'
+
+/** Usa las fotos de Drive del trike (si existen) como galería e imagen principal. */
+function withTrikeGalleries(trike, items) {
+  const galleries = TRIKE_ACCESSORY_GALLERIES[trike] || {}
+  return items.map((item) => {
+    const gallery = galleries[item.id]
+    return gallery?.length ? { ...item, image: gallery[0], gallery } : item
+  })
+}
 
 const RESERVE_CHUTE = {
   id: 'reserve-chute',
@@ -23,7 +35,7 @@ const PARACHUTE_CONTAINER = {
 }
 
 /** Nomadic configurador — archivosnuevos/Nomadic TRIKE DESCRIPTION…docx */
-export const NOMADIC_CONFIGURATOR_ACCESSORIES = [
+export const NOMADIC_CONFIGURATOR_ACCESSORIES = withTrikeGalleries('nomadic', [
   RESERVE_CHUTE,
   PARACHUTE_CONTAINER,
   {
@@ -130,23 +142,24 @@ export const NOMADIC_CONFIGURATOR_ACCESSORIES = [
   },
   {
     id: 'phone-holder',
-    name: 'Phone Holder',
+    name: 'New Phone Holder',
     price: 35,
     description:
       'Compression grip holds any mobile phone firmly — perfect for passenger harness use with tether loop for security.',
     image: '/images/parts/phone-holder-1.png',
   },
   {
-    id: 'cruise-control',
-    name: 'Cruise Control',
-    price: 25,
-    description: 'Maintains desired RPM for stable, smooth long-distance flight.',
-    image: '/images/parts/cruise-control.png',
+    id: 'line-protector',
+    name: 'New Wheel Line Protector',
+    price: 35,
+    description:
+      'While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.',
+    image: '/images/parts/front-bar-protection.png',
   },
-]
+])
 
 /** Vanguard configurador — archivosnuevos/VANGUARD TRIKE DESCRIPTION…docx */
-export const VANGUARD_CONFIGURATOR_ACCESSORIES = [
+export const VANGUARD_CONFIGURATOR_ACCESSORIES = withTrikeGalleries('vanguard', [
   RESERVE_CHUTE,
   PARACHUTE_CONTAINER,
   {
@@ -252,7 +265,7 @@ export const VANGUARD_CONFIGURATOR_ACCESSORIES = [
   },
   {
     id: 'phone-holder',
-    name: 'Phone Holder',
+    name: 'New Phone Holder',
     price: 35,
     description:
       'Compression grip holds any mobile phone firmly — perfect for passenger harness use.',
@@ -260,10 +273,23 @@ export const VANGUARD_CONFIGURATOR_ACCESSORIES = [
   },
   {
     id: 'line-protector',
-    name: 'Line Protector',
+    name: 'New Wheel Line Protector',
     price: 35,
     description:
-      'Replacement line protection accessory — maintains constant tension on the protective strap to prevent lines from entering the propeller.',
+      'While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.',
     image: '/images/parts/front-bar-protection.png',
   },
-]
+])
+
+/**
+ * Orden canónico (carpetas de Drive "ACCESORIOS PARA TRIKES" = doc del cliente).
+ * Los accesorios del CMS se ordenan según `reference`; los que no estén en la lista van al final.
+ */
+export function orderAccessoriesLike(items, reference, normalizeId = (id) => id) {
+  if (!Array.isArray(items) || !Array.isArray(reference) || !reference.length) return items
+  const rank = new Map(reference.map((item, index) => [normalizeId(item.id), index]))
+  return items
+    .map((item, index) => ({ item, index, rank: rank.get(normalizeId(item.id)) ?? reference.length + index }))
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ item }) => item)
+}

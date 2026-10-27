@@ -287,7 +287,7 @@ export default function ConfiguratorDisruptorTrikePage() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6">
+            className="space-y-6 sticky-config-preview">
             {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}
@@ -368,7 +368,7 @@ export default function ConfiguratorDisruptorTrikePage() {
                       {accessories.map((a) => {
                         const isSelected = selectedUpgrades.includes(a.id)
                         return (
-                          <OptionCard key={a.id} selected={isSelected} onClick={() => toggleUpgrade(a.id)}>
+                          <OptionCard key={a.id} selected={isSelected} onClick={() => toggleUpgrade(a.id)} thumbnail={a.image}>
                             <div className="flex justify-between items-center pr-8">
                               <p className="font-bold uppercase text-ink">{a.name}</p>
                               <p className="font-semibold text-ink2">

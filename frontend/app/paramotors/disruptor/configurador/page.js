@@ -401,7 +401,7 @@ export default function ConfiguratorDisruptorParamotorPage() {
         <WizardProgress steps={STEPS} currentStep={step} onStepClick={setStep} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 sticky-config-preview">
             {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}
@@ -546,6 +546,7 @@ export default function ConfiguratorDisruptorParamotorPage() {
                           key={a.id}
                           selected={selectedUpgrades.includes(a.id)}
                           onClick={() => toggleUpgrade(a.id)}
+                          thumbnail={a.image}
                         >
                           <div className="flex justify-between items-center pr-8">
                             <p className="font-bold uppercase text-ink">{a.name}</p>

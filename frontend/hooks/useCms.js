@@ -5,6 +5,7 @@ import { pickText, sleep } from '@/lib/contentUtils'
 import { normalizeAccessoryId, resolveAccessoryImage, resolveAccessoryGallery } from '@/lib/accessoryImages'
 
 import { HOMEPAGE_BLOCKS } from '@/lib/staticContent'
+import { orderAccessoriesLike } from '@/lib/trikeConfiguratorAccessories'
 
 const cache = new Map()
 const MAX_ATTEMPTS = 1
@@ -114,7 +115,11 @@ function normalizeConfigOptions(catalog, productoId, fallbackOptions) {
     propellers,
     colors: catalog.colors?.length ? catalog.colors.map(mapColor) : fallbackOptions.colors,
     accessories: catalog.accessories?.length
-      ? catalog.accessories.map((o) => mapAccessory(o, productoId, fallbackOptions.accessories))
+      ? orderAccessoriesLike(
+        catalog.accessories.map((o) => mapAccessory(o, productoId, fallbackOptions.accessories)),
+        fallbackOptions.accessories,
+        normalizeAccessoryId,
+      )
       : fallbackOptions.accessories,
   }
 }
@@ -181,7 +186,7 @@ function resolveOptionImage(cmsImage, fallbackImage, conventionPath) {
 
 function normalizeOptionGallery(o) {
   if (Array.isArray(o.gallery) && o.gallery.length) {
-    return o.gallery.filter(Boolean).slice(0, 3)
+    return o.gallery.filter(Boolean).slice(0, 4)
   }
   return undefined
 }
@@ -251,16 +256,18 @@ function mapFinish(o, fallbackFinishes = []) {
 function mapPropeller(o, fallbackPropellers = []) {
   const fb = (fallbackPropellers || []).find((item) => item.id === o.id)
   const propId = o.id
-  const defaultPath = propId === 'tripala' || propId === 'bipala'
-    ? '/images/propellers/bipala.jpg'
-    : (propId ? `/images/propellers/${propId}.jpg` : null)
-  return withOptionalGallery({
+  const defaultPath = propId ? `/images/propellers/${propId}.jpg` : null
+  const mapped = withOptionalGallery({
     id: o.id,
     name: o.name,
     description: pickText(o.description, fb?.description),
     price: o.price ?? fb?.price ?? 0,
+    infoUrl: o.infoUrl || o.url || fb?.infoUrl,
     image: resolveOptionImage(o.image, fb?.image, defaultPath),
   }, o)
+  if (mapped.gallery?.length) return mapped
+  const staticGallery = galleryPathsForOption(o.id, mapped.image, null)
+  return staticGallery.length > 1 ? { ...mapped, gallery: staticGallery } : mapped
 }
 function mapColor(o) {
   return { id: o.id, name: o.name, hex: o.hex, price: o.price ?? 0, accent: o.accent }

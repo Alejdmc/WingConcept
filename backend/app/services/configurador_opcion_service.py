@@ -33,7 +33,7 @@ def _normalize_gallery(op: ConfiguradorOpcion) -> List[str]:
     if isinstance(gallery, list):
         urls = [g for g in gallery if isinstance(g, str) and g.strip()]
         if urls:
-            return urls[:3]
+            return urls[:4]
     return []
 
 

@@ -2,9 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
+import SafeImage from '@/components/ui/SafeImage'
 
-/** Option row — description only; gallery images live in the left preview panel. */
-export default function OptionCard({ selected, onClick, children }) {
+/**
+ * Option row — the gallery lives in the left preview panel.
+ * `thumbnail` adds a small photo on mobile, where the panel sits above the list and scrolls away.
+ */
+export default function OptionCard({ selected, onClick, children, thumbnail }) {
   return (
     <motion.button
       type="button"
@@ -18,7 +22,14 @@ export default function OptionCard({ selected, onClick, children }) {
           <Check className="w-3 h-3 text-white" />
         </span>
       )}
-      {children}
+      {thumbnail ? (
+        <div className="flex gap-3 items-start">
+          <span className="relative lg:hidden h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-bg2">
+            <SafeImage src={thumbnail} alt="" fill sizes="64px" className="object-contain" blankOnError />
+          </span>
+          <div className="min-w-0 flex-1">{children}</div>
+        </div>
+      ) : children}
     </motion.button>
   )
 }

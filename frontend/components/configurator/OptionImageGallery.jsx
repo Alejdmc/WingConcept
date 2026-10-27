@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
@@ -8,18 +9,24 @@ import { padGallery, firstGalleryIndex } from '@/lib/configuratorImages'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
 
 function isEmptySlot(item) {
-  return !item?.src || item.empty
+  return !item?.src || item.empty || item.placeholder
 }
 
 /**
- * Siempre 3 slots; vacíos si no hay foto (sin placeholder).
+ * Hasta MAX_OPTION_IMAGES fotos reales; el logo solo aparece si la opción no tiene ninguna.
  */
 export default function OptionImageGallery({
   images = [],
   fallbackSrc = FALLBACK_IMAGES.logo,
   initialIndex = 0,
 }) {
-  const gallery = useMemo(() => padGallery(images), [images])
+  const gallery = useMemo(() => {
+    const padded = padGallery(images)
+    // Sin ninguna foto real: mostrar el logo como imagen principal
+    return padded.some((item) => !isEmptySlot(item))
+      ? padded
+      : padded.map((item, i) => (i === 0 && item?.src ? { ...item, placeholder: false } : item))
+  }, [images])
   const filledIndexes = useMemo(
     () => gallery.map((item, index) => (isEmptySlot(item) ? -1 : index)).filter((i) => i >= 0),
     [gallery],
@@ -34,7 +41,26 @@ export default function OptionImageGallery({
 
   useEffect(() => {
     setActiveIndex(safeInitial)
+    // Cambió la opción (p. ej. otro accesorio): cerrar el visor para no dejarlo colgado sobre la página
+    setLightboxOpen(false)
   }, [gallery, safeInitial])
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    if (!lightboxOpen) return undefined
+    const { overflow } = document.body.style
+    document.body.style.overflow = 'hidden'
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = overflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [lightboxOpen])
 
   const active = gallery[activeIndex] || gallery[0]
   const activeHasImage = !isEmptySlot(active)
@@ -61,7 +87,7 @@ export default function OptionImageGallery({
   return (
     <>
       <div className="space-y-4">
-        <div className="relative aspect-square w-full bg-bg2 rounded-2xl overflow-hidden shadow-lg group">
+        <div className="relative aspect-square w-full lg:max-h-[calc(100vh-var(--nav-h)-15rem)] bg-bg2 rounded-2xl overflow-hidden shadow-lg group">
           <div
             role={activeHasImage ? 'button' : undefined}
             tabIndex={activeHasImage ? 0 : -1}
@@ -122,6 +148,7 @@ export default function OptionImageGallery({
         <div className="flex gap-3 overflow-x-auto pb-1">
           {gallery.map((image, index) => {
             const filled = !isEmptySlot(image)
+            if (!filled) return null
             return (
               <motion.button
                 key={`slot-${index}`}
@@ -158,13 +185,16 @@ export default function OptionImageGallery({
         </div>
       </div>
 
+      {mounted && createPortal(
       <AnimatePresence>
         {lightboxOpen && activeHasImage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 p-4"
             onClick={() => setLightboxOpen(false)}
           >
             <button
@@ -211,7 +241,9 @@ export default function OptionImageGallery({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body,
+      )}
     </>
   )
 }

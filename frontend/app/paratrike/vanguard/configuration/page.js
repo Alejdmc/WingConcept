@@ -77,6 +77,16 @@ const DEFAULT_OPTIONS = {
   accessories: VANGUARD_CONFIGURATOR_ACCESSORIES,
 }
 
+/** Doc Vanguard §4: con Simonini Victor 2 Super o Rotax 912 la hélice sube $250 (2 palas) / $300 (3 palas). */
+const HIGH_POWER_ENGINE_IDS = ['simonini-v2', 'rotax-912']
+const HIGH_POWER_PROPELLER_SURCHARGE = { bipala: 250, tripala: 300 }
+
+function propellerPriceFor(prop, engineId) {
+  if (!prop) return 0
+  const surcharge = HIGH_POWER_ENGINE_IDS.includes(engineId) ? (HIGH_POWER_PROPELLER_SURCHARGE[prop.id] || 0) : 0
+  return (prop.price || 0) + surcharge
+}
+
 const STEPS = ['Color', 'Chassis', 'Engine', 'Propeller', 'Paraglider', 'Accessories', 'Review']
 const PARAGLIDER_STEP = 4
 
@@ -134,10 +144,10 @@ export default function ConfiguratorPage() {
   const totalPrice = useMemo(() => {
     const baseChassis = basePrice ?? 5950.25
     const enginePrice = engine?.basePrice || 0
-    const propellerPrice = propeller?.price || 0
+    const propellerPrice = propellerPriceFor(propeller, selectedEngine)
     const upgradesPrice = selectedUpgrades.reduce((sum, id) => sum + (CONFIG_OPTIONS.accessories.find(a => a.id === id)?.price || 0), 0)
     return baseChassis + enginePrice + propellerPrice + paragliderPrice + upgradesPrice + chassisColorSurcharge(selectedColorId)
-  }, [engine, propeller, paragliderPrice, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
+  }, [engine, propeller, selectedEngine, paragliderPrice, selectedUpgrades, basePrice, CONFIG_OPTIONS.accessories, selectedColorId])
 
   const colorLabel = resolveChassisColorLabel(selectedColorId, customColorText)
 
@@ -151,7 +161,7 @@ export default function ConfiguratorPage() {
       priceLabel: engine?.priceTbd ? 'Price on request' : undefined,
     })
     if (engineLine) lines.push(engineLine)
-    const propLine = formatQuoteLine('Propeller', propeller?.name, propeller?.price)
+    const propLine = formatQuoteLine('Propeller', propeller?.name, propellerPriceFor(propeller, selectedEngine))
     if (propLine) lines.push(propLine)
     appendParagliderQuoteLines(lines)
     selectedAccessoryItems.forEach((a) => {
@@ -167,7 +177,7 @@ export default function ConfiguratorPage() {
     if (propeller?.image) lines.push(formatQuoteImageLine(propeller.name, propeller.image))
     lines.push(`Estimated total: $${totalPrice.toLocaleString()}`)
     return lines
-  }, [colorLabel, chassisType, engine, propeller, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
+  }, [colorLabel, chassisType, engine, propeller, selectedEngine, appendParagliderQuoteLines, selectedAccessoryItems, totalPrice, selectedColorId])
 
   const selectColorPreset = (color) => {
     setSelectedColorId(color.id)
@@ -352,7 +362,7 @@ export default function ConfiguratorPage() {
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`space-y-6 ${step === 5 ? 'lg:sticky lg:top-28 lg:self-start' : ''}`}>
+            className="space-y-6 sticky-config-preview">
             {step === PARAGLIDER_STEP && paraglider ? (
               <ParagliderPreviewPanel
                 wing={paraglider}
@@ -444,15 +454,31 @@ export default function ConfiguratorPage() {
                 {step === 3 && (
                   <ConfigSection title="Propeller. Precision in every flight">
                     <div className="space-y-3">
-                      {CONFIG_OPTIONS.propellers.map(p => (
-                        <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
-                          <div className="flex justify-between items-center pr-8">
-                            <p className="font-bold uppercase text-ink">{p.name}</p>
-                            <p className="text-sm text-ink2">{p.price === 0 ? 'Included' : `+$${p.price.toLocaleString()}`}</p>
-                          </div>
-                          <p className="text-sm text-ink2 mt-1">{p.description}</p>
-                        </OptionCard>
-                      ))}
+                      {CONFIG_OPTIONS.propellers.map(p => {
+                        const price = propellerPriceFor(p, selectedEngine)
+                        return (
+                          <OptionCard key={p.id} selected={selectedPropeller === p.id} onClick={() => selectPropeller(p.id)}>
+                            <div className="flex justify-between items-center pr-8">
+                              <p className="font-bold uppercase text-ink">{p.name}</p>
+                              <p className="text-sm text-ink2">{price === 0 ? 'Included' : `+$${price.toLocaleString()}`}</p>
+                            </div>
+                            <p className="text-sm text-ink2 mt-1">{p.description}</p>
+                            {price > (p.price || 0) && (
+                              <p className="text-xs text-ink2 mt-1">Includes +${(price - p.price).toLocaleString()} for the {engine?.name} engine.</p>
+                            )}
+                            {selectedPropeller === p.id && p.infoUrl && (
+                              <a
+                                href={p.infoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(ev) => ev.stopPropagation()}
+                                className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                                More propeller info →
+                              </a>
+                            )}
+                          </OptionCard>
+                        )
+                      })}
                     </div>
                   </ConfigSection>
                 )}
@@ -477,13 +503,20 @@ export default function ConfiguratorPage() {
                       {accessories.map(a => {
                         const isSelected = selectedUpgrades.includes(a.id)
                         return (
-                          <OptionCard key={a.id} selected={isSelected} onClick={() => toggleUpgrade(a.id)}>
-                            <div className="flex justify-between items-center pr-8">
+                          <OptionCard key={a.id} selected={isSelected} onClick={() => toggleUpgrade(a.id)} thumbnail={a.image}>
+                            <div className="flex justify-between items-center gap-3 pr-8">
                               <p className="font-bold uppercase text-ink">{a.name}</p>
-                              <p className="font-semibold text-ink2">+${a.price}</p>
+                              <p className="font-semibold text-ink2 shrink-0">
+                                +${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}
+                              </p>
                             </div>
                             {a.description && (
                               <p className="text-sm text-ink2 mt-2 leading-relaxed">{a.description}</p>
+                            )}
+                            {isSelected && a.infoUrl && (
+                              <a href={a.infoUrl} target="_blank" rel="noopener noreferrer" onClick={(ev) => ev.stopPropagation()} className="inline-block text-sm text-brand font-bold hover:underline mt-2">
+                                More info →
+                              </a>
                             )}
                           </OptionCard>
                         )
@@ -502,7 +535,7 @@ export default function ConfiguratorPage() {
                       <SummaryRow label="Color" value={colorLabel} price={chassisColorSurcharge(selectedColorId)} />
                       <SummaryRow label="Chassis Type" value={chassisType?.name} />
                       <SummaryRow label="Engine" value={engine?.name} price={engine?.basePrice} />
-                      <SummaryRow label="Propeller" value={propeller?.name} price={propeller?.price} />
+                      <SummaryRow label="Propeller" value={propeller?.name} price={propellerPriceFor(propeller, selectedEngine)} />
                       {paraglider && (
                         <>
                           <SummaryRow label="Paraglider" value={paragliderDisplayName(paraglider)} price={paraglider.price} />
