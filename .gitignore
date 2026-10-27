@@ -19,6 +19,8 @@ dist/
 *.md
 *.html
 archivos/
+!documentos/
+!documentos/**
 
 # Variables de entorno (secrets — no commitear)
 .env
