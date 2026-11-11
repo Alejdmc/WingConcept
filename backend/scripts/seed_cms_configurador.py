@@ -273,6 +273,8 @@ VANGUARD_OPCIONES = [
     ("accessory", "propeller-guard", "External Propeller Guard", "Prevents wing or lines from entering the propeller. Ideal for schools and beginners.", 295, "/images/parts/pilot-dynamic-cage.png", {}),
     ("accessory", "phone-holder", "New Phone Holder", "Compression grip holds any mobile phone firmly — perfect for passenger harness use.", 35, None, {}),
     ("accessory", "line-protector", "New Wheel Line Protector", "While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.", 35, None, {}),
+    ("accessory", "engine-mount", "Vanguard Engine Mount and Electrical Components", "This structure is separate from the main chassis, allowing for the installation of various engine types — such as the Rotax 503 and 582, the 110hp Simonini Victor 2 Super, and the Hirth 35 series (64hp and 70hp). It is designed this way to absorb engine vibrations and facilitate easy removal.", 380, None, {}),
+    ("accessory", "all-in-one-system", "New System All in One — Lights, Instruments & Electrical", "Integrated panel that combines the auxiliary lights, the basic instruments (TTO digital gauges and USB charger) and the complete electrical installation in a single plug-and-play system.", 0, None, {"price_tbd": True}),
 ]
 
 NOMADIC_OPCIONES = [

@@ -155,7 +155,7 @@ export default function ConfiguratorPage() {
     if (propLine) lines.push(propLine)
     appendParagliderQuoteLines(lines)
     selectedAccessoryItems.forEach((a) => {
-      const accLine = formatQuoteLine('Accessory', a.name, a.price)
+      const accLine = formatQuoteLine('Accessory', a.name, a.price, { priceLabel: a.priceTbd ? 'Price on request' : undefined })
       if (accLine) lines.push(accLine)
       const imgLine = formatQuoteImageLine(a.name, a.image || resolveAccessoryImage(a.id, a.image, VANGUARD_PRODUCTO_ID))
       if (imgLine) lines.push(imgLine)
@@ -495,7 +495,9 @@ export default function ConfiguratorPage() {
                             <div className="flex justify-between items-center gap-3 pr-8">
                               <p className="font-bold uppercase text-ink">{a.name}</p>
                               <p className="font-semibold text-ink2 shrink-0">
-                                +${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}
+                                {a.priceTbd
+                                  ? 'Price on request'
+                                  : `+$${a.price.toLocaleString(undefined, { minimumFractionDigits: a.price % 1 === 0 ? 0 : 2 })}`}
                               </p>
                             </div>
                             {a.description && (
@@ -534,7 +536,7 @@ export default function ConfiguratorPage() {
                       {selectedAccessoryItems.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold uppercase text-ink2 text-xs tracking-wide mb-1">Accessories</p>
-                          {selectedAccessoryItems.map(a => <SummaryRow key={a.id} label={a.name} price={a.price} />)}
+                          {selectedAccessoryItems.map(a => <SummaryRow key={a.id} label={a.name} price={a.price} priceLabel={a.priceTbd ? 'Price on request' : undefined} />)}
                         </div>
                       )}
                     </div>

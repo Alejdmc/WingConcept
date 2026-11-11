@@ -1,4 +1,5 @@
 'use client'
+import { useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, MapPin, Users, Clock } from 'lucide-react'
@@ -7,6 +8,7 @@ import Reveal from '@/components/ui/Reveal'
 import { api } from '@/lib/api'
 import { useContenido } from '@/hooks/useContenido'
 import { FALLBACK_IMAGES } from '@/lib/imageDefaults'
+import LeadFormModal from '@/components/ui/LeadFormModal'
 
 import { EVENTS_FALLBACK } from '@/lib/staticContent'
 
@@ -14,6 +16,8 @@ const FALLBACK = EVENTS_FALLBACK
 
 export default function EventsPage() {
   const { content, loading } = useContenido('events', () => api.contenidos.events(), FALLBACK)
+  const [registerFor, setRegisterFor] = useState(null)
+  const closeRegister = useCallback(() => setRegisterFor(null), [])
 
   const hero = content.hero
   const intro = content.intro
@@ -134,7 +138,10 @@ export default function EventsPage() {
                         </ul>
                       </div>
                     )}
-                    <button className="w-full bg-brand text-white py-3 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition">
+                    <button
+                      type="button"
+                      onClick={() => setRegisterFor(event)}
+                      className="w-full bg-brand text-white py-3 rounded-lg font-bold uppercase tracking-widest hover:bg-brand/90 transition">
                       Register Now
                     </button>
                   </div>
@@ -154,6 +161,22 @@ export default function EventsPage() {
           </Link>
         </div>
       </section>
+
+      <LeadFormModal
+        open={Boolean(registerFor)}
+        onClose={closeRegister}
+        title={registerFor ? `Register — ${registerFor.titulo}` : 'Register'}
+        subtitle={[registerFor?.fecha, registerFor?.ubicacion].filter(Boolean).join(' · ') || undefined}
+        submitLabel="Register"
+        successMessage="You're registered! We'll email you the event details."
+        showParticipants
+        messageLabel="Questions or comments (optional)"
+        onSubmit={(values, captchaToken) => api.contact.eventRegistration({
+          ...values,
+          evento: [registerFor?.titulo, registerFor?.fecha].filter(Boolean).join(' — '),
+          captchaToken,
+        })}
+      />
     </div>
   )
 }

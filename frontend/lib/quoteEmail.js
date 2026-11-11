@@ -76,3 +76,28 @@ export function buildQuoteMailto(productName, details = []) {
   const body = encodeURIComponent(bodyLines.join('\n'))
   return `mailto:${QUOTE_EMAIL}?subject=${subject}&body=${body}`
 }
+
+const PHOTO_LINE = /^Photo \((.+)\): (\S+)$/
+
+/** Separa las líneas de texto y las fotos (rutas del sitio) para enviar la cotización al backend. */
+export function splitQuoteDetails(details = []) {
+  const lines = []
+  const images = []
+  details.map(quoteLineToText).filter(Boolean).forEach((line) => {
+    const m = line.match(PHOTO_LINE)
+    if (!m) {
+      lines.push(line)
+      return
+    }
+    let url = m[2]
+    try {
+      const parsed = new URL(url)
+      if (typeof window !== 'undefined' && parsed.origin === window.location.origin) url = parsed.pathname
+      if (/(^|\.)wingconcept\.com$/.test(parsed.hostname)) url = parsed.pathname
+    } catch {
+      // ruta relativa
+    }
+    if (!images.includes(url)) images.push(url)
+  })
+  return { lines, images }
+}

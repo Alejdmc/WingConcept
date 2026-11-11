@@ -287,6 +287,7 @@ function mapAccessory(o, productoId, fallbackAccessories = []) {
     id: o.id,
     name: o.name,
     price: o.price ?? fallback?.price ?? 0,
+    priceTbd: Boolean(o.price_tbd || o.priceTbd || fallback?.priceTbd),
     description: pickText(o.description, fallback?.description),
     infoUrl: o.infoUrl || o.url || fallback?.infoUrl,
     image: gallery[0] || resolveAccessoryImage(o.id, o.image, productoId, fallback?.image),

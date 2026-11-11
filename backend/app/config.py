@@ -103,7 +103,8 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     FROM_EMAIL: str = "noreply@wingconcept.com"
     FROM_NAME: str = "WingConcept"
-    CONTACT_EMAIL: str = ""  # Destino del formulario de contacto; default = FROM_EMAIL
+    CONTACT_EMAIL: str = ""  # Copia opcional de contacto / cotizaciones / eventos
+    LEADS_EMAIL: str = "andres@wingconcept.com"  # Destino de contacto, cotizaciones y registro a eventos
     ADMIN_ORDER_EMAIL: str = "andres@wingconcept.com"  # Aviso de nueva compra pagada
 
     # ── CORS ─────────────────────────────────────────────────

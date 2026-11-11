@@ -19,6 +19,7 @@ from app.models.admin_invitation import AdminInvitation  # noqa: F401
 from app.models.dealer import Dealer            # noqa: F401
 from app.models.configurador_opcion import ConfiguradorOpcion  # noqa: F401
 from app.models.site_block import SiteBlock            # noqa: F401
+from app.models.clearance import ClearanceListing      # noqa: F401
 
 __all__ = [
     "Usuario",
@@ -37,6 +38,7 @@ __all__ = [
     "WebhookEvent",
     "AdminInvitation",
     "Dealer",
+    "ClearanceListing",
     "Manual",
     "ConfiguradorOpcion",
     "SiteBlock",

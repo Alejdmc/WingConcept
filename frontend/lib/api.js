@@ -337,9 +337,26 @@ export const api = {
       request('/auth/accept-admin-invite', { method: 'POST', body: JSON.stringify(data) }),
   },
 
+  clearance: {
+    list: (params = {}) => request(`/clearance${buildQuery(params)}`, { skipAuth: true }),
+    get: (id) => request(`/clearance/${id}`, { skipAuth: true }),
+    mine: () => request('/clearance/mine'),
+    create: (data) => request('/clearance', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/clearance/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id) => request(`/clearance/${id}`, { method: 'DELETE' }),
+    uploadPhoto: (file) => uploadRequest('/clearance/imagenes', file),
+    adminList: (params = {}) => request(`/clearance/admin/all${buildQuery(params)}`),
+    adminSetStatus: (id, estado) =>
+      request(`/clearance/admin/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) }),
+  },
+
   contact: {
     send: (data) =>
       request('/contact', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
+    eventRegistration: (data) =>
+      request('/contact/events', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
+    quote: (data) =>
+      request('/contact/quote', { method: 'POST', body: JSON.stringify(data), skipAuth: true }),
   },
 
   carrito: {

@@ -16,6 +16,7 @@ import {
   Wind,
   Feather,
   LayoutDashboard,
+  Recycle,
 } from 'lucide-react'
 
 /** Sidebar structure for the admin panel — grouped by purpose. */
@@ -61,6 +62,7 @@ export const ADMIN_NAV = [
     items: [
       { label: 'Users', href: '/admin/users', icon: Users },
       { label: 'Dealers', href: '/admin/dealers', icon: Handshake },
+      { label: 'Clearance', href: '/admin/clearance', icon: Recycle, hint: 'Moderate used-equipment listings' },
       { label: 'Manuals', href: '/admin/manuals', icon: FileText },
       { label: 'All products', href: '/admin/products', icon: LayoutDashboard, hint: 'Advanced — most edits use the pages above' },
       { label: 'Settings', href: '/admin/settings', icon: Settings },

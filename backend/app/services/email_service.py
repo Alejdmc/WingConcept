@@ -515,27 +515,95 @@ class EmailService:
             "html": self._wrap(body, preheader=f"New paid order #{numero_orden} from {cliente_nombre}."),
         }, "nueva_compra_admin", destino)
 
-    async def enviar_contacto(
-        self, nombre: str, email: str, asunto: str, mensaje: str
-    ) -> bool:
-        """Reenvía mensaje del formulario de contacto al equipo."""
+    def _lead_recipients(self) -> list[str]:
+        """andres@wingconcept.com (LEADS_EMAIL) + CONTACT_EMAIL si está configurado."""
+        destinos: list[str] = []
+        for addr in (settings.LEADS_EMAIL, settings.CONTACT_EMAIL):
+            addr = (addr or "").strip()
+            if addr and addr.lower() not in {d.lower() for d in destinos}:
+                destinos.append(addr)
+        return destinos
+
+    def _enviar_lead(self, *, tipo: str, subject: str, heading: str, rows: list[tuple[str, str]],
+                     reply_to: str, preheader: str, extra_html: str = "") -> bool:
         from html import escape
 
-        destino = (settings.CONTACT_EMAIL or settings.FROM_EMAIL).strip()
+        filas = "".join(
+            f'<tr><td style="padding:6px 12px 6px 0;color:{_INK2};vertical-align:top;white-space:nowrap;">{escape(k)}</td>'
+            f'<td style="padding:6px 0;white-space:pre-wrap;">{escape(v)}</td></tr>'
+            for k, v in rows if v
+        )
         body = f"""
-        {self._heading("New contact message")}
-        <p><strong>From:</strong> {escape(nombre)} &lt;{escape(email)}&gt;</p>
-        <p><strong>Subject:</strong> {escape(asunto)}</p>
-        <p style="white-space:pre-wrap;">{escape(mensaje)}</p>
+        {self._heading(heading)}
+        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.5;">{filas}</table>
+        {extra_html}
         """
+        destinos = self._lead_recipients()
         payload = {
             "from": self._from_address(),
-            "to": [destino],
-            "reply_to": email,
-            "subject": f"[Contact] {asunto}",
-            "html": self._wrap(body, preheader=f"Message from {nombre}"),
+            "to": destinos,
+            "reply_to": reply_to,
+            "subject": subject,
+            "html": self._wrap(body, preheader=preheader),
         }
-        return self._enviar(payload, "contacto", destino)
+        return self._enviar(payload, tipo, ", ".join(destinos))
+
+    async def enviar_contacto(
+        self, nombre: str, email: str, asunto: str, mensaje: str, telefono: Optional[str] = None
+    ) -> bool:
+        """Reenvía mensaje del formulario de contacto al equipo."""
+        return self._enviar_lead(
+            tipo="contacto",
+            subject=f"[Contact] {asunto}",
+            heading="New contact message",
+            rows=[("Name", nombre), ("Email", email), ("Phone", telefono or ""), ("Subject", asunto), ("Message", mensaje)],
+            reply_to=email,
+            preheader=f"Message from {nombre}",
+        )
+
+    async def enviar_registro_evento(
+        self, evento: str, nombre: str, email: str, telefono: Optional[str],
+        participantes: int, mensaje: Optional[str],
+    ) -> bool:
+        """Registro a un evento de WC Events."""
+        return self._enviar_lead(
+            tipo="registro_evento",
+            subject=f"[Event registration] {evento} — {nombre}",
+            heading="New event registration",
+            rows=[("Event", evento), ("Name", nombre), ("Email", email), ("Phone", telefono or ""),
+                  ("Participants", str(participantes)), ("Message", mensaje or "")],
+            reply_to=email,
+            preheader=f"{nombre} registered for {evento}",
+        )
+
+    async def enviar_cotizacion(
+        self, producto: str, nombre: str, email: str, telefono: Optional[str],
+        pais: Optional[str], mensaje: Optional[str], detalles: list[str], imagenes: list[str],
+    ) -> bool:
+        """Solicitud de cotización desde un configurador (incluye fotos de lo seleccionado)."""
+        from html import escape
+
+        lista = "".join(f"<li>{escape(d)}</li>" for d in detalles)
+        fotos = "".join(
+            f'<a href="{escape(u)}"><img src="{escape(u)}" alt="" width="160" '
+            f'style="width:160px;height:auto;margin:0 8px 8px 0;border:1px solid #e5e5e5;border-radius:6px;"></a>'
+            for u in imagenes
+        )
+        extra = ""
+        if lista:
+            extra += f'<p style="margin-top:16px;"><strong>Configuration</strong></p><ul style="padding-left:18px;">{lista}</ul>'
+        if fotos:
+            extra += f'<p style="margin-top:16px;"><strong>Selected items</strong></p><div>{fotos}</div>'
+        return self._enviar_lead(
+            tipo="cotizacion",
+            subject=f"[Quote] {producto} — {nombre}",
+            heading=f"Quote request: {producto}",
+            rows=[("Name", nombre), ("Email", email), ("Phone", telefono or ""), ("Country", pais or ""),
+                  ("Message", mensaje or "")],
+            reply_to=email,
+            preheader=f"{nombre} requested a quote for {producto}",
+            extra_html=extra,
+        )
 
 
 email_service = EmailService()

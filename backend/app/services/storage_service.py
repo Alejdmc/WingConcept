@@ -224,8 +224,9 @@ class StorageService:
         filename: str,
         content_type: str,
         producto_id: Optional[str] = None,
+        carpeta: Optional[str] = None,
     ) -> str:
-        """Sube una imagen de producto al bucket configurado."""
+        """Sube una imagen de producto (o de otra sección vía `carpeta`) al bucket configurado."""
         _validar_extension(filename, EXTENSIONES_IMAGEN)
         _validar_contenido_imagen(content)
 
@@ -235,7 +236,7 @@ class StorageService:
                 f"Aceptados: {settings.ALLOWED_IMAGE_TYPES}"
             )
 
-        carpeta = f"productos/{producto_id}" if producto_id else "productos"
+        carpeta = carpeta or (f"productos/{producto_id}" if producto_id else "productos")
         return await self.subir_archivo(
             content=content,
             filename=filename,

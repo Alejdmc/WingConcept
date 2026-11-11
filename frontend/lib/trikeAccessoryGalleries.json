@@ -86,6 +86,17 @@
       "/images/parts/trikes/vanguard/cockpit-liner-1.jpg",
       "/images/parts/trikes/vanguard/cockpit-liner-2.jpg",
       "/images/parts/trikes/vanguard/cockpit-liner-3.jpg"
+    ],
+    "all-in-one-system": [
+      "/images/parts/trikes/vanguard/all-in-one-system-1.jpg",
+      "/images/parts/trikes/vanguard/all-in-one-system-2.jpg",
+      "/images/parts/trikes/vanguard/all-in-one-system-3.jpg",
+      "/images/parts/trikes/vanguard/all-in-one-system-4.jpg"
+    ],
+    "engine-mount": [
+      "/images/parts/trikes/vanguard/engine-mount-1.jpg",
+      "/images/parts/trikes/vanguard/engine-mount-2.jpg",
+      "/images/parts/trikes/vanguard/engine-mount-3.jpg"
     ]
   },
   "nomadic": {

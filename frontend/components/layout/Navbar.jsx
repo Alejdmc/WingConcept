@@ -23,6 +23,7 @@ const navItems = [
   { label: 'Tourist Flight', href: '/tourist-flight' },
   { label: 'Courses', href: '/induction-course' },
   { label: 'Dealers', href: '/dealers' },
+  { label: 'Clearance', href: '/clearance' },
   {
     label: 'More',
     children: [

@@ -279,6 +279,23 @@ export const VANGUARD_CONFIGURATOR_ACCESSORIES = withTrikeGalleries('vanguard', 
       'While our trikes come with a standard line protection system, pilots may opt to replace it with this new accessory, which mounts to the outside of the rim and attaches to the propeller guard ring.',
     image: '/images/parts/front-bar-protection.png',
   },
+  {
+    id: 'engine-mount',
+    name: 'Vanguard Engine Mount and Electrical Components',
+    price: 380,
+    description:
+      'This structure is separate from the main chassis, allowing for the installation of various engine types — such as the Rotax 503 and 582, the 110hp Simonini Victor 2 Super, and the Hirth 35 series (64hp and 70hp). It is designed this way to absorb engine vibrations and facilitate easy removal.',
+    image: '/images/parts/trikes/vanguard/engine-mount-1.jpg',
+  },
+  {
+    id: 'all-in-one-system',
+    name: 'New System All in One — Lights, Instruments & Electrical',
+    price: 0,
+    priceTbd: true,
+    description:
+      'Integrated panel that combines the auxiliary lights, the basic instruments (TTO digital gauges and USB charger) and the complete electrical installation in a single plug-and-play system.',
+    image: '/images/parts/trikes/vanguard/all-in-one-system-1.jpg',
+  },
 ])
 
 /**

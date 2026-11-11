@@ -52,6 +52,7 @@ TRIKES: dict[str, tuple[str, dict[int, str]]] = {
         14: "carabiners",
         16: "phone-holder",
         17: "line-protector",
+        19: "all-in-one-system",
     }),
     "nomadic": ("ACCESORIOS NOMADIC", {
         1: "reserve-chute",
@@ -80,6 +81,8 @@ EXPLORER_BAG = "ACCESORIOS/21. EXPLORER BAG"
 EXTRA: dict[tuple[str, str], list[str]] = {
     ("vanguard", "sun-roof-netting"): [f"{SUNSHADE}/SUNCHADE NET (1).png", f"{SUNSHADE}/SUNCHADE NET (3).png", f"{SUNSHADE}/vanguard azul-V8 (12).jpg"],
     ("vanguard", "front-bar-protection"): [f"{ROLL_BAR}/Vanguard Azul-V8 (7).jpg", "VANGUARD TRIKE/FOTOS VANGUARD/Protector sin fondo.png"],
+    # 18: carpeta en ACCESORIOS (no en ACCESORIOS PARA TRIKES)
+    ("vanguard", "engine-mount"): [f"ACCESORIOS/18  Vanguard engine mount and electrical components/IMG_{n}.HEIC" for n in (1875, 1878, 1879, 1876)],
     ("vanguard", "cockpit-liner"): ["ACCESORIOS/7. PROTECTIVE COVER/cover.jpg", "ACCESORIOS/7. PROTECTIVE COVER/cover 2.jpg", "ACCESORIOS/7. PROTECTIVE COVER/cover 3.jpg"],
     ("vanguard", "cruise-control"): ["site:/images/parts/cruise-control-1.jpg"],
     ("vanguard", "instrument-kit"): ["VANGUARD TRIKE/FOTOS VANGUARD/Panel sin fondo.png", f"{ALL_IN_ONE}/WhatsApp Image 2026-08-31 at 12.11.41 PM (2).jpeg"],
@@ -112,8 +115,12 @@ def image_hash(path: Path) -> int:
     return sum(1 << i for i, v in enumerate(px) if v > avg)
 
 
-def is_duplicate(h: int, seen: list[int]) -> bool:
-    return any(bin(h ^ other).count("1") <= 2 for other in seen)
+# Fotos muy parecidas pero de distinto ángulo que el hash fusionaría
+DEDUPE_BITS = {"engine-mount": 0}
+
+
+def is_duplicate(h: int, seen: list[int], max_bits: int = 2) -> bool:
+    return any(bin(h ^ other).count("1") <= max_bits for other in seen)
 
 
 def folder_candidates(folder: Path | None, slug: str) -> list[Path]:
@@ -139,7 +146,7 @@ def extra_candidates(drive_root: Path, trike: str, slug: str) -> list[Path]:
     return paths
 
 
-def pick_images(candidates: list[Path]) -> list[Path]:
+def pick_images(candidates: list[Path], max_bits: int = 2) -> list[Path]:
     # Same shot exported twice (e.g. "X (1).jpg" + "X (1).png"): keep one
     seen: set[str] = set()
     hashes: list[int] = []
@@ -149,7 +156,7 @@ def pick_images(candidates: list[Path]) -> list[Path]:
         if stem in seen:
             continue
         h = image_hash(p)
-        if is_duplicate(h, hashes):
+        if is_duplicate(h, hashes, max_bits):
             continue
         seen.add(stem)
         hashes.append(h)
@@ -186,14 +193,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True, type=Path, help='"ACCESORIOS PARA TRIKES" folder')
     parser.add_argument("--drive-root", type=Path, help="Drive download root for EXTRA (default: parent of --source)")
+    parser.add_argument("--only", nargs="*", help="Solo estos slugs (el resto del manifest se conserva)")
     args = parser.parse_args()
     drive_root = args.drive_root or args.source.parent
 
+    previous = json.loads(MANIFEST.read_text()) if args.only and MANIFEST.exists() else {}
     manifest: dict[str, dict[str, list[str]]] = {}
     for trike, (folder_name, by_number) in TRIKES.items():
         root = args.source / folder_name
-        manifest[trike] = {}
+        manifest[trike] = dict(previous.get(trike, {}))
         folders: dict[str, Path] = {}
+        if not root.is_dir():
+            print(f"skip {trike}: no existe {root}")
+            continue
         for folder in sorted(root.iterdir(), key=natural_key):
             if not folder.is_dir():
                 continue
@@ -204,12 +216,14 @@ def main() -> None:
             folders[slug] = folder
         slugs = list(folders) + [s for (t, s) in EXTRA if t == trike and s not in folders]
         for slug in slugs:
+            if args.only and slug not in args.only:
+                continue
             candidates = folder_candidates(folders.get(slug), slug) + extra_candidates(drive_root, trike, slug)
             urls = []
             for old in (OUT / trike).glob(f"{slug}-*.jpg"):
                 if re.fullmatch(rf"{re.escape(slug)}-\d+\.jpg", old.name):
                     old.unlink()
-            for i, src in enumerate(pick_images(candidates), start=1):
+            for i, src in enumerate(pick_images(candidates, DEDUPE_BITS.get(slug, 2)), start=1):
                 dest = OUT / trike / f"{slug}-{i}.jpg"
                 save_jpg(src, dest)
                 urls.append(f"/images/parts/trikes/{trike}/{dest.name}")

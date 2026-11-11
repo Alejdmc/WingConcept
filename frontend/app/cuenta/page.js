@@ -233,6 +233,16 @@ export default function CuentaPage() {
         </div>
       )}
 
+      <div className="bg-white border border-borderline rounded-lg p-6 mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="font-black text-lg text-ink">Clearance</h2>
+          <p className="text-sm text-ink2 mt-1">Sell your used trike or gear: title, description, price, up to 10 photos and your Gmail contact.</p>
+        </div>
+        <Link href="/cuenta/clearance" className="px-5 py-2.5 bg-brand text-white rounded font-bold hover:bg-brand/90 shrink-0">
+          My listings
+        </Link>
+      </div>
+
       {recentOrders.length > 0 && (
         <div className="bg-white border border-borderline rounded-lg p-6 space-y-4 mb-8">
           <div className="flex items-center justify-between">

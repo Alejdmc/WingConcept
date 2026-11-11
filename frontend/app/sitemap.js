@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   { path: '/paragliders', priority: 0.7, changeFrequency: 'monthly' },
   { path: '/contact', priority: 0.6, changeFrequency: 'monthly' },
   { path: '/dealers', priority: 0.6, changeFrequency: 'monthly' },
+  { path: '/clearance', priority: 0.6, changeFrequency: 'monthly' },
   { path: '/adventure', priority: 0.7, changeFrequency: 'monthly' },
   { path: '/events', priority: 0.6, changeFrequency: 'weekly' },
   { path: '/shows', priority: 0.6, changeFrequency: 'monthly' },
