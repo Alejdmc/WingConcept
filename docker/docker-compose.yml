@@ -141,9 +141,14 @@ services:
 volumes:
   redis_data:
     driver: local
+  # Nombre fijo: nginx (proyecto "wingconcept") y el certbot que levanta update.sh
+  # (proyecto "docker") deben leer/renovar los MISMOS certificados. Con nombres por
+  # proyecto, certbot renovaba en docker_certbot_* y nginx servía wingconcept_certbot_*.
   certbot_certs:
+    name: wingconcept_certbot_certs
     driver: local
   certbot_www:
+    name: wingconcept_certbot_www
     driver: local
 
 # ── Red interna ─────────────────────────────────────────────────────────────
