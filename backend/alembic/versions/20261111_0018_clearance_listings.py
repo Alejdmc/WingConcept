@@ -43,6 +43,8 @@ def upgrade() -> None:
     op.create_index("ix_clearance_listings_usuario_id", "clearance_listings", ["usuario_id"])
     op.create_index("ix_clearance_listings_estado", "clearance_listings", ["estado"])
     op.create_index("ix_clearance_listings_categoria", "clearance_listings", ["categoria"])
+    # Supabase expone `public` vía PostgREST: sin RLS el rol anon podría leer/editar la tabla
+    op.execute("ALTER TABLE clearance_listings ENABLE ROW LEVEL SECURITY")
 
 
 def downgrade() -> None:

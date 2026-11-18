@@ -100,6 +100,7 @@ def upgrade() -> None:
         SELECT * FROM configurador_opciones
         WHERE grupo = 'accessory' AND producto_id IN ('{VANGUARD_ID}'::uuid, '{NOMADIC_ID}'::uuid)
     """))
+    conn.execute(sa.text(f"ALTER TABLE {BACKUP} ENABLE ROW LEVEL SECURITY"))
     _sync(conn, VANGUARD_ID, VANGUARD)
     _sync(conn, NOMADIC_ID, NOMADIC)
 
