@@ -1,4 +1,4 @@
-"""Clearance: validaciones de la publicación (Gmail obligatorio, máx. 10 fotos propias)."""
+"""Clearance: validaciones de la publicación (email obligatorio, máx. 10 fotos propias)."""
 import pytest
 from pydantic import ValidationError
 
@@ -24,9 +24,17 @@ def test_valida_publicacion_correcta():
     assert data.categoria == "trike"
 
 
-def test_gmail_obligatorio():
+def test_acepta_cualquier_email_valido():
+    assert ClearanceCreate(**_body(contacto_email="owner@yahoo.com")).contacto_email == "owner@yahoo.com"
+
+
+def test_email_obligatorio_y_valido():
     with pytest.raises(ValidationError):
-        ClearanceCreate(**_body(contacto_email="owner@yahoo.com"))
+        ClearanceCreate(**_body(contacto_email="no-es-un-correo"))
+    body = _body()
+    body.pop("contacto_email")
+    with pytest.raises(ValidationError):
+        ClearanceCreate(**body)
 
 
 def test_maximo_10_fotos():

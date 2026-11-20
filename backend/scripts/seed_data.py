@@ -37,24 +37,8 @@ def _vid(slug: str) -> str:
     return str(uuid.uuid5(NAMESPACE, f"variant-{slug}"))
 
 
-VANGUARD_ACCESSORIES = [
-    ("front-guard", "Front Guard", 150, 12),
-    ("sun-shade", "Sun Shade", 90, 15),
-    ("cruise-control", "Cruise Control", 250, 8),
-    ("ballistic-parachute", "Ballistic Parachute", 1200, 5),
-    ("lights", "Lights", 200, 20),
-    ("phone-holder", "Phone Holder", 45, 30),
-    ("cover", "Cover", 120, 18),
-]
-
-NOMADIC_ACCESSORIES = [
-    ("prop-guard", "Propeller Guard", 280, 10),
-    ("cage-hoop", "Clear Cage Hoop", 150, 14),
-    ("lateral-bag", "Expedition Side Bag", 220, 8),
-    ("passenger-pad", "Passenger Pads", 95, 16),
-    ("nomadic-cover", "Protective Cover", 180, 12),
-    ("front-handle", "Front Handling Grip", 60, 25),
-]
+# Los accesorios de /parts se mantienen en la BD (admin + migraciones como la 0020).
+# No se re-siembran aquí: antes este seed reactivaba placeholders sin foto en cada deploy.
 
 
 def _sync_db_url() -> str:
@@ -273,34 +257,10 @@ def main() -> None:
         round(20000 / 3218.44, 2), 999, '{"deposit_cop": 20000}', True,
     )
 
-    # ── Accesorios Vanguard ───────────────────────────────────────────
-    for i, (acc_id, nombre, precio, stock) in enumerate(VANGUARD_ACCESSORIES, start=1):
-        slug = f"vanguard-{acc_id}"
-        pid = _pid(slug)
-        producto_id = _upsert_producto(
-            cur, pid, nombre, slug,
-            f"Accesorio opcional para Vanguard V8.0 — {nombre}.",
-            f"Vanguard accessory — {nombre}", "accesorios", "vanguard",
-            None, 20 + i, False,
-        )
-        _upsert_variante(cur, _vid(slug), producto_id, nombre, f"VANG-ACC-{acc_id.upper()}", precio, stock, es_principal=True)
-
-    # ── Accesorios Nomadic ────────────────────────────────────────────
-    for i, (acc_id, nombre, precio, stock) in enumerate(NOMADIC_ACCESSORIES, start=1):
-        slug = f"nomadic-{acc_id}"
-        pid = _pid(slug)
-        producto_id = _upsert_producto(
-            cur, pid, nombre, slug,
-            f"Accesorio opcional para Nomadic Trike — {nombre}.",
-            f"Nomadic accessory — {nombre}", "accesorios", "nomadic",
-            None, 30 + i, False,
-        )
-        _upsert_variante(cur, _vid(slug), producto_id, nombre, f"NOM-ACC-{acc_id.upper()}", precio, stock, es_principal=True)
-
     conn.commit()
     cur.close()
     conn.close()
-    print("Seed completado: Disruptor Paramotor, Disruptor Trike, I-Pro, Vanguard, Nomadic + accesorios")
+    print("Seed completado: Disruptor Paramotor, Disruptor Trike, I-Pro, Vanguard, Nomadic")
     print(f"  Disruptor Paramotor ID: {disruptor_pm_id}")
     print(f"  Disruptor Trike ID:     {disruptor_trike_id}")
     print(f"  Vanguard ID: {vanguard_id}")

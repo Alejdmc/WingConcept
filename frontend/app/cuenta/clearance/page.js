@@ -43,7 +43,7 @@ export default function MyClearancePage() {
       const email = String(user?.email || '')
       setDefaults({
         contacto_nombre: [user?.nombre, user?.apellido].filter(Boolean).join(' '),
-        contacto_email: /@(gmail|googlemail)\.com$/i.test(email) ? email : '',
+        contacto_email: email,
         contacto_telefono: user?.telefono || '',
       })
       await load()
@@ -122,7 +122,7 @@ export default function MyClearancePage() {
       {listings.length === 0 && !editing ? (
         <div className="bg-bg2 border border-borderline rounded-lg p-8 text-center">
           <p className="text-ink font-semibold">You have no listings yet.</p>
-          <p className="text-ink2 text-sm mt-1">Publish your first one with title, description, price, up to 10 photos and your Gmail contact.</p>
+          <p className="text-ink2 text-sm mt-1">Publish your first one with title, description, price, up to 10 photos and your contact email.</p>
         </div>
       ) : (
         <div className="space-y-4">

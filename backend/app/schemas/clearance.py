@@ -12,7 +12,6 @@ from app.models.clearance import CATEGORIAS
 from app.utils.validators import sanitizar_texto, validar_email, validar_telefono
 
 MAX_IMAGENES = 10
-GMAIL_DOMINIOS = ("gmail.com", "googlemail.com")
 
 Categoria = Literal["trike", "paramotor", "paraglider", "engine", "accessory", "other"]
 
@@ -39,11 +38,8 @@ def _validar_imagenes(v: List[str]) -> List[str]:
     return limpias
 
 
-def _validar_gmail(v: str) -> str:
-    email = validar_email(v)
-    if email.rsplit("@", 1)[-1] not in GMAIL_DOMINIOS:
-        raise ValueError("El correo de contacto debe ser una cuenta de Gmail (@gmail.com)")
-    return email
+def _validar_email_contacto(v: str) -> str:
+    return validar_email(v)
 
 
 def _validar_tel(v: Optional[str]) -> Optional[str]:
@@ -93,8 +89,8 @@ class ClearanceCreate(BaseModel):
 
     @field_validator("contacto_email")
     @classmethod
-    def validar_email_gmail(cls, v: str) -> str:
-        return _validar_gmail(v)
+    def validar_email(cls, v: str) -> str:
+        return _validar_email_contacto(v)
 
     @field_validator("contacto_telefono")
     @classmethod
@@ -144,8 +140,8 @@ class ClearanceUpdate(BaseModel):
 
     @field_validator("contacto_email")
     @classmethod
-    def validar_email_gmail(cls, v: Optional[str]) -> Optional[str]:
-        return None if v is None else _validar_gmail(v)
+    def validar_email(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else _validar_email_contacto(v)
 
     @field_validator("contacto_telefono")
     @classmethod

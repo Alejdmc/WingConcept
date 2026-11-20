@@ -15,10 +15,6 @@ export function categoryLabel(id) {
   return CLEARANCE_CATEGORIES.find((c) => c.id === id)?.label || 'Other'
 }
 
-export function isGmail(email) {
-  return /^[^\s@]+@(gmail|googlemail)\.com$/i.test(String(email || '').trim())
-}
-
 export function formatClearancePrice(price) {
   const n = Number(price)
   if (!Number.isFinite(n)) return ''

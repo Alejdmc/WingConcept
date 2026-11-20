@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { ImagePlus, Loader2, Star, X } from 'lucide-react'
 import SafeImage from '@/components/ui/SafeImage'
 import { api } from '@/lib/api'
-import { CLEARANCE_CATEGORIES, CLEARANCE_MAX_PHOTOS, isGmail } from '@/lib/clearance'
+import { CLEARANCE_CATEGORIES, CLEARANCE_MAX_PHOTOS } from '@/lib/clearance'
 
 const EMPTY = {
   titulo: '',
@@ -73,10 +73,6 @@ export default function ClearanceListingForm({ listing, defaults = {}, onSaved, 
     setError('')
     if (!form.imagenes.length) {
       setError('Add at least one photo.')
-      return
-    }
-    if (!isGmail(form.contacto_email)) {
-      setError('The contact email must be a Gmail address (@gmail.com).')
       return
     }
     const payload = {
@@ -188,8 +184,8 @@ export default function ClearanceListingForm({ listing, defaults = {}, onSaved, 
             <input id="cl-nombre" name="contacto_nombre" value={form.contacto_nombre} onChange={set} required minLength={2} maxLength={120} className={input} />
           </div>
           <div>
-            <label className={label} htmlFor="cl-email">Gmail *</label>
-            <input id="cl-email" name="contacto_email" type="email" value={form.contacto_email} onChange={set} required placeholder="you@gmail.com" className={input} />
+            <label className={label} htmlFor="cl-email">Email *</label>
+            <input id="cl-email" name="contacto_email" type="email" value={form.contacto_email} onChange={set} required placeholder="you@example.com" className={input} />
           </div>
           <div>
             <label className={label} htmlFor="cl-tel">Phone / WhatsApp</label>
