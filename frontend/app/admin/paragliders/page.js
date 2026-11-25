@@ -77,7 +77,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSubmit = async (e) => {
@@ -126,7 +126,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
       {form.categoria === 'accesorios' && !form.id && (
         <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded p-3">
-          Harness names should start with a clear brand/model. After saving, set slug to <code className="bg-white px-1 rounded">pgl-harness-…</code> via seed or DB if needed for cart ID mapping.
+          Harness names should start with a clear brand/model. New harnesses get the <code className="bg-white px-1 rounded">pgl-harness-…</code> slug automatically.
         </p>
       )}
 
@@ -157,7 +157,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
       <ImageUploadField
         images={form.imagenes}
-        onChange={(imagenes) => setForm({ ...form, imagenes: imagenes.slice(0, 3) })}
+        onChange={(imagenes) => setForm((form) => ({ ...form, imagenes: imagenes.slice(0, 3) }))}
         productoId={form.id}
         label="Product images (up to 3 — shown on /paragliders)"
         maxImages={3}
@@ -244,8 +244,11 @@ export default function AdminParaglidersPage() {
         await api.admin.actualizarVariante(form.varianteId, variantePayload)
       }
     } else {
+      const baseSlug = payload.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
       await api.admin.crearProducto({
         ...payload,
+        // Los arneses solo aparecen en /paragliders con slug pgl-harness-*
+        ...(payload.categoria === 'accesorios' && { slug: `pgl-harness-${baseSlug}` }),
         variantes: [{
           nombre: 'Standard',
           es_principal: true,
@@ -384,14 +387,14 @@ export default function AdminParaglidersPage() {
       {creating && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">New catalog item</h2>
-          <CatalogForm initial={emptyForm(defaultFormCategory)} onSave={saveItem} onCancel={() => setCreating(false)} />
+          <CatalogForm key={`new-${defaultFormCategory}`} initial={emptyForm(defaultFormCategory)} onSave={saveItem} onCancel={() => setCreating(false)} />
         </div>
       )}
 
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.nombre}</h2>
-          <CatalogForm initial={fromProduct(editing)} onSave={saveItem} onCancel={() => setEditing(null)} />
+          <CatalogForm key={editing.id || editing.slug} initial={fromProduct(editing)} onSave={saveItem} onCancel={() => setEditing(null)} />
         </div>
       )}
 

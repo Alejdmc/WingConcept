@@ -33,7 +33,7 @@ export default function NewProductPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleVarianteChange = (e) => {
@@ -111,7 +111,7 @@ export default function NewProductPage() {
 
           <ImageUploadField
             images={form.imagenes}
-            onChange={(imagenes) => setForm({ ...form, imagenes })}
+            onChange={(imagenes) => setForm((form) => ({ ...form, imagenes }))}
             label="Product images"
           />
 

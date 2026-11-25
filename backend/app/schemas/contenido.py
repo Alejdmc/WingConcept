@@ -61,7 +61,7 @@ class ContenidoCreate(BaseModel):
     def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        return sanitizar_texto(v, max_length=5000)
+        return sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("imagen")
     @classmethod
@@ -93,6 +93,16 @@ class ContenidoUpdate(BaseModel):
     precio: Optional[str] = Field(None, max_length=100)
     orden: Optional[int] = None
     activo: Optional[bool] = None
+
+    @field_validator("titulo", "slug", "ubicacion", "duracion", "dificultad", "fecha", "hora", "capacidad", "precio")
+    @classmethod
+    def sanitizar_textos(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=300)
+
+    @field_validator("descripcion")
+    @classmethod
+    def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("tipo")
     @classmethod

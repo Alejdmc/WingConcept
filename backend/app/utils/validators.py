@@ -193,17 +193,23 @@ def sanitizar_nombre_archivo(filename: str) -> str:
     return base[:200]
 
 
-def sanitizar_texto(texto: str, max_length: int = 500) -> str:
+def sanitizar_texto(texto: str, max_length: int = 500, multilinea: bool = False) -> str:
     """
     Limpia texto de usuario: quita HTML, caracteres de control y normaliza espacios.
     Mitiga XSS al persistir y reflejar en emails/UI.
+    multilinea=True conserva los saltos de línea (párrafos de descripciones).
     """
     if texto is None:
         return texto
     cleaned = _CONTROL_CHARS.sub("", str(texto))
     cleaned = _HTML_TAG.sub("", cleaned)
     cleaned = html.unescape(cleaned).strip()
-    cleaned = re.sub(r"\s+", " ", cleaned)
+    if multilinea:
+        cleaned = cleaned.replace("\r\n", "\n").replace("\r", "\n")
+        cleaned = "\n".join(re.sub(r"[^\S\n]+", " ", line).strip() for line in cleaned.split("\n"))
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+    else:
+        cleaned = re.sub(r"\s+", " ", cleaned)
     peligro = detectar_contenido_peligroso(cleaned)
     if peligro:
         raise ValueError(peligro)

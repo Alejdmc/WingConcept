@@ -8,7 +8,7 @@ import pytest
 from app.core.exceptions import ValidacionError
 from app.models.webhook_event import WebhookEvent
 from app.services.configurador_service import (
-    CATALOGS,
+    LEGACY_CATALOGS as CATALOGS,
     VANGUARD_PRODUCT_ID,
     configurador_service,
 )
@@ -35,8 +35,9 @@ def test_vanguard_precio_con_accesorios():
             "upgrades": ["cruise-control", "instrument-kit"],
         },
     )
-    assert result.desglose["motor"] == 15000
-    assert result.desglose["acabado"] == 800
+    cat = CATALOGS[VANGUARD_PRODUCT_ID]
+    assert result.desglose["motor"] == cat["engines"]["rotax-912"]
+    assert result.desglose["acabado"] == (cat.get("finishes") or {}).get("gloss-carbon", 0)
     assert result.desglose["accesorios"] == 460
 
 
@@ -66,7 +67,8 @@ async def test_resolver_precio_carrito_ignora_totalprice_cliente():
             "totalPrice": 1,
         },
     )
-    assert precio == 5950.0
+    assert precio == CATALOGS[VANGUARD_PRODUCT_ID]["fallback_base"]
+    assert precio != 1
 
 
 def test_usuario_admin_update_no_incluye_rol():

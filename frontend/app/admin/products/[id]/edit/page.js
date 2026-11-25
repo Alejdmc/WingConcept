@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -8,8 +8,9 @@ import ImageUploadField from '@/components/admin/ImageUploadField'
 
 const CATEGORIAS = ['paramotor', 'vela', 'motor', 'accesorios', 'repuestos', 'paratrike']
 
-export default function EditProductPage({ params }) {
-  const { id } = params
+export default function EditProductPage() {
+  // Next 16: params es una Promise en props; useParams() da el id directamente
+  const { id } = useParams()
   const router = useRouter()
   const [form, setForm] = useState({
     nombre: '',
@@ -67,7 +68,7 @@ export default function EditProductPage({ params }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSubmit = async (e) => {
@@ -185,7 +186,7 @@ export default function EditProductPage({ params }) {
 
           <ImageUploadField
             images={form.imagenes}
-            onChange={(imagenes) => setForm({ ...form, imagenes })}
+            onChange={(imagenes) => setForm((form) => ({ ...form, imagenes }))}
             productoId={id}
             label="Product images"
           />
@@ -207,22 +208,22 @@ export default function EditProductPage({ params }) {
           <p className="text-sm text-ink2">Texts and gallery shown on the public product page (e.g. Vanguard, Nomadic). For listing cards and prices, use <Link href="/admin/paratrikes" className="text-brand hover:underline">Paratrikes page</Link> and <Link href="/admin/configurador" className="text-brand hover:underline">Customization</Link>.</p>
           <div>
             <label className="block text-sm font-semibold mb-1">Tagline (subtitle under product name)</label>
-            <input value={pageContent.tagline} onChange={(e) => setPageContent({ ...pageContent, tagline: e.target.value })} className="w-full p-3 border rounded" />
+            <input value={pageContent.tagline} onChange={(e) => setPageContent((pageContent) => ({ ...pageContent, tagline: e.target.value }))} className="w-full p-3 border rounded" />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Philosophy line</label>
-            <input value={pageContent.philosophy} onChange={(e) => setPageContent({ ...pageContent, philosophy: e.target.value })} className="w-full p-3 border rounded" />
+            <input value={pageContent.philosophy} onChange={(e) => setPageContent((pageContent) => ({ ...pageContent, philosophy: e.target.value }))} className="w-full p-3 border rounded" />
           </div>
           <ImageUploadField
             images={pageContent.gallery}
-            onChange={(gallery) => setPageContent({ ...pageContent, gallery })}
+            onChange={(gallery) => setPageContent((pageContent) => ({ ...pageContent, gallery }))}
             productoId={id}
             label="Gallery images"
             maxImages={20}
           />
           <div>
             <label className="block text-sm font-semibold mb-1">Features (JSON array: title, desc, icon)</label>
-            <textarea value={pageContent.featuresJson} onChange={(e) => setPageContent({ ...pageContent, featuresJson: e.target.value })} rows={8} className="w-full p-3 border rounded font-mono text-xs" />
+            <textarea value={pageContent.featuresJson} onChange={(e) => setPageContent((pageContent) => ({ ...pageContent, featuresJson: e.target.value }))} rows={8} className="w-full p-3 border rounded font-mono text-xs" />
           </div>
         </div>
 

@@ -90,7 +90,7 @@ function clearSessionAndRedirect() {
 async function parseErrorResponse(res) {
   const fallbackByStatus = {
     402: 'Payment could not be processed. Please try again or use another card.',
-    413: 'File too large. Images must be under 10 MB.',
+    413: 'File too large. Photos must be under 8 MB (admin uploads: 10 MB).',
     429: 'Too many requests. Please wait a moment and try again.',
     500: 'Service temporarily unavailable. Please try again in a moment.',
     502: 'Payment service is temporarily unavailable. Please try again.',
@@ -164,7 +164,7 @@ function sleep(ms) {
 }
 
 async function request(path, options = {}, attempt = 0) {
-  const { skipAuth = false, skipProbe = false, ...fetchOptions } = options
+  const { skipAuth = false, skipProbe = false, headers: extraHeaders, ...fetchOptions } = options
   const isPublic = skipAuth || isPublicPath(path)
   const token = !isPublic && typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   const sessionId = getSessionId()
@@ -187,7 +187,7 @@ async function request(path, options = {}, attempt = 0) {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
         ...(sessionId && { 'X-Session-ID': sessionId }),
-        ...options.headers,
+        ...extraHeaders,
       },
       ...fetchOptions,
     })
@@ -233,10 +233,14 @@ async function request(path, options = {}, attempt = 0) {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${r.access_token}`,
                 ...(sessionId && { 'X-Session-ID': sessionId }),
-                ...fetchOptions.headers,
+                ...extraHeaders,
               },
               ...fetchOptions,
             })
+            if (retry.status === 401) {
+              clearSessionAndRedirect()
+              throw { status: 401, detail: 'Session expired' }
+            }
             if (!retry.ok) {
               throw { status: retry.status, detail: await parseErrorResponse(retry) }
             }
@@ -246,8 +250,9 @@ async function request(path, options = {}, attempt = 0) {
         clearSessionAndRedirect()
         throw { status: 401, detail: 'Session expired' }
       } catch (e) {
-        if (e?.status === 401) throw e
-        clearSessionAndRedirect()
+        // Error normal de la petición reintentada (422, 404, 409…): no cerrar la sesión
+        if (e?.status && e.status !== 401) throw e
+        if (e?.detail !== 'Session expired') clearSessionAndRedirect()
         throw { status: 401, detail: 'Session expired' }
       }
     }

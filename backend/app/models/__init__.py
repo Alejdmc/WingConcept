@@ -20,6 +20,7 @@ from app.models.dealer import Dealer            # noqa: F401
 from app.models.configurador_opcion import ConfiguradorOpcion  # noqa: F401
 from app.models.site_block import SiteBlock            # noqa: F401
 from app.models.clearance import ClearanceListing      # noqa: F401
+from app.models.manual import Manual                   # noqa: F401
 
 __all__ = [
     "Usuario",

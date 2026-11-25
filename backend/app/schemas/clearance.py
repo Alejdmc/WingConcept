@@ -70,7 +70,7 @@ class ClearanceCreate(BaseModel):
     @field_validator("descripcion")
     @classmethod
     def sanitizar_descripcion(cls, v: str) -> str:
-        return sanitizar_texto(v, max_length=5000)
+        return sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("ubicacion")
     @classmethod
@@ -119,7 +119,7 @@ class ClearanceUpdate(BaseModel):
     @field_validator("descripcion")
     @classmethod
     def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
-        return None if v is None else sanitizar_texto(v, max_length=5000)
+        return None if v is None else sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("ubicacion")
     @classmethod

@@ -196,6 +196,18 @@ class OrdenService:
 
         await stock_service.validar_items_orden(db, items_orden)
 
+        # La dirección de envío debe ser del mismo usuario
+        if data.direccion_envio_id:
+            from app.models.direccion_envio import DireccionEnvio
+            propia = await db.execute(
+                select(DireccionEnvio.id).where(
+                    DireccionEnvio.id == data.direccion_envio_id,
+                    DireccionEnvio.usuario_id == usuario_id,
+                )
+            )
+            if propia.scalar_one_or_none() is None:
+                raise RecursoNoEncontradoError("Dirección de envío")
+
         # Crear orden
         descuento = 0.0
         impuestos = calcular_impuestos(lineas_impuesto, subtotal, descuento)

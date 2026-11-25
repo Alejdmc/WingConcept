@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.config import settings
 from app.core.middleware import global_rate_limit_middleware, validate_session_id_middleware
@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MB
 MAX_UPLOAD_BODY_BYTES = 30 * 1024 * 1024    # 30 MB
 UPLOAD_PATH_PREFIX = "/api/v1/admin/uploads/"
+# Fotos de Clearance (usuarios registrados, máx. 8 MB por foto)
+CLEARANCE_UPLOAD_PATH = "/api/v1/clearance/imagenes"
+MAX_CLEARANCE_BODY_BYTES = 9 * 1024 * 1024
 
 
 # ── Lifecycle: startup / shutdown ─────────────────────────────────────────────
@@ -148,11 +151,13 @@ async def limit_request_body_size(request: Request, call_next):
     """
     content_length = request.headers.get("content-length")
     if content_length:
-        max_bytes = (
-            MAX_UPLOAD_BODY_BYTES
-            if request.url.path.startswith(UPLOAD_PATH_PREFIX)
-            else MAX_REQUEST_BODY_BYTES
-        )
+        path = request.url.path
+        if path.startswith(UPLOAD_PATH_PREFIX):
+            max_bytes = MAX_UPLOAD_BODY_BYTES
+        elif path.rstrip("/") == CLEARANCE_UPLOAD_PATH:
+            max_bytes = MAX_CLEARANCE_BODY_BYTES
+        else:
+            max_bytes = MAX_REQUEST_BODY_BYTES
         try:
             if int(content_length) > max_bytes:
                 logger.warning(
@@ -238,6 +243,18 @@ async def log_requests(request: Request, call_next):
 import app.models as _models_registry  # noqa: F401
 from app.api.router import api_router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+@app.exception_handler(IntegrityError)
+async def integrity_exception_handler(request: Request, exc: IntegrityError):
+    """Duplicados (slug, SKU, clave) o campos obligatorios vacíos: 409, no 503."""
+    logger.warning(f"IntegrityError en {request.method} {request.url.path}: {exc.orig}")
+    msg = str(getattr(exc, "orig", exc)).lower()
+    if "not null" in msg or "null value" in msg:
+        detail = "Falta un campo obligatorio."
+    else:
+        detail = "Ya existe un registro con ese valor (nombre, slug, SKU o clave duplicados)."
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": detail})
 
 
 @app.exception_handler(SQLAlchemyError)

@@ -53,6 +53,7 @@ def test_admin_producto_response_campos_frontend():
 
     item = AdminProductoResponse(
         id=uuid.uuid4(),
+        slug="i-pro",
         name="I-Pro",
         price="$5,200",
         stock=10,

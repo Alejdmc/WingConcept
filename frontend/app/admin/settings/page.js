@@ -75,8 +75,10 @@ export default function AdminSettingsPage() {
         persistAuthSession({
           access_token: localStorage.getItem('access_token'),
           refresh_token: localStorage.getItem('refresh_token'),
+          usuario_id: updated.id ?? stored.id,
           nombre: updated.nombre,
           rol: updated.rol,
+          email_verificado: updated.email_verificado ?? stored.email_verificado,
           expires_in: 60 * 60 * 24 * 7,
         })
       }

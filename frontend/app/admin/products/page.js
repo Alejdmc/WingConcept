@@ -107,8 +107,14 @@ export default function ProductsPage() {
     }
     setError('')
     try {
-      const data = await api.admin.productos({ por_pagina: 50 })
-      setProducts(data.items || [])
+      // Cargar todas las páginas: la búsqueda es en cliente y el catálogo supera 50 productos
+      const all = []
+      for (let pagina = 1; pagina <= 20; pagina += 1) {
+        const data = await api.admin.productos({ por_pagina: 100, pagina })
+        all.push(...(data.items || []))
+        if (!data.paginas || pagina >= data.paginas) break
+      }
+      setProducts(all)
     } catch (err) {
       console.error('Error loading admin products:', err)
       if (!silent) setError('Could not load products.')

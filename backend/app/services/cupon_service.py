@@ -247,10 +247,13 @@ class CuponService:
         if not validacion.valido:
             raise ValidacionError(validacion.mensaje or "Cupón inválido")
 
+        # Bloqueo de fila: dos órdenes simultáneas no pueden usar el mismo cupón
         result = await db.execute(
-            select(Cupon).where(Cupon.codigo == codigo.strip().upper())
+            select(Cupon).where(Cupon.codigo == codigo.strip().upper()).with_for_update()
         )
         cupon = result.scalar_one()
+        if cupon.usado:
+            raise ValidacionError("Este cupón ya fue utilizado")
         descuento = calcular_descuento(subtotal, cupon.tipo, float(cupon.valor))
 
         cupon.usado = True

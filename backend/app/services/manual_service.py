@@ -77,24 +77,26 @@ class ManualService:
         old_archivo = manual.archivo_url
         for key, value in update_data.items():
             setattr(manual, key, value)
+        await db.commit()
+        # Borrar el PDF anterior solo después de guardar en BD
         if (
             "archivo_url" in update_data
             and old_archivo
             and update_data["archivo_url"] != old_archivo
         ):
             await storage_service.eliminar_por_referencia(old_archivo)
-        await db.flush()
         return ManualResponse.model_validate(manual)
 
     async def eliminar(self, db: AsyncSession, manual_id: UUID, permanente: bool = False) -> None:
         manual = await self.obtener_por_id(db, manual_id)
+        archivo = manual.archivo_url if permanente else None
         if permanente:
-            if manual.archivo_url:
-                await storage_service.eliminar_por_referencia(manual.archivo_url)
             await db.delete(manual)
         else:
             manual.activo = False
-        await db.flush()
+        await db.commit()
+        if archivo:
+            await storage_service.eliminar_por_referencia(archivo)
 
 
     async def descargar_archivo(

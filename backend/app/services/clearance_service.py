@@ -80,10 +80,10 @@ class ClearanceService:
         )
         return [ClearanceResponse.model_validate(x) for x in result.scalars().all()]
 
-    async def crear(self, db: AsyncSession, usuario, data: ClearanceCreate) -> ClearanceResponse:
+    async def _verificar_limite_activas(self, db: AsyncSession, usuario_id) -> None:
         activas = (await db.execute(
             select(func.count()).select_from(ClearanceListing).where(
-                ClearanceListing.usuario_id == usuario.id,
+                ClearanceListing.usuario_id == usuario_id,
                 ClearanceListing.estado == "activo",
             )
         )).scalar() or 0
@@ -91,6 +91,9 @@ class ClearanceService:
             raise ValidacionError(
                 f"Puedes tener máximo {MAX_PUBLICACIONES_ACTIVAS} publicaciones activas. Marca alguna como vendida."
             )
+
+    async def crear(self, db: AsyncSession, usuario, data: ClearanceCreate) -> ClearanceResponse:
+        await self._verificar_limite_activas(db, usuario.id)
         _verificar_fotos_propias(data.imagenes, usuario)
         listing = ClearanceListing(usuario_id=usuario.id, **data.model_dump())
         db.add(listing)
@@ -110,6 +113,8 @@ class ClearanceService:
         if data.imagenes is not None and usuario.rol != "admin":
             nuevas = [u for u in data.imagenes if u not in (listing.imagenes or [])]
             _verificar_fotos_propias(nuevas, usuario)
+        if data.estado == "activo" and listing.estado != "activo":
+            await self._verificar_limite_activas(db, listing.usuario_id)
         for campo, valor in data.model_dump(exclude_unset=True).items():
             if valor is None and campo not in ("ubicacion", "contacto_telefono"):
                 continue

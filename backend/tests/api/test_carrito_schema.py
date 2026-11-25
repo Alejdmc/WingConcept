@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.carrito import AgregarItemRequest
-from app.services.configurador_service import VANGUARD_PRODUCT_ID, configurador_service
+from app.services.configurador_service import LEGACY_CATALOGS, VANGUARD_PRODUCT_ID, configurador_service
 
 
 def test_agregar_item_requiere_variante_o_producto():
@@ -35,4 +35,6 @@ async def test_precio_carrito_no_usa_totalprice_cliente():
         5950.0,
         {"engine": "no-engine", "finish": "black-matte", "upgrades": [], "totalPrice": 99},
     )
-    assert precio == 5950.0
+    # Precio calculado en servidor (base del catálogo), nunca el totalPrice del cliente
+    assert precio == LEGACY_CATALOGS[VANGUARD_PRODUCT_ID]["fallback_base"]
+    assert precio != 99

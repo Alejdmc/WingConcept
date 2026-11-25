@@ -60,6 +60,8 @@ class VarianteResponse(BaseModel):
 
 class ProductoCreate(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=255)
+    # Opcional: slug fijo (p. ej. pgl-harness-*); si no, se genera desde el nombre
+    slug: Optional[str] = Field(None, max_length=300)
     descripcion: Optional[str] = None
     descripcion_corta: Optional[str] = Field(None, max_length=500)
     categoria: str = Field(..., max_length=100)

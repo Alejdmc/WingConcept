@@ -118,5 +118,5 @@ async def actualizar_variante(
     _admin=Depends(get_current_admin),
 ):
     """Actualiza una variante. Solo admin."""
-    return await producto_service.actualizar_variante(db, variante_id, data)
+    return await producto_service.actualizar_variante(db, variante_id, data, producto_id=producto_id)
 

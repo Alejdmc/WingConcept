@@ -37,7 +37,7 @@ function DealerForm({ initial, onSave, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSubmit = async (e) => {
@@ -211,7 +211,7 @@ export default function AdminDealersPage() {
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.nombre}</h2>
-          <DealerForm initial={toFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
+          <DealerForm key={editing.id} initial={toFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
         </div>
       )}
 

@@ -43,7 +43,7 @@ class ManualCreate(BaseModel):
     def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        return sanitizar_texto(v, max_length=5000)
+        return sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("archivo_url")
     @classmethod
@@ -57,6 +57,16 @@ class ManualUpdate(BaseModel):
     archivo_url: Optional[str] = Field(None, max_length=500)
     orden: Optional[int] = None
     activo: Optional[bool] = None
+
+    @field_validator("nombre")
+    @classmethod
+    def sanitizar_nombre(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=255)
+
+    @field_validator("descripcion")
+    @classmethod
+    def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("archivo_url")
     @classmethod

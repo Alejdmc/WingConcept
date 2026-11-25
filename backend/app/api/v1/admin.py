@@ -158,7 +158,10 @@ async def actualizar_usuario(
     admin=Depends(get_current_admin),
 ):
     """Actualiza datos básicos de un usuario (sin cambiar rol)."""
-    from app.core.exceptions import RecursoNoEncontradoError
+    from app.core.exceptions import RecursoNoEncontradoError, ValidacionError
+
+    if usuario_id == admin.id and data.model_dump(exclude_unset=True).get("activo") is False:
+        raise ValidacionError("No puedes desactivar tu propia cuenta")
 
     result = await db.execute(select(Usuario).where(Usuario.id == usuario_id))
     usuario = result.scalar_one_or_none()

@@ -35,6 +35,9 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 CACHE_PREFIX = "productos"
+# Columnas NOT NULL: un null explícito del admin se ignora en vez de romper con 503
+NO_NULOS_PRODUCTO = ("nombre", "categoria", "activo", "destacado", "orden_display")
+NO_NULOS_VARIANTE = ("nombre", "precio", "stock", "stock_minimo", "activo", "es_principal")
 ADMIN_LIST_TTL = 60
 
 
@@ -296,13 +299,13 @@ class ProductoService:
 
     async def crear(self, db: AsyncSession, data: ProductoCreate) -> ProductoResponse:
         """Crea un nuevo producto con variantes opcionales."""
-        slug = slugify(data.nombre, allow_unicode=False)
+        slug = slugify(data.slug or data.nombre, allow_unicode=False)
         # Verificar slug único
         existe = await db.execute(select(Producto).where(Producto.slug == slug))
         if existe.scalar_one_or_none():
             slug = f"{slug}-{str(uuid_module.uuid4())[:8]}"
 
-        payload = data.model_dump(exclude={"variantes"})
+        payload = data.model_dump(exclude={"variantes", "slug"})
         producto = Producto(slug=slug, **payload)
         db.add(producto)
         await db.flush()
@@ -313,7 +316,8 @@ class ProductoService:
                 db.add(variante)
             await db.flush()
 
-        await cache_delete_pattern(f"{CACHE_PREFIX}:list:*")
+        await db.commit()
+        await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         logger.info(f"Producto creado: {producto.nombre}")
         return await self.obtener_admin(db, producto.id)
 
@@ -328,14 +332,17 @@ class ProductoService:
         """Actualiza un producto existente."""
         producto = await self.obtener_por_id(db, producto_id)
 
+        # El slug no cambia al renombrar: mantiene URLs públicas y la lógica que depende del slug.
         update_data = data.model_dump(exclude_unset=True)
-        if "nombre" in update_data:
-            update_data["slug"] = slugify(update_data["nombre"])
+        update_data.pop("slug", None)
+        for key in NO_NULOS_PRODUCTO:
+            if key in update_data and update_data[key] is None:
+                update_data.pop(key)
 
         for key, value in update_data.items():
             setattr(producto, key, value)
 
-        await db.flush()
+        await db.commit()
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         return await self.obtener_admin(db, producto_id)
 
@@ -343,7 +350,7 @@ class ProductoService:
         """Soft delete: desactiva el producto en lugar de eliminarlo."""
         producto = await self.obtener_por_id(db, producto_id)
         producto.activo = False
-        await db.flush()
+        await db.commit()
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         logger.info(f"Producto desactivado: {producto_id}")
 
@@ -356,24 +363,31 @@ class ProductoService:
         await self.obtener_por_id(db, producto_id)
         variante = Variante(producto_id=producto_id, **data.model_dump())
         db.add(variante)
-        await db.flush()
+        await db.commit()
         await db.refresh(variante)
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         return VarianteResponse.model_validate(variante)
 
     async def actualizar_variante(
-        self, db: AsyncSession, variante_id: UUID, data: VarianteUpdate
+        self, db: AsyncSession, variante_id: UUID, data: VarianteUpdate,
+        producto_id: Optional[UUID] = None,
     ) -> VarianteResponse:
         """Actualiza una variante."""
-        result = await db.execute(select(Variante).where(Variante.id == variante_id))
+        query = select(Variante).where(Variante.id == variante_id)
+        if producto_id is not None:
+            query = query.where(Variante.producto_id == producto_id)
+        result = await db.execute(query)
         variante = result.scalar_one_or_none()
         if not variante:
             raise RecursoNoEncontradoError("Variante")
 
         for key, value in data.model_dump(exclude_unset=True).items():
+            if value is None and key in NO_NULOS_VARIANTE:
+                continue
             setattr(variante, key, value)
 
-        await db.flush()
+        await db.commit()
+        await db.refresh(variante)
         await cache_delete_pattern(f"{CACHE_PREFIX}:*")
         return VarianteResponse.model_validate(variante)
 

@@ -31,7 +31,11 @@ class StockService:
         return settings.LOW_STOCK_THRESHOLD
 
     def _tracks_inventory(self, variante: Variante) -> bool:
-        """stock > 0 = inventario limitado; stock <= 0 = ilimitado (configuradores)."""
+        """Repuestos/accesorios/velas llevan inventario (stock 0 = agotado).
+        Los productos de configurador (trikes, paramotores) se fabrican a pedido: sin límite."""
+        producto = variante.__dict__.get("producto")
+        if producto is not None:
+            return producto.categoria in CATALOG_CATEGORIES
         return int(variante.stock) > 0
 
     async def _invalidate_product_cache(self) -> None:
@@ -113,7 +117,10 @@ class StockService:
 
         for item in orden.items:
             result = await db.execute(
-                select(Variante).where(Variante.id == item.variante_id).with_for_update()
+                select(Variante)
+                .options(selectinload(Variante.producto))
+                .where(Variante.id == item.variante_id)
+                .with_for_update()
             )
             variante = result.scalar_one_or_none()
             if not variante or not self._tracks_inventory(variante):
@@ -144,7 +151,6 @@ class StockService:
                 Producto.activo == True,
                 Variante.activo == True,
                 Producto.categoria.in_(list(cats)),
-                Variante.stock > 0,
                 Variante.stock <= threshold,
             )
             .order_by(Variante.stock, Producto.nombre)
@@ -160,7 +166,7 @@ class StockService:
                 "stock": variante.stock,
                 "stock_minimo": variante.stock_minimo,
                 "sku": variante.sku,
-                "nivel": "agotado" if variante.stock == 0 else "bajo",
+                "nivel": "agotado" if variante.stock <= 0 else "bajo",
             })
         return alerts
 

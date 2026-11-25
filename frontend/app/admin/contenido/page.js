@@ -165,7 +165,7 @@ export default function AdminContenidoPage() {
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.titulo}</h2>
-          <ContenidoForm seccion={seccion} initial={contenidoToFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
+          <ContenidoForm key={editing.id} seccion={seccion} initial={contenidoToFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
         </div>
       )}
 

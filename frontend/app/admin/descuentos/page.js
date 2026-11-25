@@ -68,7 +68,7 @@ export default function AdminDescuentosPage() {
   }, [search])
 
   const handleFormChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    setForm((form) => ({ ...form, [e.target.name]: e.target.value }))
   }
 
   const handleSend = async (e) => {

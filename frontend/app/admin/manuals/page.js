@@ -55,7 +55,7 @@ function ManualForm({ initial, onSave, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleUpload = async (e) => {
@@ -156,7 +156,7 @@ function PageBlockForm({ label, initial, onSave }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm({ ...form, [name]: value })
+    setForm((form) => ({ ...form, [name]: value }))
   }
 
   const handleSubmit = async (e) => {
@@ -181,7 +181,7 @@ function PageBlockForm({ label, initial, onSave }) {
         <div>
           <ImageUploadField
             images={form.imagen ? [form.imagen] : []}
-            onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+            onChange={(urls) => setForm((form) => ({ ...form, imagen: urls[0] || '' }))}
             label="Hero image"
             maxImages={1}
           />
@@ -301,11 +301,13 @@ export default function AdminManualsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         <PageBlockForm
+          key={pageContent.hero?.id || 'hero-new'}
           label="Page hero"
           initial={toPageForm(pageContent.hero, 'hero')}
           onSave={savePageBlock}
         />
         <PageBlockForm
+          key={pageContent.intro?.id || 'intro-new'}
           label="Page intro"
           initial={toPageForm(pageContent.intro, 'intro')}
           onSave={savePageBlock}
@@ -322,7 +324,7 @@ export default function AdminManualsPage() {
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.nombre}</h2>
-          <ManualForm initial={toFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
+          <ManualForm key={editing.id} initial={toFormData(editing)} onSave={handleUpdate} onCancel={() => setEditing(null)} />
         </div>
       )}
 

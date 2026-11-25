@@ -179,6 +179,7 @@ export default function AdminNewsPage() {
             {createTipo === 'noticia' ? 'New article' : createTipo === 'hero' ? 'Page banner' : 'Intro text'}
           </h2>
           <ContenidoForm
+            key={`new-${createTipo}`}
             seccion={seccion}
             defaultTipo={createTipo}
             onSave={handleCreate}
@@ -191,6 +192,7 @@ export default function AdminNewsPage() {
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.titulo}</h2>
           <ContenidoForm
+            key={editing.id}
             seccion={seccion}
             initial={contenidoToFormData(editing)}
             onSave={handleUpdate}

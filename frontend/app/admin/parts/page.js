@@ -80,7 +80,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const toggleModel = (model) => {
@@ -163,7 +163,7 @@ function CatalogForm({ initial, onSave, onCancel }) {
 
       <ImageUploadField
         images={form.imagenes}
-        onChange={(imagenes) => setForm({ ...form, imagenes: imagenes.slice(0, 3) })}
+        onChange={(imagenes) => setForm((form) => ({ ...form, imagenes: imagenes.slice(0, 3) }))}
         productoId={form.id}
         label="Product images (up to 3 — same gallery in /parts and configurators)"
         maxImages={3}
@@ -404,14 +404,14 @@ export default function AdminPartsPage() {
       {creating && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">New catalog item</h2>
-          <CatalogForm initial={emptyForm(filter === 'accesorios' ? 'accesorios' : 'repuestos')} onSave={saveItem} onCancel={() => setCreating(false)} />
+          <CatalogForm key={`new-${filter}`} initial={emptyForm(filter === 'accesorios' ? 'accesorios' : 'repuestos')} onSave={saveItem} onCancel={() => setCreating(false)} />
         </div>
       )}
 
       {editing && (
         <div className="mb-8">
           <h2 className="font-black text-lg mb-4">Edit: {editing.nombre}</h2>
-          <CatalogForm initial={fromProduct(editing)} onSave={saveItem} onCancel={() => setEditing(null)} />
+          <CatalogForm key={editing.id || editing.slug} initial={fromProduct(editing)} onSave={saveItem} onCancel={() => setEditing(null)} />
         </div>
       )}
 

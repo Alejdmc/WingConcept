@@ -33,7 +33,7 @@ class DealerCreate(BaseModel):
     def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        return sanitizar_texto(v, max_length=5000)
+        return sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("instagram")
     @classmethod
@@ -68,6 +68,16 @@ class DealerUpdate(BaseModel):
     email: Optional[str] = Field(None, max_length=254)
     orden: Optional[int] = None
     activo: Optional[bool] = None
+
+    @field_validator("nombre", "equipo", "ubicacion")
+    @classmethod
+    def sanitizar_textos(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=255)
+
+    @field_validator("descripcion")
+    @classmethod
+    def sanitizar_descripcion(cls, v: Optional[str]) -> Optional[str]:
+        return None if v is None else sanitizar_texto(v, max_length=5000, multilinea=True)
 
     @field_validator("instagram")
     @classmethod

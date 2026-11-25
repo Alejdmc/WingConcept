@@ -254,7 +254,7 @@ export default function AdminConfiguradorPage() {
               <label className="block text-sm font-semibold mb-1">Category</label>
               <select
                 value={form.grupo}
-                onChange={(e) => setForm({ ...form, grupo: e.target.value })}
+                onChange={(e) => setForm((form) => ({ ...form, grupo: e.target.value }))}
                 disabled={!!editing}
                 className="w-full p-2 border rounded"
               >
@@ -267,34 +267,34 @@ export default function AdminConfiguradorPage() {
             {!editing && (
               <div>
                 <label className="block text-sm font-semibold mb-1">Internal ID (slug)</label>
-                <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} required className="w-full p-2 border rounded" placeholder="e.g. cruise-control" />
+                <input value={form.slug} onChange={(e) => setForm((form) => ({ ...form, slug: e.target.value }))} required className="w-full p-2 border rounded" placeholder="e.g. cruise-control" />
               </div>
             )}
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Name shown to customer *</label>
-            <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required className="w-full p-2 border rounded" />
+            <input value={form.nombre} onChange={(e) => setForm((form) => ({ ...form, nombre: e.target.value }))} required className="w-full p-2 border rounded" />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Description</label>
-            <textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} rows={2} className="w-full p-2 border rounded" />
+            <textarea value={form.descripcion} onChange={(e) => setForm((form) => ({ ...form, descripcion: e.target.value }))} rows={2} className="w-full p-2 border rounded" />
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-semibold mb-1">Price (USD)</label>
-              <input type="number" step="0.01" min="0" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} className="w-full p-2 border rounded" />
+              <input type="number" step="0.01" min="0" value={form.precio} onChange={(e) => setForm((form) => ({ ...form, precio: e.target.value }))} className="w-full p-2 border rounded" />
               <label className="flex items-center gap-2 text-xs text-ink2 mt-2">
-                <input type="checkbox" checked={form.extraPriceTbd} onChange={(e) => setForm({ ...form, extraPriceTbd: e.target.checked })} />
+                <input type="checkbox" checked={form.extraPriceTbd} onChange={(e) => setForm((form) => ({ ...form, extraPriceTbd: e.target.checked }))} />
                 Show as &quot;Price on request&quot; (set price here when known)
               </label>
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Display order</label>
-              <input type="number" value={form.orden} onChange={(e) => setForm({ ...form, orden: e.target.value })} className="w-full p-2 border rounded" />
+              <input type="number" value={form.orden} onChange={(e) => setForm((form) => ({ ...form, orden: e.target.value }))} className="w-full p-2 border rounded" />
             </div>
             <div className="flex items-end">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.activo} onChange={(e) => setForm({ ...form, activo: e.target.checked })} />
+                <input type="checkbox" checked={form.activo} onChange={(e) => setForm((form) => ({ ...form, activo: e.target.checked }))} />
                 Visible on site
               </label>
             </div>
@@ -303,11 +303,11 @@ export default function AdminConfiguradorPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">Power label (optional)</label>
-                <input value={form.extraPower} onChange={(e) => setForm({ ...form, extraPower: e.target.value })} placeholder="e.g. 38 HP" className="w-full p-2 border rounded" />
+                <input value={form.extraPower} onChange={(e) => setForm((form) => ({ ...form, extraPower: e.target.value }))} placeholder="e.g. 38 HP" className="w-full p-2 border rounded" />
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1">Manufacturer info URL</label>
-                <input value={form.extraInfoUrl} onChange={(e) => setForm({ ...form, extraInfoUrl: e.target.value })} placeholder="https://..." className="w-full p-2 border rounded" />
+                <input value={form.extraInfoUrl} onChange={(e) => setForm((form) => ({ ...form, extraInfoUrl: e.target.value }))} placeholder="https://..." className="w-full p-2 border rounded" />
               </div>
             </div>
           )}

@@ -12,10 +12,14 @@ export function persistAuthSession(data) {
   if (data.refresh_token) {
     localStorage.setItem('refresh_token', data.refresh_token)
   }
+  // Conservar id / email verificado previos si esta llamada no los trae (p. ej. al editar el perfil)
+  let prev = {}
+  try { prev = JSON.parse(localStorage.getItem('user') || '{}') || {} } catch { prev = {} }
   localStorage.setItem('user', JSON.stringify({
+    id: data.usuario_id ?? data.id ?? prev.id ?? null,
     nombre: data.nombre,
     rol: data.rol,
-    email_verificado: data.email_verificado ?? false,
+    email_verificado: data.email_verificado ?? prev.email_verificado ?? false,
   }))
 
   // Cookie HttpOnly la establece el backend; solo sincronizamos access para dev cross-origin
@@ -74,6 +78,7 @@ export async function ensureValidSession() {
     persistAuthSession({
       access_token: localStorage.getItem('access_token'),
       refresh_token: localStorage.getItem('refresh_token'),
+      usuario_id: me.id,
       nombre: me.nombre,
       rol: me.rol,
       email_verificado: me.email_verificado,

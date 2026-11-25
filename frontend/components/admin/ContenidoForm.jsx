@@ -81,7 +81,7 @@ export default function ContenidoForm({ seccion, initial, onSave, onCancel, defa
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setForm((form) => ({ ...form, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSubmit = async (e) => {
@@ -125,7 +125,7 @@ export default function ContenidoForm({ seccion, initial, onSave, onCancel, defa
 
       <ImageUploadField
         images={form.imagen ? [form.imagen] : []}
-        onChange={(urls) => setForm({ ...form, imagen: urls[0] || '' })}
+        onChange={(urls) => setForm((form) => ({ ...form, imagen: urls[0] || '' }))}
         label="Image"
         maxImages={1}
       />

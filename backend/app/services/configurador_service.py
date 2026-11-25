@@ -180,6 +180,9 @@ class ConfiguradorService:
         if db_catalog:
             legacy = LEGACY_CATALOGS.get(producto_id, {})
             db_catalog["fallback_base"] = legacy.get("fallback_base", 5950.0)
+            if not db_catalog.get("engines"):
+                # Sin motores activos en BD: validar contra el catálogo legacy (no aceptar cualquier motor a $0)
+                db_catalog["engines"] = legacy.get("engines", {})
             if not db_catalog.get("finishes"):
                 db_catalog["finishes"] = legacy.get("finishes", {})
             if not db_catalog.get("propellers"):
